@@ -52,7 +52,7 @@ import javax.media.j3d.Behavior;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
 import javax.media.j3d.WakeupCriterion;
-import javax.media.j3d.WakeupOnAWTEvent;
+ 
 import javax.media.j3d.WakeupOnBehaviorPost;
 import javax.media.j3d.WakeupOr;
 
@@ -68,7 +68,7 @@ import com.sun.j3d.internal.J3dUtilsI18N;
 public abstract class MouseBehavior extends Behavior
      implements MouseListener, MouseMotionListener, MouseWheelListener {
 
-    private boolean listener = false;
+ 
 
     protected WakeupCriterion[] mouseEvents;
     protected WakeupOr mouseCriterion;
@@ -106,7 +106,7 @@ public abstract class MouseBehavior extends Behavior
      * Creates a mouse behavior object with a given transform group.
      * @param transformGroup The transform group to be manipulated.
      */
-    public MouseBehavior(TransformGroup transformGroup) {
+    private MouseBehavior(TransformGroup transformGroup) {
 	super();
 	// need to remove old behavior from group
 	this.transformGroup = transformGroup;
@@ -122,7 +122,7 @@ public abstract class MouseBehavior extends Behavior
      * the transform group must add this behavior.
      * @param format flags
      */
-    public MouseBehavior(int format) {
+    private MouseBehavior(int format) {
 	super();
 	flags = format;
 	currXform = new Transform3D();
@@ -150,7 +150,7 @@ public abstract class MouseBehavior extends Behavior
 	    c.addMouseMotionListener(this);
 	    c.addMouseWheelListener(this);
 	}
-	listener = true;
+ 
     }
 
     /**
@@ -172,7 +172,7 @@ public abstract class MouseBehavior extends Behavior
 	    c.addMouseMotionListener(this);
 	    c.addMouseWheelListener(this);
 	}
-	listener = true;
+	 
     }
 
   /**
@@ -204,13 +204,7 @@ public abstract class MouseBehavior extends Behavior
   public void initialize() {
     mouseEvents = new WakeupCriterion[4];
 
-    if (!listener) {
-	mouseEvents[0] = new WakeupOnAWTEvent(MouseEvent.MOUSE_DRAGGED);
-	mouseEvents[1] = new WakeupOnAWTEvent(MouseEvent.MOUSE_PRESSED);
-	mouseEvents[2] = new WakeupOnAWTEvent(MouseEvent.MOUSE_RELEASED);
-	mouseEvents[3] = new WakeupOnAWTEvent(MouseEvent.MOUSE_WHEEL);
-    }
-    else {
+     
 	mouseEvents[0] = new WakeupOnBehaviorPost(this,
 						  MouseEvent.MOUSE_DRAGGED);
 	mouseEvents[1] = new WakeupOnBehaviorPost(this,
@@ -220,7 +214,7 @@ public abstract class MouseBehavior extends Behavior
 	mouseEvents[3] = new WakeupOnBehaviorPost(this,
 						  MouseEvent.MOUSE_WHEEL);
 	mouseq = new LinkedList();
-    }
+   
     mouseCriterion = new WakeupOr(mouseEvents);
     wakeupOn (mouseCriterion);
     x = 0;
@@ -279,9 +273,7 @@ public abstract class MouseBehavior extends Behavior
      * @since Java 3D 1.2.1
      */
     public void addListener(Component c) {
-	if (!listener) {
-	   throw new IllegalStateException(J3dUtilsI18N.getString("Behavior0"));
-	}
+	 
 	c.addMouseListener(this);
 	c.addMouseMotionListener(this);
 	c.addMouseWheelListener(this);

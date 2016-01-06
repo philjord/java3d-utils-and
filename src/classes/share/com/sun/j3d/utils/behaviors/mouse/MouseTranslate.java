@@ -39,7 +39,7 @@
 
 package com.sun.j3d.utils.behaviors.mouse;
 
-import java.awt.AWTEvent;
+ 
 import java.awt.Component;
 import java.awt.event.MouseEvent;
 import java.util.Enumeration;
@@ -47,7 +47,7 @@ import java.util.Enumeration;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
 import javax.media.j3d.WakeupCriterion;
-import javax.media.j3d.WakeupOnAWTEvent;
+ 
 import javax.media.j3d.WakeupOnBehaviorPost;
 import javax.vecmath.Vector3d;
 
@@ -65,31 +65,7 @@ public class MouseTranslate extends MouseBehavior {
 
     private MouseBehaviorCallback callback = null;
 
-    /**
-     * Creates a mouse translate behavior given the transform group.
-     * @param transformGroup The transformGroup to operate on.
-     */
-    public MouseTranslate(TransformGroup transformGroup) {
-	super(transformGroup);
-    }
-
-    /**
-     * Creates a default translate behavior.
-     */
-    public MouseTranslate(){
-	super(0);
-    }
-
-    /**
-     * Creates a translate behavior.
-     * Note that this behavior still needs a transform
-     * group to work on (use setTransformGroup(tg)) and
-     * the transform group must add this behavior.
-     * @param flags
-     */
-    public MouseTranslate(int flags) {
-	super(flags);
-    }
+ 
 
     /**
      * Creates a translate behavior that uses AWT listeners and behavior
@@ -180,7 +156,7 @@ public class MouseTranslate extends MouseBehavior {
     @Override
     public void processStimulus (Enumeration criteria) {
 	WakeupCriterion wakeup;
-	AWTEvent[] events;
+	 
  	MouseEvent evt;
 // 	int id;
 // 	int dx, dy;
@@ -188,15 +164,7 @@ public class MouseTranslate extends MouseBehavior {
 	while (criteria.hasMoreElements()) {
 	    wakeup = (WakeupCriterion) criteria.nextElement();
 
-	    if (wakeup instanceof WakeupOnAWTEvent) {
-		events = ((WakeupOnAWTEvent)wakeup).getAWTEvent();
-		if (events.length > 0) {
-		    evt = (MouseEvent) events[events.length-1];
-		    doProcess(evt);
-		}
-	    }
-
-	    else if (wakeup instanceof WakeupOnBehaviorPost) {
+	    if (wakeup instanceof WakeupOnBehaviorPost) {
 		while (true) {
 		    // access to the queue must be synchronized
 		    synchronized (mouseq) {
