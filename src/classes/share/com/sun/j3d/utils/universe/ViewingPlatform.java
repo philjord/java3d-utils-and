@@ -51,7 +51,6 @@ import javax.media.j3d.ViewPlatform;
 import javax.vecmath.Vector3d;
 
 import com.sun.j3d.internal.J3dUtilsI18N;
-import com.sun.j3d.utils.behaviors.vp.ViewPlatformBehavior;
 
 /**
  * This class is used to set up the "view" side of a Java 3D scene graph.
@@ -402,89 +401,7 @@ public class ViewingPlatform extends BranchGroup {
 	viewerList.remove(viewer);
     }
 
-    /**
-     * Adds a new ViewPlatformBehavior to the ViewingPlatform
-     */
-    void addViewPlatformBehavior(ViewPlatformBehavior behavior) {
-	behavior.setViewingPlatform(this);
- 	if (behaviors == null) {
- 	    behaviors = new BranchGroup();
- 	    behaviors.setCapability(BranchGroup.ALLOW_DETACH);
-	    behaviors.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
- 	}
- 	// otherwise detach the BranchGroup so we can add to it
-	else {
-	    behaviors.detach();
-	}
-	behaviors.addChild(behavior);
-	this.addChild(behaviors);
-    }
 
-    /**
-     * Sets the ViewPlatformBehavior which will operate on the ViewPlatform
-     * transform (the TransformGroup returned by
-     * ViewingPlatform.getViewPlatformTransform()). The ViewPlatformBehavior
-     * may be set after the ViewingPlatform is setLive().
-     * If a behavior is already present, it will be detached and it's
-     * setViewingPlatform method will be called with a parameter of null.
-     * @param behavior The ViewPlatformBehavior to add to the ViewingPlatform.
-     * null will remove the ViewingPlatform behavior.
-     * @since Java 3D 1.2.1
-     */
-    public void setViewPlatformBehavior(ViewPlatformBehavior behavior) {
-	if (behaviors != null) {
-	    removeViewPlatformBehavior((ViewPlatformBehavior)behaviors.getChild(0));
-	}
-	if (behavior != null) {
-	    addViewPlatformBehavior(behavior);
-	}
-    }
-
-    /**
-     * Removes the specified ViewPlatformBehavior
-     */
-    void removeViewPlatformBehavior(ViewPlatformBehavior behavior) {
-	// remove from the behaviors branch group
-	if (behaviors != null) {
-	    behaviors.detach();
-	    for (int i = 0; i < behaviors.numChildren(); i++) {
-		if (behaviors.getChild(i) == behavior) {
-	            behavior.setViewingPlatform( null );
-		    behaviors.removeChild(i);
-		    break;
-		}
-	    }
-	    if (behaviors.numChildren() == 0) behaviors = null;
-	    else this.addChild(behaviors);
-	}
-    }
-
-    /**
-     * Returns the number of ViewPlatformBehaviors on the ViewingPlatform
-     */
-    int getViewPlatformBehaviorCount() {
-	return behaviors.numChildren();
-    }
-
-    /**
-     * Returns the ViewPlatformBehavior at the specified index
-     */
-    ViewPlatformBehavior getViewPlatformBehavior(int index) {
-	return (ViewPlatformBehavior)behaviors.getChild(index);
-    }
-
-    /**
-     * Returns the ViewPlatformBehavior
-     * @return the ViewPlatformBehavior for the ViewingPlatform.
-     * Returns null if there is no ViewPlatformBehavior set.
-     * @since Java 3D 1.2.1
-     */
-    public ViewPlatformBehavior getViewPlatformBehavior() {
-	if (behaviors == null) {
-	    return null;
-	}
-	return getViewPlatformBehavior(0);
-    }
 
     /**
      * Returns the Viewers attached to this ViewingPlatform

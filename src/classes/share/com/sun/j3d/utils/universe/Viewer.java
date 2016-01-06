@@ -40,13 +40,12 @@
 package com.sun.j3d.utils.universe;
 
 import java.awt.BorderLayout;
-import java.awt.Container;
 import java.awt.Frame;
+import java.awt.GraphicsConfigTemplate;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Panel;
-import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -58,8 +57,6 @@ import javax.media.j3d.Canvas3D;
 import javax.media.j3d.GraphicsConfigTemplate3D;
 import javax.media.j3d.PhysicalBody;
 import javax.media.j3d.PhysicalEnvironment;
-import javax.media.j3d.Screen3D;
-import javax.media.j3d.Transform3D;
 import javax.media.j3d.View;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -198,8 +195,13 @@ public class Viewer {
 
         // Create Canvas3D object if none was passed in.
         if (userCanvases == null) {
-	    GraphicsConfiguration config =
-		ConfiguredUniverse.getPreferredConfiguration();
+    	GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+    	GraphicsDevice gd = ge.getDefaultScreenDevice();
+		GraphicsConfiguration[] gc = gd.getConfigurations();
+	    GraphicsConfigTemplate3D template = new GraphicsConfigTemplate3D();
+		// antialiasing REQUIRED is good to have
+		template.setSceneAntialiasing(GraphicsConfigTemplate.REQUIRED);
+		GraphicsConfiguration config = template.getBestConfiguration(gc);
 
 		canvases = new Canvas3D[1];
 		canvases[0] = new Canvas3D(config);
@@ -296,191 +298,6 @@ public class Viewer {
         view.setPhysicalEnvironment(physicalEnvironment);
     }
 
-    /**
-     * Package-scoped constructor to create a Viewer from the configuration
-     * objects provided by ConfiguredUniverse.
-     *
-     * @param cs array of ConfigScreen objects containing configuration
-     *  information for the physical screens in the environment
-     * @param cv ConfigView object containing configuration information about
-     *  the view to be created using the given screens
-     * @param setVisible if true, call setVisible(true) on all created Window
-     *  components; otherwise, they remain invisible
-     */
-    Viewer(ConfigScreen[] cs, ConfigView cv, boolean setVisible) {
-
-	// Retrieve the J3D View object from the ConfigView object.
-	// The physical body and environment have already been set there.
-	view = cv.j3dView;
-
-	// Set this Viewer's references to the physical body and environment.
-	physicalBody = cv.physicalBody;
-	physicalEnvironment = cv.physicalEnvironment;
-
-	// Get available screen devices.
-	//
-	// When running with JDK 1.3.1 or older under the X Window System with
-	// Xinerama enabled, a single screen device is returned which is
-	// actually a virtual screen spanning all the physical screens in the
-	// X display.  These can only be configured as a single planar screen
-	// in the configuration file.
-	//
-	// JDK 1.4 and newer returns a screen device for each physical screen,
-	// allowing them to configured as distinct screens with arbitrary
-	// orientations relative to each other.
-	//
-	GraphicsDevice[] devices;
-	GraphicsEnvironment graphicsEnv;
-
-        graphicsEnv = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        devices = graphicsEnv.getScreenDevices();
-
-	if (devices == null)
-	    throw new RuntimeException(
-                    "No screen devices available in local environment");
-
-	if (debug) {
-	    System.out.println
-		("Viewer: GraphicsEnvironment returned " + devices.length +
-		 " GraphicsDevice object" + (devices.length == 1 ? "" : "s"));
-
-	    for (int i = 0; i < devices.length; i++) {
-		System.out.println
-		    (devices[i] + "\n" +
-		     devices[i].getDefaultConfiguration().getBounds() + "\n");
-	    }
-	}
-
-	// Allocate the arrays of components to be used.  AWT Windows are used
-	// to hold either a JFrame or a JWindow.
-	canvases = new Canvas3D[cs.length];
-	j3dJFrames = new JFrame[cs.length];
-	j3dJPanels = new JPanel[cs.length];
-	j3dWindows = new Window[cs.length];
-
-	// Create a graphics template requesting the desired capabilities.
-	GraphicsConfigTemplate3D tpl3D = new GraphicsConfigTemplate3D();
-	if (cv.stereoEnable) {
-	    tpl3D.setStereo(GraphicsConfigTemplate3D.PREFERRED);
-	}
-        if (cv.antialiasingEnable) {
-            tpl3D.setSceneAntialiasing(GraphicsConfigTemplate3D.PREFERRED);
-        }
-
-	// Loop through all screens.  Set up the Swing component structure and
-	// the configured attributes for the Canvas3D and Screen3D associated
-	// with each screen.
-	for (int i = 0; i < cs.length; i++) {
-            if (cs[i].frameBufferNumber >= devices.length)
-                throw new ArrayIndexOutOfBoundsException(
-                    cs[i].errorMessage(cs[i].creatingCommand,
-                        "Screen " + cs[i].frameBufferNumber + " is invalid; " +
-                        (devices.length-1) + " is the maximum local index."));
-
-	    Rectangle bounds;
-	    Container contentPane;
-	    GraphicsConfiguration cfg =
-		devices[cs[i].frameBufferNumber].getBestConfiguration(tpl3D);
-
-	    if (cfg == null)
-                throw new RuntimeException(
-                        "No GraphicsConfiguration on screen " +
-                        cs[i].frameBufferNumber + " conforms to template");
-
-            // Workaround for Issue 316 - use the default config for the screen
-            GraphicsConfiguration defCfg = cfg.getDevice().getDefaultConfiguration();
-	    bounds = defCfg.getBounds();
-	    cs[i].j3dJFrame = j3dJFrames[i] =
-		new JFrame(cs[i].instanceName, defCfg);
-
-	    if (cs[i].noBorderFullScreen) {
-			j3dJFrames[i].setUndecorated(true);
-
-			cs[i].j3dWindow = j3dWindows[i] = j3dJFrames[i];
-			contentPane = j3dJFrames[i].getContentPane();
-
-		contentPane.setLayout(new BorderLayout());
- 		j3dWindows[i].setSize(bounds.width, bounds.height);
-		j3dWindows[i].setLocation(bounds.x, bounds.y);
-	    }
-	    else {
-		cs[i].j3dWindow = j3dWindows[i] = j3dJFrames[i];
-
-		contentPane = j3dJFrames[i].getContentPane();
-		contentPane.setLayout(new BorderLayout());
-
-		if (cs[i].fullScreen) {
-		    j3dWindows[i].setSize(bounds.width, bounds.height);
-		    j3dWindows[i].setLocation(bounds.x, bounds.y);
-		}
-		else {
-		    j3dWindows[i].setSize(cs[i].windowWidthInPixels,
-					  cs[i].windowHeightInPixels);
-		    j3dWindows[i].setLocation(bounds.x + cs[i].windowX,
-					      bounds.y + cs[i].windowY) ;
-		}
-	    }
-
-	    // Create a Canvas3D and set its attributes.
-	    cs[i].j3dCanvas = canvases[i] = new Canvas3D(cfg);
-	    canvases[i].setStereoEnable(cv.stereoEnable);
-	    canvases[i].setMonoscopicViewPolicy(cs[i].monoscopicViewPolicy);
-
-	    // Get the Screen3D and set its attributes.
-	    Screen3D screen = canvases[i].getScreen3D();
-
-	    if (cs[i].physicalScreenWidth != 0.0)
-		screen.setPhysicalScreenWidth(cs[i].physicalScreenWidth);
-
-	    if (cs[i].physicalScreenHeight != 0.0)
-		screen.setPhysicalScreenHeight(cs[i].physicalScreenHeight);
-
-	    if (cs[i].trackerBaseToImagePlate != null)
-		screen.setTrackerBaseToImagePlate
-		    (new Transform3D(cs[i].trackerBaseToImagePlate));
-
-	    if (cs[i].headTrackerToLeftImagePlate != null)
-		screen.setHeadTrackerToLeftImagePlate
-		    (new Transform3D(cs[i].headTrackerToLeftImagePlate));
-
-	    if (cs[i].headTrackerToRightImagePlate != null)
-		screen.setHeadTrackerToRightImagePlate
-		    (new Transform3D(cs[i].headTrackerToRightImagePlate));
-
-	    // Put the Canvas3D into a JPanel.
-	    cs[i].j3dJPanel = j3dJPanels[i] = new JPanel();
-	    j3dJPanels[i].setLayout(new BorderLayout());
-	    j3dJPanels[i].add("Center", canvases[i]);
-
-	    // Put the JPanel into the content pane used by JWindow or JFrame.
-	    contentPane.add("Center", j3dJPanels[i]);
-
-	    // Attach the Canvas3D to the View.
-	    view.addCanvas3D(canvases[i]);
-
-	    // Add a windowListener to detect the window close event.
-	    addWindowCloseListener(j3dWindows[i]);
-
-		canvases[i].setFocusable(true);
-
-	    if (debug) {
-		System.out.println("Viewer: created Canvas3D for screen " +
-				   cs[i].frameBufferNumber + " with size\n  " +
-				   j3dWindows[i].getSize());
-		System.out.println("Screen3D[" + i + "]:  size in pixels (" +
-				   screen.getSize().width + " x " +
-				   screen.getSize().height + ")");
-		System.out.println("  physical size in meters:  (" +
-				   screen.getPhysicalScreenWidth() + " x " +
-				   screen.getPhysicalScreenHeight() + ")");
-		System.out.println("  hashCode = " + screen.hashCode() + "\n");
-	    }
-        }
-
-	if (setVisible)
-	    // Call setVisible() on all created Window components.
-	    setVisible(true);
-    }
 
     // Create the JFrames and JPanels for application-supplied Canvas3D
     // objects.

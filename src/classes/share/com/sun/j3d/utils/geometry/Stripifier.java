@@ -56,6 +56,9 @@ package com.sun.j3d.utils.geometry;
 
 import java.util.ArrayList;
 
+import javax.vecmath.Color3b;
+import javax.vecmath.Color3f;
+
 import com.sun.j3d.internal.J3dUtilsI18N;
 
 /**
@@ -2057,12 +2060,12 @@ public class Stripifier {
 					       currStrip.length);
 		}
 
-		java.awt.Color stripColor = null;
+		Color3b stripColor = null;
 		if (colorStrips) {
-		    int r = ((int)(Math.random()*1000))%255;
-		    int g = ((int)(Math.random()*1000))%255;
-		    int b = ((int)(Math.random()*1000))%255;
-		    stripColor = new java.awt.Color(r, g, b);
+		    byte r = (byte) (((int)(Math.random()*1000))%255);
+		    byte g = (byte) (((int)(Math.random()*1000))%255);
+		    byte b = (byte) (((int)(Math.random()*1000))%255);
+		    stripColor = new Color3b(r, g, b);
 		}
 
 		for (int j = 0; j < currStrip.length; j++) {
@@ -2076,7 +2079,7 @@ public class Stripifier {
 		    }
 		    if (hasColors) colors[count] = currStrip.istream[j].color;
 		    if (colorStrips) stripColors[count] =
-					 new javax.vecmath.Color3b(stripColor);
+					 new Color3b(stripColor);
 		    count++;
 		}
 	    }
