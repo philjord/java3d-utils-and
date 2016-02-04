@@ -472,10 +472,11 @@ public class TextureLoader extends Object {
      * @return The associated ImageComponent2D object
      */
     public ImageComponent2D getImage() {
-	if (imageComponent == null)
+    	throw new UnsupportedOperationException();
+/*	if (imageComponent == null)
             imageComponent = new ImageComponent2D(imageComponentFormat,
 						  bufferedImage, byRef, yUp);
-        return imageComponent;
+        return imageComponent;*/
     }
 
     /**
@@ -487,13 +488,14 @@ public class TextureLoader extends Object {
      * @return The scaled ImageComponent2D object
      */
     public ImageComponent2D getScaledImage(float xScale, float yScale) {
-	if (xScale == 1.0f && yScale == 1.0f)
+    	throw new UnsupportedOperationException();
+	/*if (xScale == 1.0f && yScale == 1.0f)
 	    return getImage();
 	else
 	    return(new ImageComponent2D(imageComponentFormat,
 					getScaledImage(bufferedImage,
 						       xScale, yScale),
-					byRef, yUp));
+					byRef, yUp));*/
     }
 
     /**
@@ -505,15 +507,15 @@ public class TextureLoader extends Object {
      * @return The scaled ImageComponent2D object
      */
     public ImageComponent2D getScaledImage(int width, int height) {
-
-	if (bufferedImage.getWidth() == width &&
+    	throw new UnsupportedOperationException();
+	/*if (bufferedImage.getWidth() == width &&
 	    	bufferedImage.getHeight() == height)
 	    return getImage();
         else
 	    return(new ImageComponent2D(imageComponentFormat,
 					getScaledImage(bufferedImage,
 						       width, height),
-					byRef, yUp));
+					byRef, yUp));*/
     }
 
     /**
@@ -522,6 +524,8 @@ public class TextureLoader extends Object {
      * @return The associated Texture object
      */
     public Texture getTexture() {
+    	throw new UnsupportedOperationException();
+   /* 	
 	ImageComponent2D[] scaledImageComponents = null;
 	BufferedImage[] scaledBufferedImages = null;
         if (tex == null) {
@@ -588,7 +592,7 @@ public class TextureLoader extends Object {
           tex.setMagFilter(tex.BASE_LEVEL_LINEAR);
         }
 
-	return tex;
+	return tex;*/
     }
 
     // create a BufferedImage from an Image object
