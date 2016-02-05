@@ -37,12 +37,10 @@
  *
  */
 
-package com.sun.j3d.utils.behaviors.mouse;
+package com.sun.j3d.utils.behaviors.mouse.newt;
 
  
-import java.awt.Component;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
+ 
 import java.util.Enumeration;
 
 import javax.media.j3d.Transform3D;
@@ -51,6 +49,10 @@ import javax.media.j3d.WakeupCriterion;
  
 import javax.media.j3d.WakeupOnBehaviorPost;
 import javax.vecmath.Vector3d;
+
+import com.jogamp.newt.Window;
+import com.jogamp.newt.event.MouseEvent;
+import com.sun.j3d.utils.behaviors.mouse.MouseBehaviorCallback;
 
 
 /**
@@ -78,7 +80,7 @@ public class MouseWheelZoom extends MouseBehavior {
 	 * and MouseMotionListener to.
 	 * @since Java 3D 1.3.2
 	 */
-	public MouseWheelZoom(Component c) {
+	public MouseWheelZoom(Window c) {
 		super(c, 0);
 	}
 
@@ -93,7 +95,7 @@ public class MouseWheelZoom extends MouseBehavior {
 	 * @param transformGroup The TransformGroup to operate on.
 	 * @since Java 3D 1.3.2
 	 */
-	public MouseWheelZoom(Component c, TransformGroup transformGroup) {
+	public MouseWheelZoom(Window c, TransformGroup transformGroup) {
 		super(c, transformGroup);
 	}
 
@@ -109,7 +111,7 @@ public class MouseWheelZoom extends MouseBehavior {
 	 * @param flags interesting flags (wakeup conditions).
 	 * @since Java 3D 1.3.2
 	 */
-	public MouseWheelZoom(Component c, int flags) {
+	public MouseWheelZoom(Window c, int flags) {
 		super(c, flags);
 	}
 
@@ -151,10 +153,10 @@ public class MouseWheelZoom extends MouseBehavior {
 			if (mouseq.isEmpty()) break;
 			evt = (MouseEvent)mouseq.remove(0);
 			// consolidate MOUSE_WHEEL events
-			while((evt.getID() == MouseEvent.MOUSE_WHEEL) &&
+			while((evt.getEventType() == MouseEvent.EVENT_MOUSE_WHEEL_MOVED) &&
 			      !mouseq.isEmpty() &&
-			      (((MouseEvent)mouseq.get(0)).getID() ==
-			       MouseEvent.MOUSE_WHEEL)) {
+			      (((MouseEvent)mouseq.get(0)).getEventType() ==
+			       MouseEvent.EVENT_MOUSE_WHEEL_MOVED)) {
 			    evt = (MouseEvent)mouseq.remove(0);
 			}
 		    }
@@ -171,11 +173,12 @@ public class MouseWheelZoom extends MouseBehavior {
 
 	processMouseEvent(evt);
 
-	if ((evt.getID() == MouseEvent.MOUSE_WHEEL)) {
-	    MouseWheelEvent wheelEvent = (MouseWheelEvent)evt;
-	    if (wheelEvent.getScrollType() == wheelEvent.WHEEL_UNIT_SCROLL ) {
-		units = wheelEvent.getUnitsToScroll();
-	    }
+	if ((evt.getEventType() == MouseEvent.EVENT_MOUSE_WHEEL_MOVED)) {
+	    MouseEvent wheelEvent = (MouseEvent)evt;
+	    //if (wheelEvent.getScrollType() == wheelEvent.WHEEL_UNIT_SCROLL ) {
+		units = (int) wheelEvent.getRotationScale();
+		// also this guy?wheelEvent.getRotation()[0];
+	   // }
 
 	    if (!reset) {
 		transformGroup.getTransform(currXform);

@@ -37,7 +37,7 @@
  *
  */
 
-package com.sun.j3d.utils.behaviors.mouse;
+package com.sun.j3d.utils.behaviors.mouse.awt;
 
 import java.awt.Component;
 import java.awt.event.MouseEvent;

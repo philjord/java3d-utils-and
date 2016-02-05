@@ -37,7 +37,7 @@
  *
  */
 
-package com.sun.j3d.utils.image;
+package com.sun.j3d.utils.image.awt;
 
 import java.awt.Component;
 import java.awt.Image;
@@ -63,6 +63,8 @@ import javax.media.j3d.ImageComponent;
 import javax.media.j3d.ImageComponent2D;
 import javax.media.j3d.Texture;
 import javax.media.j3d.Texture2D;
+
+import com.sun.j3d.utils.image.ImageException;
 
 /**
  * This class is used for loading a texture from an Image or BufferedImage.
