@@ -39,8 +39,6 @@
 
 package com.sun.j3d.utils.pickfast;
 
-import java.awt.event.MouseEvent;
-
 import javax.media.j3d.BranchGroup;
 import javax.media.j3d.Canvas3D;
 import javax.media.j3d.Locale;
@@ -81,173 +79,194 @@ import javax.vecmath.Vector3d;
  * by the distance from the ViewPlatform to the intersection point.
  * @see PickTool
  */
-public class PickCanvas extends PickTool {
+public class PickCanvas extends PickTool
+{
 
-    /* OPEN ISSUES:
-       -- Should restrict the pick shape to the front/back clip plane
-     */
+	/* OPEN ISSUES:
+	   -- Should restrict the pick shape to the front/back clip plane
+	 */
 
+	/** The canvas we are picking into */
+	Canvas3D canvas;
 
-    /** The canvas we are picking into */
-    Canvas3D canvas;
+	/* the pick tolerance, default to 2.0 */
+	float tolerance = 2.0f;
+	int save_xpos;
+	int save_ypos;
 
-    /* the pick tolerance, default to 2.0 */
-    float tolerance = 2.0f;
-    int save_xpos;
-    int save_ypos;
+	/** Constructor with Canvas3D for mouse events and BranchGroup to be picked.
+	 */
+	public PickCanvas(Canvas3D c, BranchGroup b)
+	{
+		super(b);
+		canvas = c;
+	}
 
-    /** Constructor with Canvas3D for mouse events and BranchGroup to be picked.
-     */
-    public PickCanvas (Canvas3D c, BranchGroup b) {
-	super (b);
-	canvas = c;
-    }
+	/** Constructor with Canvas3D for mouse events and Locale to be picked.
+	 */
+	public PickCanvas(Canvas3D c, Locale l)
+	{
+		super(l);
+		canvas = c;
+	}
 
-    /** Constructor with Canvas3D for mouse events and Locale to be picked.
-     */
-    public PickCanvas (Canvas3D c, Locale l) {
-	super (l);
-	canvas = c;
-    }
-
-    /** Inquire the canvas to be used for picking operations.
+	/** Inquire the canvas to be used for picking operations.
 	@return the canvas.
-     */
-    public Canvas3D getCanvas() {
-	return canvas;
-    }
-
-    /** Set the picking tolerance.  Objects within this distance
-     * (in pixels)
-     * to the mouse x,y location will be picked.  The default tolerance is 2.0.
-     * @param t The tolerance
-     * @exception IllegalArgumentException if the tolerance is less than 0.
-     */
-    public void setTolerance(float t) {
-	if (t < 0.0f) {
-	    throw new IllegalArgumentException();
+	 */
+	public Canvas3D getCanvas()
+	{
+		return canvas;
 	}
-	tolerance = t;
 
-	if ((pickShape != null) && (!userDefineShape)) {
-	    // reset pickShape
-	    pickShape = null;
-	    setShapeLocation(save_xpos, save_ypos);
+	/** Set the picking tolerance.  Objects within this distance
+	 * (in pixels)
+	 * to the mouse x,y location will be picked.  The default tolerance is 2.0.
+	 * @param t The tolerance
+	 * @exception IllegalArgumentException if the tolerance is less than 0.
+	 */
+	public void setTolerance(float t)
+	{
+		if (t < 0.0f)
+		{
+			throw new IllegalArgumentException();
+		}
+		tolerance = t;
+
+		if ((pickShape != null) && (!userDefineShape))
+		{
+			// reset pickShape
+			pickShape = null;
+			setShapeLocation(save_xpos, save_ypos);
+		}
 	}
-    }
 
-    /** Get the pick tolerance.
-     */
-    public float getTolerance() {
-	return tolerance;
-    }
+	/** Get the pick tolerance.
+	 */
+	public float getTolerance()
+	{
+		return tolerance;
+	}
 
-    /** Set the pick location. Defines the location on the canvas where the
-       pick is to be performed.
-      @param mevent The MouseEvent for the picking point
-    */
-    public void setShapeLocation(MouseEvent mevent) {
-	setShapeLocation(mevent.getX(), mevent.getY());
-    }
-    /** Set the pick location. Defines the location on the canvas where the
-        pick is to be performed (upper left corner of canvas is 0,0).
+	/** Set the pick location. Defines the location on the canvas where the
+	   pick is to be performed.
+	  @param mevent The MouseEvent for the picking point
+	*/
+	public void setShapeLocation(java.awt.event.MouseEvent mevent)
+	{
+		setShapeLocation(mevent.getX(), mevent.getY());
+	}
+
+	public void setShapeLocation(com.jogamp.newt.event.MouseEvent mevent)
+	{
+		setShapeLocation(mevent.getX(), mevent.getY());
+	}
+
+	/** Set the pick location. Defines the location on the canvas where the
+	    pick is to be performed (upper left corner of canvas is 0,0).
 	@param xpos the X position of the picking point
 	@param ypos the Y position of the picking point
-    */
-    public void setShapeLocation (int xpos, int ypos) {
-	Transform3D motion = new Transform3D();
-	Point3d eyePosn = new Point3d();
-	Point3d mousePosn = new Point3d();
-	Vector3d mouseVec = new Vector3d();
-	boolean isParallel = false;
-	double radius = 0.0;
-	double spreadAngle = 0.0;
-
-	this.save_xpos = xpos;
-	this.save_ypos = ypos;
-	canvas.getCenterEyeInImagePlate(eyePosn);
-	canvas.getPixelLocationInImagePlate(xpos,ypos,mousePosn);
-
-	if ((canvas.getView() != null) &&
-	    (canvas.getView().getProjectionPolicy() ==
-				    View.PARALLEL_PROJECTION)) {
-	    // Correct for the parallel projection: keep the eye's z
-	    // coordinate, but make x,y be the same as the mouse, this
-	    // simulates the eye being at "infinity"
-	    eyePosn.x = mousePosn.x;
-	    eyePosn.y = mousePosn.y;
-	    isParallel = true;
-	}
-
-	// Calculate radius for PickCylinderRay and spread angle for PickConeRay
-	Vector3d eyeToCanvas = new Vector3d();
-	eyeToCanvas.sub (mousePosn, eyePosn);
-	double distanceEyeToCanvas = eyeToCanvas.length();
-
-	Point3d deltaImgPlate = new Point3d();
-	canvas.getPixelLocationInImagePlate (xpos+1, ypos, deltaImgPlate);
-
-	Vector3d ptToDelta = new Vector3d();
-	ptToDelta.sub (mousePosn, deltaImgPlate);
-	double distancePtToDelta = ptToDelta.length();
-	distancePtToDelta *= tolerance;
-
-	canvas.getImagePlateToVworld(motion);
-
-	/*
-	System.out.println("mouse position " + xpos + " " + ypos);
-	System.out.println("before, mouse " + mousePosn + " eye " + eyePosn);
 	*/
+	public void setShapeLocation(int xpos, int ypos)
+	{
+		Transform3D motion = new Transform3D();
+		Point3d eyePosn = new Point3d();
+		Point3d mousePosn = new Point3d();
+		Vector3d mouseVec = new Vector3d();
+		boolean isParallel = false;
+		double radius = 0.0;
+		double spreadAngle = 0.0;
 
-	motion.transform(eyePosn);
-	start = new Point3d (eyePosn); // store the eye position
-	motion.transform(mousePosn);
-	mouseVec.sub(mousePosn, eyePosn);
-	mouseVec.normalize();
+		this.save_xpos = xpos;
+		this.save_ypos = ypos;
+		canvas.getCenterEyeInImagePlate(eyePosn);
+		canvas.getPixelLocationInImagePlate(xpos, ypos, mousePosn);
 
-	/*
-	System.out.println(motion + "\n");
-	System.out.println("after, mouse " + mousePosn + " eye " + eyePosn +
-		 " mouseVec " + mouseVec);
-		 */
-
-	if (tolerance == 0.0) {
-	    if ((pickShape != null) && (pickShape instanceof PickRay)) {
-		((PickRay)pickShape).set (eyePosn, mouseVec);
-	    } else {
-		pickShape = (PickShape) new PickRay (eyePosn, mouseVec);
-	    }
-	    //      pickShape = (PickShape) new PickConeRay (eyePosn,
-	    //		mouseVec,1.0*Math.PI/180.0);
-	} else {
-	    if (isParallel) {
-		// Parallel projection, use a PickCylinderRay
-	        distancePtToDelta *= motion.getScale();
-		if ((pickShape != null) &&
-				(pickShape instanceof PickCylinderRay)) {
-		    ((PickCylinderRay)pickShape).set (eyePosn, mouseVec,
-						distancePtToDelta);
-		} else {
-		    pickShape = (PickShape) new PickCylinderRay (eyePosn,
-						mouseVec, distancePtToDelta);
+		if ((canvas.getView() != null) && (canvas.getView().getProjectionPolicy() == View.PARALLEL_PROJECTION))
+		{
+			// Correct for the parallel projection: keep the eye's z
+			// coordinate, but make x,y be the same as the mouse, this
+			// simulates the eye being at "infinity"
+			eyePosn.x = mousePosn.x;
+			eyePosn.y = mousePosn.y;
+			isParallel = true;
 		}
-	    } else {
-		// Perspective projection, use a PickConeRay
 
-		// Calculate spread angle
-		spreadAngle = Math.atan (distancePtToDelta/distanceEyeToCanvas);
+		// Calculate radius for PickCylinderRay and spread angle for PickConeRay
+		Vector3d eyeToCanvas = new Vector3d();
+		eyeToCanvas.sub(mousePosn, eyePosn);
+		double distanceEyeToCanvas = eyeToCanvas.length();
 
-		if ((pickShape != null) &&
-				(pickShape instanceof PickConeRay)) {
-		    ((PickConeRay)pickShape).set (eyePosn, mouseVec,
-							spreadAngle);
-		} else {
-		    pickShape = (PickShape) new PickConeRay (eyePosn, mouseVec,
-						       spreadAngle);
+		Point3d deltaImgPlate = new Point3d();
+		canvas.getPixelLocationInImagePlate(xpos + 1, ypos, deltaImgPlate);
+
+		Vector3d ptToDelta = new Vector3d();
+		ptToDelta.sub(mousePosn, deltaImgPlate);
+		double distancePtToDelta = ptToDelta.length();
+		distancePtToDelta *= tolerance;
+
+		canvas.getImagePlateToVworld(motion);
+
+		/*
+		System.out.println("mouse position " + xpos + " " + ypos);
+		System.out.println("before, mouse " + mousePosn + " eye " + eyePosn);
+		*/
+
+		motion.transform(eyePosn);
+		start = new Point3d(eyePosn); // store the eye position
+		motion.transform(mousePosn);
+		mouseVec.sub(mousePosn, eyePosn);
+		mouseVec.normalize();
+
+		/*
+		System.out.println(motion + "\n");
+		System.out.println("after, mouse " + mousePosn + " eye " + eyePosn +
+			 " mouseVec " + mouseVec);
+			 */
+
+		if (tolerance == 0.0)
+		{
+			if ((pickShape != null) && (pickShape instanceof PickRay))
+			{
+				((PickRay) pickShape).set(eyePosn, mouseVec);
+			}
+			else
+			{
+				pickShape = (PickShape) new PickRay(eyePosn, mouseVec);
+			}
+			//      pickShape = (PickShape) new PickConeRay (eyePosn,
+			//		mouseVec,1.0*Math.PI/180.0);
 		}
-	    }
+		else
+		{
+			if (isParallel)
+			{
+				// Parallel projection, use a PickCylinderRay
+				distancePtToDelta *= motion.getScale();
+				if ((pickShape != null) && (pickShape instanceof PickCylinderRay))
+				{
+					((PickCylinderRay) pickShape).set(eyePosn, mouseVec, distancePtToDelta);
+				}
+				else
+				{
+					pickShape = (PickShape) new PickCylinderRay(eyePosn, mouseVec, distancePtToDelta);
+				}
+			}
+			else
+			{
+				// Perspective projection, use a PickConeRay
+
+				// Calculate spread angle
+				spreadAngle = Math.atan(distancePtToDelta / distanceEyeToCanvas);
+
+				if ((pickShape != null) && (pickShape instanceof PickConeRay))
+				{
+					((PickConeRay) pickShape).set(eyePosn, mouseVec, spreadAngle);
+				}
+				else
+				{
+					pickShape = (PickShape) new PickConeRay(eyePosn, mouseVec, spreadAngle);
+				}
+			}
+		}
 	}
-    }
 } // PickCanvas
-
-

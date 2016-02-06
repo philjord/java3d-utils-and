@@ -176,8 +176,7 @@ public class MouseWheelZoom extends MouseBehavior {
 	if ((evt.getEventType() == MouseEvent.EVENT_MOUSE_WHEEL_MOVED)) {
 	    MouseEvent wheelEvent = (MouseEvent)evt;
 	    //if (wheelEvent.getScrollType() == wheelEvent.WHEEL_UNIT_SCROLL ) {
-		units = (int) wheelEvent.getRotationScale();
-		// also this guy?wheelEvent.getRotation()[0];
+		units = (int) wheelEvent.getRotation()[1];		
 	   // }
 
 	    if (!reset) {
