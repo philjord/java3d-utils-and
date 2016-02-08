@@ -39,8 +39,6 @@
 
 package com.sun.j3d.utils.universe;
 
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsEnvironment;
 import java.net.URL;
 
 import javax.media.j3d.BranchGroup;
@@ -51,7 +49,13 @@ import javax.media.j3d.Locale;
 import javax.media.j3d.View;
 import javax.media.j3d.VirtualUniverse;
 
+import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.GLCapabilities;
+import com.jogamp.opengl.GLProfile;
 import com.sun.j3d.utils.geometry.Primitive;
+
+import java2.awt.GraphicsConfiguration;
+import java2.awt.GraphicsEnvironment;
 
 
 /**
@@ -421,8 +425,9 @@ public class SimpleUniverse extends VirtualUniverse {
         }
 
         // Return the GraphicsConfiguration that best fits our needs.
-        return GraphicsEnvironment.getLocalGraphicsEnvironment().
-                getDefaultScreenDevice().getBestConfiguration(template);
+        final GLProfile pro = GLProfile.get(GLProfile.GL2GL3);
+		final GLCapabilities cap = new GLCapabilities(pro);
+        return new GraphicsConfiguration(GLWindow.create(cap));
     }
 
     /**

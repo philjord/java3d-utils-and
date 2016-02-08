@@ -39,10 +39,10 @@
 
 package com.sun.j3d.utils.universe ;
 
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsEnvironment;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java2.awt.GraphicsConfiguration;
+import java2.awt.GraphicsEnvironment;
+import javaawt.Point;
+import javaawt.Rectangle;
 import java.text.DecimalFormat;
 import java.text.FieldPosition;
 import java.util.HashMap;
@@ -2740,7 +2740,7 @@ public class ViewInfo {
 		}
 	    }
 
-            GraphicsConfiguration gc1 = graphicsConfiguration;
+          /*  GraphicsConfiguration gc1 = graphicsConfiguration;
             // Workaround for Issue 316 - use the default config for screen 0
             // if the graphics config is null
             if (gc1 == null) {
@@ -2759,7 +2759,7 @@ public class ViewInfo {
 		    System.err.println("    pixel size X " + metersPerPixelX) ;
 		    System.err.println("    pixel size Y " + metersPerPixelY) ;
 		}
-	    }
+	    }*/
 
 	    // Propagate screen updates to each canvas in each ViewInfo.
 	    Iterator vi = viewInfoList.iterator() ;
