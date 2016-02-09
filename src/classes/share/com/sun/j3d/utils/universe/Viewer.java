@@ -39,22 +39,13 @@
 
 package com.sun.j3d.utils.universe;
 
-import java.awt.BorderLayout;
-import java.awt.Frame;
-import java.awt.Panel;
-import java.awt.Window;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.lang.reflect.Constructor;
-import java.net.URL;
 
 import javax.media.j3d.AudioDevice;
 import javax.media.j3d.Canvas3D;
 import javax.media.j3d.PhysicalBody;
 import javax.media.j3d.PhysicalEnvironment;
 import javax.media.j3d.View;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
 
 import com.sun.j3d.audioengines.AudioEngine3DL2;
 
@@ -113,22 +104,7 @@ public class Viewer
 	private View view = null;
 	private ViewerAvatar avatar = null;
 	private Canvas3D[] canvases = null;
-	private JFrame[] j3dJFrames = null;
-	private JPanel[] j3dJPanels = null;
-	private Window[] j3dWindows = null;
 	private ViewingPlatform viewingPlatform = null;
-
-	/**
-	 * Creates a default viewer object. The default values are used to create
-	 * the PhysicalBody and PhysicalEnvironment.  A single RGB, double buffered
-	 * and depth buffered Canvas3D object is created.  The View is created
-	 * with a front clip distance of 0.1f and a back clip distance of 10.0f.
-	 */
-	public Viewer()
-	{
-		// Call main constructor with default values.
-		this(null, null, null, true);
-	}
 
 	/**
 	 * Creates a default viewer object. The default values are used to create
@@ -199,10 +175,7 @@ public class Viewer
 		// Create Canvas3D object if none was passed in.
 		if (userCanvases == null)
 		{
-			canvases = new Canvas3D[1];
-			canvases[0] = new Canvas3D();
-			//canvases[0].setFocusable(true);
-			createFramesAndPanels(setVisible);
+			throw new UnsupportedOperationException("Canvas3d cannt be null");
 		}
 		else
 		{
@@ -227,122 +200,6 @@ public class Viewer
 		}
 		view.setPhysicalBody(physicalBody);
 		view.setPhysicalEnvironment(physicalEnvironment);
-	}
-
-	/**
-	 * Creates a default Viewer object. The default values are used to create
-	 * the PhysicalEnvironment and PhysicalBody.  A single RGB, double buffered
-	 * and depth buffered Canvas3D object is created.  The View is created
-	 * with a front clip distance of 0.1f and a back clip distance of 10.0f.
-	 *
-	 * @param userConfig the URL of the user configuration file used to
-	 *  initialize the PhysicalBody object; this is always ignored
-	 * @since Java3D 1.1
-	 * @deprecated create a ConfiguredUniverse to use a configuration file
-	 */
-	public Viewer(URL userConfig)
-	{
-		// Call main constructor.
-		this(null, userConfig);
-	}
-
-	/**
-	 * Creates a default viewer object. The default values are used to create
-	 * the PhysicalEnvironment and PhysicalBody.  The View is created
-	 * with a front clip distance of 0.1f and a back clip distance of 10.0f.
-	 *
-	 * @param userCanvas the Canvas3D object to be used for rendering;
-	 *  if this is null then a single RGB, double buffered and depth buffered
-	 *  Canvas3D object is created
-	 * @param userConfig the URL of the user configuration file used to
-	 *  initialize the PhysicalBody object; this is always ignored
-	 * @since Java3D 1.1
-	 * @deprecated create a ConfiguredUniverse to use a configuration file
-	 */
-	public Viewer(Canvas3D userCanvas, URL userConfig)
-	{
-		// Only one PhysicalBody per Universe.
-		if (physicalBody == null)
-		{
-			physicalBody = new PhysicalBody();
-		}
-
-		// Only one PhysicalEnvironment per Universe.
-		if (physicalEnvironment == null)
-		{
-			physicalEnvironment = new PhysicalEnvironment();
-		}
-
-		// Create Canvas3D object if none was passed in.
-		if (userCanvas == null)
-		{
-			canvases = new Canvas3D[1];
-			canvases[0] = new Canvas3D();
-			createFramesAndPanels(true);
-		}
-		else
-		{
-			canvases = new Canvas3D[1];
-			canvases[0] = userCanvas;
-		}
-
-		//canvases[0].setFocusable(true);
-
-		// Create a View and attach the Canvas3D and the physical
-		// body and environment to the view.
-		view = new View();
-
-		// Fix to issue 424
-		view.setUserHeadToVworldEnable(true);
-
-		view.addCanvas3D(canvases[0]);
-		view.setPhysicalBody(physicalBody);
-		view.setPhysicalEnvironment(physicalEnvironment);
-	}
-
-	// Create the JFrames and JPanels for application-supplied Canvas3D
-	// objects.
-	private void createFramesAndPanels(boolean setVisible)
-	{
-		j3dJFrames = new JFrame[canvases.length];
-		j3dJPanels = new JPanel[canvases.length];
-		j3dWindows = new Window[canvases.length];
-
-		for (int i = 0; i < canvases.length; i++)
-		{
-			j3dWindows[i] = j3dJFrames[i] = new JFrame();
-			j3dJFrames[i].getContentPane().setLayout(new BorderLayout());
-			j3dJFrames[i].setSize(256, 256);
-
-			// Put the Canvas3D into a JPanel.
-			j3dJPanels[i] = new JPanel();
-			j3dJPanels[i].setLayout(new BorderLayout());
-			
-			//FIXME: this is now buggered!
-			
-			//j3dJPanels[i].add("Center", canvases[i]);
-			j3dJFrames[i].getContentPane().add("Center", j3dJPanels[i]);
-			if (setVisible)
-			{
-				j3dJFrames[i].setVisible(true);
-			}
-			addWindowCloseListener(j3dJFrames[i]);
-		}
-	}
-
-	/**
-	 * Call setVisible() on all Window components created by this Viewer.
-	 *
-	 * @param visible boolean to be passed to the setVisible() calls on the
-	 *  Window components created by this Viewer
-	 * @since Java3D 1.3
-	 */
-	public void setVisible(boolean visible)
-	{
-		for (int i = 0; i < j3dWindows.length; i++)
-		{
-			j3dWindows[i].setVisible(visible);
-		}
 	}
 
 	/**
@@ -497,135 +354,6 @@ public class Viewer
 	}
 
 	/**
-	 * Returns the canvas associated with this Viewer object.
-	 * @deprecated superceded by getCanvas3D()
-	 */
-	public Canvas3D getCanvases()
-	{
-		return getCanvas3D();
-	}
-
-	/**
-	 * This method is no longer supported since Java 3D 1.3.
-	 * @exception UnsupportedOperationException if called.
-	 * @deprecated AWT Frame components are no longer created by the
-	 *  Viewer class.
-	 */
-	public Frame getFrame()
-	{
-		throw new UnsupportedOperationException("AWT Frame components are not created by the Viewer class");
-	}
-
-	/**
-	 * Returns the JFrame object created by this Viewer object at the
-	 * specified index.  If a Viewer is constructed without any Canvas3D
-	 * objects then the Viewer object will create a Canva3D object, a JPanel
-	 * containing the Canvas3D object, and a JFrame to place the JPanel in.
-	 * <p>
-	 * NOTE: When running under JDK 1.4 or newer, the JFrame always directly
-	 * contains the JPanel which contains the Canvas3D.  When running under
-	 * JDK 1.3.1 and creating a borderless full screen through a configuration
-	 * file, the JFrame will instead contain a JWindow which will contain the
-	 * JPanel and Canvas3D.
-	 * <p>
-	 * @param frameNum the index of the JFrame object to retrieve;
-	 *  if there is no JFrame object for the given index, null is returned
-	 * @return a reference to JFrame object created by this Viewer object
-	 * @since Java3D 1.3
-	 */
-	public JFrame getJFrame(int frameNum)
-	{
-		if (j3dJFrames == null || frameNum > j3dJFrames.length)
-		{
-			return (null);
-		}
-		return j3dJFrames[frameNum];
-	}
-
-	/**
-	 * Returns all the JFrames created by this Viewer object.  If a Viewer is
-	 * constructed without any Canvas3D objects then the Viewer object will
-	 * create a Canva3D object, a JPanel containing the Canvas3D object, and a
-	 * JFrame to place the JPanel in.<p>
-	 *
-	 * NOTE: When running under JDK 1.4 or newer, the JFrame always directly
-	 * contains the JPanel which contains the Canvas3D.  When running under
-	 * JDK 1.3.1 and creating a borderless full screen through a configuration
-	 * file, the JFrame will instead contain a JWindow which will contain the
-	 * JPanel and Canvas3D.<p>
-	 *
-	 * @return an array of references to the JFrame objects created by
-	 *  this Viewer object, or null if no JFrame objects were created
-	 * @since Java3D 1.3
-	 */
-	public JFrame[] getJFrames()
-	{
-		if (j3dJFrames == null)
-			return null;
-
-		JFrame[] ret = new JFrame[j3dJFrames.length];
-		for (int i = 0; i < j3dJFrames.length; i++)
-		{
-			ret[i] = j3dJFrames[i];
-		}
-		return ret;
-	}
-
-	/**
-	 * This method is no longer supported since Java 3D 1.3.
-	 * @exception UnsupportedOperationException if called.
-	 * @deprecated AWT Panel components are no longer created by the
-	 * Viewer class.
-	 */
-	public Panel getPanel()
-	{
-		throw new UnsupportedOperationException("AWT Panel components are not created by the Viewer class");
-	}
-
-	/**
-	 * Returns the JPanel object created by this Viewer object at the
-	 * specified index.  If a Viewer is constructed without any Canvas3D
-	 * objects then the Viewer object will create a Canva3D object and a
-	 * JPanel into which to place the Canvas3D object.
-	 *
-	 * @param panelNum the index of the JPanel object to retrieve;
-	 *  if there is no JPanel object for the given index, null is returned
-	 * @return a reference to a JPanel object created by this Viewer object
-	 * @since Java3D 1.3
-	 */
-	public JPanel getJPanel(int panelNum)
-	{
-		if (j3dJPanels == null || panelNum > j3dJPanels.length)
-		{
-			return (null);
-		}
-		return j3dJPanels[panelNum];
-	}
-
-	/**
-	 * Returns all the JPanel objects created by this Viewer object.  If a
-	 * Viewer is constructed without any Canvas3D objects then the Viewer
-	 * object will create a Canva3D object and a JPanel into which to place
-	 * the Canvas3D object.
-	 *
-	 * @return an array of references to the JPanel objects created by
-	 *  this Viewer object, or null or no JPanel objects were created
-	 * @since Java3D 1.3
-	 */
-	public JPanel[] getJPanels()
-	{
-		if (j3dJPanels == null)
-			return null;
-
-		JPanel[] ret = new JPanel[j3dJPanels.length];
-		for (int i = 0; i < j3dJPanels.length; i++)
-		{
-			ret[i] = j3dJPanels[i];
-		}
-		return ret;
-	}
-
-	/**
 	 * Used to create and initialize a default AudioDevice3D used for sound
 	 * rendering.
 	 *
@@ -712,45 +440,4 @@ public class Viewer
 		return getViewingPlatform().getUniverse();
 	}
 
-	/*
-	 * Exit if run as an application
-	 */
-	void addWindowCloseListener(Window win)
-	{
-		SecurityManager sm = System.getSecurityManager();
-		boolean doExit = true;
-
-		if (sm != null)
-		{
-			try
-			{
-				sm.checkExit(0);
-			}
-			catch (SecurityException e)
-			{
-				doExit = false;
-			}
-		}
-		final boolean _doExit = doExit;
-
-		win.addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing(WindowEvent winEvent)
-			{
-				Window w = winEvent.getWindow();
-				w.setVisible(false);
-				try
-				{
-					w.dispose();
-				}
-				catch (IllegalStateException e)
-				{
-				}
-				if (_doExit)
-				{
-					System.exit(0);
-				}
-			}
-		});
-	}
 }

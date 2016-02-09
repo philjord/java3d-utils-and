@@ -151,10 +151,6 @@ public class PickCanvas extends PickTool
 	   pick is to be performed.
 	  @param mevent The MouseEvent for the picking point
 	*/
-	public void setShapeLocation(java.awt.event.MouseEvent mevent)
-	{
-		setShapeLocation(mevent.getX(), mevent.getY());
-	}
 
 	public void setShapeLocation(com.jogamp.newt.event.MouseEvent mevent)
 	{
