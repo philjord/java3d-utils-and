@@ -203,7 +203,7 @@ public class MouseRotate extends MouseBehavior {
 	wakeupOn (mouseCriterion);
     }
 
-    void doProcess(MouseEvent evt) {
+    protected void doProcess(MouseEvent evt) {
 	int id;
 	int dx, dy;
 
