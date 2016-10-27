@@ -69,7 +69,7 @@ public class ByteBufferWrapper extends BufferWrapper {
 
     /**
      * Constructor initializes buffer with a
-     * javax.media.j3d.J3DBuffer object.
+     * org.jogamp.java3d.J3DBuffer object.
      */
     public ByteBufferWrapper(J3DBuffer b) {
 	buffer = (ByteBuffer)(b.getBuffer());

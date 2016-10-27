@@ -108,7 +108,7 @@ import org.jogamp.vecmath.Vector3f;
  * can be inquired
  * the geometry includes them and the corresponding READ capibility bits are
  * set.
- * <A HREF="PickTool.html#setCapabilities(javax.media.j3d.Node, int)">
+ * <A HREF="PickTool.html#setCapabilities(org.jogamp.java3d.Node, int)">
  * <code>PickTool.setCapabilties(Node, int)</code></A>
  * can be used to set the capability bits
  * to allow this data to be inquired.

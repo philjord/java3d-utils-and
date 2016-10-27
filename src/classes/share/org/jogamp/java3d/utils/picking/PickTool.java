@@ -96,7 +96,7 @@ import org.jogamp.vecmath.Vector3d;
  * </LI>
  * </UL>
  * <p> The utility method
- * <A HREF="PickTool.html#setCapabilities(javax.media.j3d.Node, int)">
+ * <A HREF="PickTool.html#setCapabilities(org.jogamp.java3d.Node, int)">
  * <code>PickTool.setCapabilities(Node, int)</code></A>
  * can be used before the scene graph is
  * made live to set the

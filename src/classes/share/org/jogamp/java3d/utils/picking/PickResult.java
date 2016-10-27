@@ -101,7 +101,7 @@ import org.jogamp.vecmath.Vector4d;
  * basic information and more detailed information is generated as needed.  The
  * additional information is only available if capability bits on the scene
  * graph Nodes are set properly;
- * <A HREF="PickTool.html#setCapabilities(javax.media.j3d.Node, int)">
+ * <A HREF="PickTool.html#setCapabilities(org.jogamp.java3d.Node, int)">
  * <code>PickTool.setCapabilties(Node, int)</code></A>
  * can
  * be used to ensure correct capabilites are set. Inquiring data which is not

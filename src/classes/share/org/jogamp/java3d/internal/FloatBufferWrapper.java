@@ -68,7 +68,7 @@ public class FloatBufferWrapper extends BufferWrapper {
 
     /**
      * Constructor initializes buffer with a
-     * javax.media.j3d.J3DBuffer object.
+     * org.jogamp.java3d.J3DBuffer object.
      */
     public FloatBufferWrapper(org.jogamp.java3d.J3DBuffer b) {
         this.buffer = (FloatBuffer)(b.getBuffer());

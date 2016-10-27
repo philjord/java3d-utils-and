@@ -68,7 +68,7 @@ public class DoubleBufferWrapper extends BufferWrapper {
 
     /**
      * Constructor initializes buffer with a
-     * javax.media.j3d.J3DBuffer object.
+     * org.jogamp.java3d.J3DBuffer object.
      */
     public DoubleBufferWrapper(J3DBuffer b) {
         buffer = (DoubleBuffer)(b.getBuffer());
