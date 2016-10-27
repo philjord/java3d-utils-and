@@ -42,13 +42,12 @@ package com.sun.j3d.utils.behaviors.mouse.newt;
 import java.util.Enumeration;
 import java.util.LinkedList;
 
-import javax.media.j3d.Behavior;
-import javax.media.j3d.Transform3D;
-import javax.media.j3d.TransformGroup;
-import javax.media.j3d.WakeupCriterion;
-
-import javax.media.j3d.WakeupOnBehaviorPost;
-import javax.media.j3d.WakeupOr;
+import org.jogamp.java3d.Behavior;
+import org.jogamp.java3d.Transform3D;
+import org.jogamp.java3d.TransformGroup;
+import org.jogamp.java3d.WakeupCriterion;
+import org.jogamp.java3d.WakeupOnBehaviorPost;
+import org.jogamp.java3d.WakeupOr;
 
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.MouseEvent;

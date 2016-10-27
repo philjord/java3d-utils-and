@@ -39,13 +39,14 @@
 
 package com.sun.j3d.utils.geometry;
 
-import javax.media.j3d.Appearance;
-import javax.media.j3d.Node;
-import javax.media.j3d.NodeComponent;
-import javax.media.j3d.Shape3D;
 import javax.vecmath.Point3f;
 import javax.vecmath.TexCoord2f;
 import javax.vecmath.Vector3f;
+
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.Node;
+import org.jogamp.java3d.NodeComponent;
+import org.jogamp.java3d.Shape3D;
 
 /**
  * Sphere is a geometry primitive created with a given radius and resolution.

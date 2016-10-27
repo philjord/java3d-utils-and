@@ -41,13 +41,13 @@ package com.sun.j3d.utils.universe;
 
 import java.net.URL;
 
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.Canvas3D;
-import javax.media.j3d.GraphicsConfigTemplate3D;
-import javax.media.j3d.HiResCoord;
-import javax.media.j3d.Locale;
-import javax.media.j3d.View;
-import javax.media.j3d.VirtualUniverse;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.Canvas3D;
+import org.jogamp.java3d.GraphicsConfigTemplate3D;
+import org.jogamp.java3d.HiResCoord;
+import org.jogamp.java3d.Locale;
+import org.jogamp.java3d.View;
+import org.jogamp.java3d.VirtualUniverse;
 
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GLCapabilities;

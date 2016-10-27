@@ -3,16 +3,6 @@ package com.sun.j3d.utils.geometry;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import javax.media.j3d.GeometryArray;
-import javax.media.j3d.IndexedGeometryArray;
-import javax.media.j3d.IndexedQuadArray;
-import javax.media.j3d.IndexedTriangleArray;
-import javax.media.j3d.IndexedTriangleFanArray;
-import javax.media.j3d.IndexedTriangleStripArray;
-import javax.media.j3d.QuadArray;
-import javax.media.j3d.TriangleArray;
-import javax.media.j3d.TriangleFanArray;
-import javax.media.j3d.TriangleStripArray;
 import javax.vecmath.Color3b;
 import javax.vecmath.Color3f;
 import javax.vecmath.Color4b;
@@ -27,6 +17,17 @@ import javax.vecmath.Tuple2f;
 import javax.vecmath.Tuple3f;
 import javax.vecmath.Tuple4f;
 import javax.vecmath.Vector3f;
+
+import org.jogamp.java3d.GeometryArray;
+import org.jogamp.java3d.IndexedGeometryArray;
+import org.jogamp.java3d.IndexedQuadArray;
+import org.jogamp.java3d.IndexedTriangleArray;
+import org.jogamp.java3d.IndexedTriangleFanArray;
+import org.jogamp.java3d.IndexedTriangleStripArray;
+import org.jogamp.java3d.QuadArray;
+import org.jogamp.java3d.TriangleArray;
+import org.jogamp.java3d.TriangleFanArray;
+import org.jogamp.java3d.TriangleStripArray;
 
 import com.sun.j3d.internal.ByteBufferWrapper;
 import com.sun.j3d.internal.ByteOrderWrapper;
@@ -98,7 +99,7 @@ import com.sun.j3d.internal.J3dUtilsI18N;
  * @see Stripifier
  * @see com.sun.j3d.utils.compression.CompressionStream
  * @see com.sun.j3d.utils.compression.GeometryCompressor
- * @see javax.media.j3d.GeometryArray
+ * @see org.jogamp.java3d.GeometryArray
  */
 
 public class GeometryInfo

@@ -39,10 +39,10 @@
 
 package com.sun.j3d.utils.geometry;
 
-import javax.media.j3d.Appearance;
-import javax.media.j3d.Node;
-import javax.media.j3d.NodeComponent;
-import javax.media.j3d.Shape3D;
+import org.jogamp.java3d.Appearance;
+import org.jogamp.java3d.Node;
+import org.jogamp.java3d.NodeComponent;
+import org.jogamp.java3d.Shape3D;
 
 /**
  * Cylinder is a geometry primitive defined with a radius and a height.

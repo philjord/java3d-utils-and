@@ -39,28 +39,29 @@
 
 package com.sun.j3d.utils.pickfast;
 
-import javax.media.j3d.Bounds;
-import javax.media.j3d.BranchGroup;
-import javax.media.j3d.Group;
-import javax.media.j3d.Link;
-import javax.media.j3d.Locale;
-import javax.media.j3d.Morph;
-import javax.media.j3d.Node;
-import javax.media.j3d.PickBounds;
-import javax.media.j3d.PickConeRay;
-import javax.media.j3d.PickConeSegment;
-import javax.media.j3d.PickCylinderRay;
-import javax.media.j3d.PickCylinderSegment;
-import javax.media.j3d.PickInfo;
-import javax.media.j3d.PickRay;
-import javax.media.j3d.PickSegment;
-import javax.media.j3d.PickShape;
-import javax.media.j3d.SceneGraphPath;
-import javax.media.j3d.Shape3D;
-import javax.media.j3d.Switch;
-import javax.media.j3d.TransformGroup;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
+
+import org.jogamp.java3d.Bounds;
+import org.jogamp.java3d.BranchGroup;
+import org.jogamp.java3d.Group;
+import org.jogamp.java3d.Link;
+import org.jogamp.java3d.Locale;
+import org.jogamp.java3d.Morph;
+import org.jogamp.java3d.Node;
+import org.jogamp.java3d.PickBounds;
+import org.jogamp.java3d.PickConeRay;
+import org.jogamp.java3d.PickConeSegment;
+import org.jogamp.java3d.PickCylinderRay;
+import org.jogamp.java3d.PickCylinderSegment;
+import org.jogamp.java3d.PickInfo;
+import org.jogamp.java3d.PickRay;
+import org.jogamp.java3d.PickSegment;
+import org.jogamp.java3d.PickShape;
+import org.jogamp.java3d.SceneGraphPath;
+import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.Switch;
+import org.jogamp.java3d.TransformGroup;
 
 import com.sun.j3d.utils.geometry.Primitive;
 
@@ -99,7 +100,7 @@ import com.sun.j3d.utils.geometry.Primitive;
  * will be sorted by the distance from the start point of the pick shape to
  * the intersection point.
  *
- * @see Locale#pickClosest(int,int,javax.media.j3d.PickShape)
+ * @see Locale#pickClosest(int,int,org.jogamp.java3d.PickShape)
  */
 public class PickTool {
 
