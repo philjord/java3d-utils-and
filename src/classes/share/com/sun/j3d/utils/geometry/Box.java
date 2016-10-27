@@ -39,12 +39,11 @@
 
 package com.sun.j3d.utils.geometry;
 
-import javax.vecmath.Vector3f;
-
 import org.jogamp.java3d.Appearance;
 import org.jogamp.java3d.Node;
 import org.jogamp.java3d.NodeComponent;
 import org.jogamp.java3d.Shape3D;
+import org.jogamp.vecmath.Vector3f;
 
 /**
  * Box is a geometry primitive created with a given length, width, and height.

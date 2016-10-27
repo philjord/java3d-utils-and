@@ -46,9 +46,8 @@
 
 package com.sun.j3d.utils.audio;
 
-import javax.vecmath.Point2f;
-
 import org.jogamp.java3d.SoundException;
+import org.jogamp.vecmath.Point2f;
 
 import com.sun.j3d.internal.J3dUtilsI18N;
 

@@ -39,9 +39,6 @@
 
 package com.sun.j3d.utils.pickfast;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-
 import org.jogamp.java3d.BranchGroup;
 import org.jogamp.java3d.Canvas3D;
 import org.jogamp.java3d.Locale;
@@ -51,6 +48,8 @@ import org.jogamp.java3d.PickRay;
 import org.jogamp.java3d.PickShape;
 import org.jogamp.java3d.Transform3D;
 import org.jogamp.java3d.View;
+import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Vector3d;
 
 /**
  * A subclass of PickTool, simplifies picking using mouse events from a canvas.

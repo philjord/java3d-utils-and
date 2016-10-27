@@ -41,14 +41,13 @@ package com.sun.j3d.audioengines;
 
 import java.util.ArrayList;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-
 import org.jogamp.java3d.AudioDevice3D;
 import org.jogamp.java3d.MediaContainer;
 import org.jogamp.java3d.PhysicalEnvironment;
 import org.jogamp.java3d.Transform3D;
 import org.jogamp.java3d.View;
+import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Vector3d;
 
 
 /**

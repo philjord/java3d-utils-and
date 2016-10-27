@@ -9,8 +9,7 @@
 
 package org.j3d.geom;
 
-// Standard imports
-import javax.vecmath.Vector3f;
+import org.jogamp.vecmath.Vector3f;
 
 // Application specific imports
 

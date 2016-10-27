@@ -41,14 +41,6 @@ package com.sun.j3d.utils.picking;
 
 import java.util.ArrayList;
 
-import javax.vecmath.Point2d;
-import javax.vecmath.Point3d;
-import javax.vecmath.Point3f;
-import javax.vecmath.Point4d;
-import javax.vecmath.Tuple3d;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector4d;
-
 import org.jogamp.java3d.BoundingBox;
 import org.jogamp.java3d.BoundingPolytope;
 import org.jogamp.java3d.BoundingSphere;
@@ -92,6 +84,13 @@ import org.jogamp.java3d.TransformGroup;
 import org.jogamp.java3d.TriangleArray;
 import org.jogamp.java3d.TriangleFanArray;
 import org.jogamp.java3d.TriangleStripArray;
+import org.jogamp.vecmath.Point2d;
+import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Point3f;
+import org.jogamp.vecmath.Point4d;
+import org.jogamp.vecmath.Tuple3d;
+import org.jogamp.vecmath.Vector3d;
+import org.jogamp.vecmath.Vector4d;
 
 import com.sun.j3d.internal.Distance;
 import com.sun.j3d.utils.geometry.Primitive;

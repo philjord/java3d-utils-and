@@ -56,9 +56,9 @@ package com.sun.j3d.utils.geometry;
 
 import java.util.Random;
 
-import javax.vecmath.Point2f;
-import javax.vecmath.Point3f;
-import javax.vecmath.Vector3f;
+import org.jogamp.vecmath.Point2f;
+import org.jogamp.vecmath.Point3f;
+import org.jogamp.vecmath.Vector3f;
 
 import com.sun.j3d.internal.J3dUtilsI18N;
 

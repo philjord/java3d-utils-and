@@ -53,9 +53,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-
 import org.jogamp.java3d.Canvas3D;
 import org.jogamp.java3d.Node;
 import org.jogamp.java3d.PhysicalBody;
@@ -65,6 +62,8 @@ import org.jogamp.java3d.Sensor;
 import org.jogamp.java3d.Transform3D;
 import org.jogamp.java3d.View;
 import org.jogamp.java3d.ViewPlatform;
+import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Vector3d;
 
 /**
  * Provides methods to extract synchronized transform information from a View.

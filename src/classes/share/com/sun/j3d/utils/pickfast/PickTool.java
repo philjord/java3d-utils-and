@@ -39,9 +39,6 @@
 
 package com.sun.j3d.utils.pickfast;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-
 import org.jogamp.java3d.Bounds;
 import org.jogamp.java3d.BranchGroup;
 import org.jogamp.java3d.Group;
@@ -62,6 +59,8 @@ import org.jogamp.java3d.SceneGraphPath;
 import org.jogamp.java3d.Shape3D;
 import org.jogamp.java3d.Switch;
 import org.jogamp.java3d.TransformGroup;
+import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Vector3d;
 
 import com.sun.j3d.utils.geometry.Primitive;
 

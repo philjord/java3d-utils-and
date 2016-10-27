@@ -9,11 +9,9 @@
 
 package org.j3d.util.interpolator;
 
-// Standard imports
-import javax.vecmath.Color4f;
-
 // Application specific imports
 import org.j3d.util.ColorUtils;
+import org.jogamp.vecmath.Color4f;
 
 /**
  * An interpolator that works with color components.

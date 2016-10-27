@@ -3,21 +3,6 @@ package com.sun.j3d.utils.geometry;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import javax.vecmath.Color3b;
-import javax.vecmath.Color3f;
-import javax.vecmath.Color4b;
-import javax.vecmath.Color4f;
-import javax.vecmath.Point2f;
-import javax.vecmath.Point3d;
-import javax.vecmath.Point3f;
-import javax.vecmath.TexCoord2f;
-import javax.vecmath.TexCoord3f;
-import javax.vecmath.TexCoord4f;
-import javax.vecmath.Tuple2f;
-import javax.vecmath.Tuple3f;
-import javax.vecmath.Tuple4f;
-import javax.vecmath.Vector3f;
-
 import org.jogamp.java3d.GeometryArray;
 import org.jogamp.java3d.IndexedGeometryArray;
 import org.jogamp.java3d.IndexedQuadArray;
@@ -28,6 +13,20 @@ import org.jogamp.java3d.QuadArray;
 import org.jogamp.java3d.TriangleArray;
 import org.jogamp.java3d.TriangleFanArray;
 import org.jogamp.java3d.TriangleStripArray;
+import org.jogamp.vecmath.Color3b;
+import org.jogamp.vecmath.Color3f;
+import org.jogamp.vecmath.Color4b;
+import org.jogamp.vecmath.Color4f;
+import org.jogamp.vecmath.Point2f;
+import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Point3f;
+import org.jogamp.vecmath.TexCoord2f;
+import org.jogamp.vecmath.TexCoord3f;
+import org.jogamp.vecmath.TexCoord4f;
+import org.jogamp.vecmath.Tuple2f;
+import org.jogamp.vecmath.Tuple3f;
+import org.jogamp.vecmath.Tuple4f;
+import org.jogamp.vecmath.Vector3f;
 
 import com.sun.j3d.internal.ByteBufferWrapper;
 import com.sun.j3d.internal.ByteOrderWrapper;
@@ -1759,31 +1758,31 @@ public class GeometryInfo
 	Object[] allocateArray(Object data[], int num)
 	{
 		Object newData[] = null;
-		if (data instanceof javax.vecmath.Point3f[])
+		if (data instanceof org.jogamp.vecmath.Point3f[])
 		{
 			newData = new Point3f[num];
 		}
-		else if (data instanceof javax.vecmath.Vector3f[])
+		else if (data instanceof org.jogamp.vecmath.Vector3f[])
 		{
 			newData = new Vector3f[num];
 		}
-		else if (data instanceof javax.vecmath.Color3f[])
+		else if (data instanceof org.jogamp.vecmath.Color3f[])
 		{
 			newData = new Color3f[num];
 		}
-		else if (data instanceof javax.vecmath.Color4f[])
+		else if (data instanceof org.jogamp.vecmath.Color4f[])
 		{
 			newData = new Color4f[num];
 		}
-		else if (data instanceof javax.vecmath.TexCoord2f[])
+		else if (data instanceof org.jogamp.vecmath.TexCoord2f[])
 		{
 			newData = new TexCoord2f[num];
 		}
-		else if (data instanceof javax.vecmath.TexCoord3f[])
+		else if (data instanceof org.jogamp.vecmath.TexCoord3f[])
 		{
 			newData = new TexCoord3f[num];
 		}
-		else if (data instanceof javax.vecmath.TexCoord4f[])
+		else if (data instanceof org.jogamp.vecmath.TexCoord4f[])
 		{
 			newData = new TexCoord4f[num];
 		}

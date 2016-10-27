@@ -39,9 +39,6 @@
 
 package com.sun.j3d.utils.picking;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-
 import org.jogamp.java3d.Bounds;
 import org.jogamp.java3d.BranchGroup;
 import org.jogamp.java3d.CompressedGeometry;
@@ -61,6 +58,8 @@ import org.jogamp.java3d.PickSegment;
 import org.jogamp.java3d.PickShape;
 import org.jogamp.java3d.SceneGraphPath;
 import org.jogamp.java3d.Shape3D;
+import org.jogamp.vecmath.Point3d;
+import org.jogamp.vecmath.Vector3d;
 
 /**
  * The base class for picking operations.

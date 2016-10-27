@@ -9,8 +9,7 @@
 
 package org.j3d.util;
 
-// Standard imports
-import javax.vecmath.Color4f;
+import org.jogamp.vecmath.Color4f;
 
 // Application specific imports
 // none

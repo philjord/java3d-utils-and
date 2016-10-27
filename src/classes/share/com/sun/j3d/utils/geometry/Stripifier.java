@@ -56,8 +56,8 @@ package com.sun.j3d.utils.geometry;
 
 import java.util.ArrayList;
 
-import javax.vecmath.Color3b;
-import javax.vecmath.Color3f;
+import org.jogamp.vecmath.Color3b;
+import org.jogamp.vecmath.Color3f;
 
 import com.sun.j3d.internal.J3dUtilsI18N;
 
@@ -2040,14 +2040,14 @@ public class Stripifier {
 	    int[] normals = null;
 	    int[][] textures = null;
 	    int[] colors = null;
-	    javax.vecmath.Color3b[] stripColors = null;
+	    org.jogamp.vecmath.Color3b[] stripColors = null;
 	    if (hasNormals) normals = new int[ciSize];
 	    if (hasTextures) {
 		textures = new int[texSetCount][ciSize];
 	    }
 	    if (hasColors) colors = new int[ciSize];
 	    if (colorStrips) {
-		stripColors = new javax.vecmath.Color3b[ciSize];
+		stripColors = new org.jogamp.vecmath.Color3b[ciSize];
 		colors = new int[ciSize];
 	    }
 	    int count = 0;

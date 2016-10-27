@@ -39,16 +39,15 @@
 
 package com.sun.j3d.utils.geometry;
 
-import javax.vecmath.Point3f;
-import javax.vecmath.TexCoord2f;
-import javax.vecmath.Vector3f;
-
 import org.jogamp.java3d.Geometry;
 import org.jogamp.java3d.GeometryArray;
 import org.jogamp.java3d.QuadArray;
 import org.jogamp.java3d.TriangleArray;
 import org.jogamp.java3d.TriangleFanArray;
 import org.jogamp.java3d.TriangleStripArray;
+import org.jogamp.vecmath.Point3f;
+import org.jogamp.vecmath.TexCoord2f;
+import org.jogamp.vecmath.Vector3f;
 
 /**
  * GeomBuffer allows OpenGL-like input of geometry data. It outputs
