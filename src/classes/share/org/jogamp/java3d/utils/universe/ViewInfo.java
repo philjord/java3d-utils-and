@@ -39,8 +39,8 @@
 
 package org.jogamp.java3d.utils.universe ;
 
-import java2.awt.GraphicsConfiguration;
-import java2.awt.GraphicsEnvironment;
+import javaawt.GraphicsConfiguration;
+import javaawt.GraphicsEnvironment;
 import javaawt.Point;
 import javaawt.Rectangle;
 import java.text.DecimalFormat;

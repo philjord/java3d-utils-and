@@ -54,8 +54,8 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLProfile;
 
-import java2.awt.GraphicsConfiguration;
-import java2.awt.GraphicsEnvironment;
+import javaawt.GraphicsConfiguration;
+import javaawt.GraphicsEnvironment;
 
 
 /**
