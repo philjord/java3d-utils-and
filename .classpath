@@ -6,5 +6,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/vecmath"/>
 	<classpathentry kind="lib" path="/external_jars/external jars/jogamp/jar/gluegen-rt.jar"/>
 	<classpathentry kind="lib" path="/external_jars/external jars/jogamp/jar/jogl-all.jar" sourcepath="C:/Users/phil/.m2/repository/org/jogamp/jogl/jogl-all/2.3.2/jogl-all-2.3.2-sources.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/awtshim"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
