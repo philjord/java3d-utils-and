@@ -474,6 +474,8 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		if (buildBasedOnAttributes)
 		{
 			boolean hasTexture = this.getTexture() != null || this.getTextureUnitCount() > 0;
+			if(this.getTextureUnitCount()>0)
+				System.out.println("this.getTextureUnitCount() "+this.getTextureUnitCount());
 			boolean lit = this.getMaterial() != null; // having material== lit geometry
 
 			boolean hasTextureCoordGen = hasTexture && texCoordGeneration != null;
@@ -733,6 +735,8 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 						//System.out.println("vertexProgram " + vertexProgram);
 						//System.out.println("fragmentProgram " + fragmentProgram);
+						
+						
 
 					}
 
@@ -750,7 +754,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 							@Override
 							public String toString()
 							{
-								return "SimpleShaderAppearance textureShaderProgram";
+								return "SimpleShaderAppearance textureShaderProgram2";
 							}
 						};
 						String vertexProgram = "#version 120\n";
@@ -793,7 +797,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 							@Override
 							public String toString()
 							{
-								return "SimpleShaderAppearance flatShaderProgram";
+								return "SimpleShaderAppearance flatShaderProgram2";
 							}
 						};
 						String vertexProgram = "#version 120\n";
