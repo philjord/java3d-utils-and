@@ -1,6 +1,5 @@
 package org.jogamp.java3d.utils.shader;
 
-import org.jogamp.java3d.Canvas3D;
 import org.jogamp.java3d.ColoringAttributes;
 import org.jogamp.java3d.GLSLShaderProgram;
 import org.jogamp.java3d.LineAttributes;
@@ -28,6 +27,9 @@ import org.jogamp.vecmath.Vector4f;
  */
 public class SimpleShaderAppearance extends ShaderAppearance
 {
+	
+	public static String versionString = "#version 120\n";
+	
 	private static GLSLShaderProgram flatShaderProgram;
 	private static GLSLShaderProgram textureShaderProgram;
 	private static GLSLShaderProgram colorLineShaderProgram;
@@ -98,7 +100,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	{
 		if (lit)
 		{
-			String vertexProgram = "#version 120\n";
+			String vertexProgram = versionString;
 			vertexProgram += "attribute vec4 glVertex;\n";
 			vertexProgram += "attribute vec4 glColor;\n";
 			vertexProgram += "attribute vec3 glNormal; \n";
@@ -175,7 +177,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 			vertexProgram += "shininess = glFrontMaterial.shininess;\n";
 			vertexProgram += "}";
 
-			String fragmentProgram = "#version 120\n";
+			String fragmentProgram = versionString;
 			fragmentProgram += "precision mediump float;\n";
 			if (hasTexture)
 			{
@@ -304,7 +306,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 							return "SimpleShaderAppearance textureShaderProgram";
 						}
 					};
-					String vertexProgram = "#version 120\n";
+					String vertexProgram = versionString;
 					vertexProgram += "attribute vec4 glVertex;\n";
 					vertexProgram += "attribute vec2 glMultiTexCoord0;\n";
 					vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
@@ -314,7 +316,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					vertexProgram += "glTexCoord0 = glMultiTexCoord0.st;\n";
 					vertexProgram += "}";
 
-					String fragmentProgram = "#version 120\n";
+					String fragmentProgram = versionString;
 					fragmentProgram += "precision mediump float;\n";
 					fragmentProgram += alphaTestUniforms;
 					fragmentProgram += "varying vec2 glTexCoord0;\n";
@@ -365,7 +367,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 								return "SimpleShaderAppearance colorLineShaderProgram";
 							}
 						};
-						String vertexProgram = "#version 120\n";
+						String vertexProgram = versionString;
 						vertexProgram += "attribute vec4 glVertex;\n";
 						vertexProgram += "attribute vec4 glColor;\n";
 						vertexProgram += "uniform int ignoreVertexColors;\n";
@@ -380,7 +382,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 						vertexProgram += "	glFrontColor = glColor;\n";
 						vertexProgram += "}";
 
-						String fragmentProgram = "#version 120\n";
+						String fragmentProgram = versionString;
 						fragmentProgram += "precision mediump float;\n";
 						fragmentProgram += "varying vec4 glFrontColor;\n";
 						fragmentProgram += "void main( void ){\n";
@@ -405,7 +407,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 								return "SimpleShaderAppearance flatShaderProgram";
 							}
 						};
-						String vertexProgram = "#version 120\n";
+						String vertexProgram = versionString;
 						vertexProgram += "attribute vec4 glVertex;\n";
 						vertexProgram += "attribute vec4 glColor;\n";
 						vertexProgram += "uniform int ignoreVertexColors;\n";
@@ -420,7 +422,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 						vertexProgram += "	glFrontColor = glColor;\n";
 						vertexProgram += "}";
 
-						String fragmentProgram = "#version 120\n";
+						String fragmentProgram = versionString;
 						fragmentProgram += "precision mediump float;\n";
 						fragmentProgram += "varying vec4 glFrontColor;\n";
 						fragmentProgram += "void main( void ){\n";
@@ -501,7 +503,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 			if (lit)
 			{
-				String vertexProgram = "#version 120\n";
+				String vertexProgram = versionString;
 				vertexProgram += "attribute vec4 glVertex;\n";
 				vertexProgram += "attribute vec4 glColor;\n";
 				vertexProgram += "attribute vec3 glNormal; \n";
@@ -604,7 +606,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				vertexProgram += "shininess = glFrontMaterial.shininess;\n";
 				vertexProgram += "}";
 
-				String fragmentProgram = "#version 120\n";
+				String fragmentProgram = versionString;
 				fragmentProgram += "precision mediump float;\n";
 				if (hasTexture)
 				{
@@ -757,7 +759,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 								return "SimpleShaderAppearance textureShaderProgram2";
 							}
 						};
-						String vertexProgram = "#version 120\n";
+						String vertexProgram = versionString;
 						vertexProgram += "attribute vec4 glVertex;\n";
 						vertexProgram += "attribute vec2 glMultiTexCoord0;\n";
 						vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
@@ -767,7 +769,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 						vertexProgram += "glTexCoord0 = glMultiTexCoord0.st;\n";
 						vertexProgram += "}";
 
-						String fragmentProgram = "#version 120\n";
+						String fragmentProgram = versionString;
 						fragmentProgram += "precision mediump float;\n";
 						fragmentProgram += alphaTestUniforms;
 						fragmentProgram += "varying vec2 glTexCoord0;\n";
@@ -800,7 +802,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 								return "SimpleShaderAppearance flatShaderProgram2";
 							}
 						};
-						String vertexProgram = "#version 120\n";
+						String vertexProgram = versionString;
 						vertexProgram += "attribute vec4 glVertex;\n";
 						vertexProgram += "attribute vec4 glColor;\n";
 						vertexProgram += "uniform int ignoreVertexColors;\n";
@@ -815,7 +817,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 						vertexProgram += "	glFrontColor = glColor;\n";
 						vertexProgram += "}";
 
-						String fragmentProgram = "#version 120\n";
+						String fragmentProgram = versionString;
 						fragmentProgram += "precision mediump float;\n";
 						fragmentProgram += "varying vec4 glFrontColor;\n";
 						fragmentProgram += "void main( void ){\n";
