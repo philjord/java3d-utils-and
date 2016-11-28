@@ -616,18 +616,18 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					fragmentProgram += "uniform sampler2D BaseMap;\n";
 				}
 
-				fragmentProgram += "in vec3 LightDir;\n";
-				fragmentProgram += "in vec3 ViewDir;\n";
+				fragmentProgram += "varying vec3 LightDir;\n";
+				fragmentProgram += "varying vec3 ViewDir;\n";
 
-				fragmentProgram += "in vec3 N;\n";
+				fragmentProgram += "varying vec3 N;\n";
 
-				fragmentProgram += "in vec4 A;\n";
-				fragmentProgram += "in vec4 C;\n";
-				fragmentProgram += "in vec4 D;\n";
+				fragmentProgram += "varying vec4 A;\n";
+				fragmentProgram += "varying vec4 C;\n";
+				fragmentProgram += "varying vec4 D;\n";
 
-				fragmentProgram += "in vec3 emissive;\n";
-				fragmentProgram += "in vec3 specular;\n";
-				fragmentProgram += "in float shininess;\n";
+				fragmentProgram += "varying vec3 emissive;\n";
+				fragmentProgram += "varying vec3 specular;\n";
+				fragmentProgram += "varying float shininess;\n";
 				fragmentProgram += "void main( void ){\n ";
 				if (hasTexture)
 				{
