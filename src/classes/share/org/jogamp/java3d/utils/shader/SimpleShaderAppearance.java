@@ -24,6 +24,8 @@ import org.jogamp.vecmath.Color3f;
 import org.jogamp.vecmath.Vector4f;
 
 /**
+ * NOTE!!!!  this defaults to the values for desktop, on ES hardware you must call
+ * SimpleShaderAppearance.setVersionES300();
  * @author phil
  *
  */
@@ -71,12 +73,6 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		texture2D = "texture2D";
 	}
 
-	private static GLSLShaderProgram flatShaderProgram;
-	private static GLSLShaderProgram textureShaderProgram;
-	private static GLSLShaderProgram colorLineShaderProgram;
-	private static GLSLShaderProgram litFlatShaderProgram;
-	private static GLSLShaderProgram litTextureShaderProgram;
-
 	public static String alphaTestUniforms = "uniform int alphaTestEnabled;\n" + //
 			"uniform int alphaTestFunction;\n" + //
 			"uniform float alphaTestValue;\n";
@@ -121,10 +117,19 @@ public class SimpleShaderAppearance extends ShaderAppearance
 			"	};\n" + //
 			"\n" + //
 			"	uniform int numberOfLights;\n" + //
-			"	const int maxLights = 1;\n" + //
+			"	const int maxLights = 3;\n" + //
 			"	uniform lightSource glLightSource[maxLights];\n"; //
 
+	private static HashMap<Integer, GLSLShaderProgram> shaderPrograms = new HashMap<Integer, GLSLShaderProgram>();
+
+	private static GLSLShaderProgram flatShaderProgram;
+	private static GLSLShaderProgram colorLineShaderProgram;
+
 	private boolean buildBasedOnAttributes = false;
+
+	// we can't set it in the super class as tex coord gen is not supported in the pipeline
+	// so we record it in this class when set
+	private TexCoordGeneration texCoordGeneration = null;
 
 	/**
 	 * This will define the shader code based on the attributes set
@@ -164,315 +169,113 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	 */
 	public SimpleShaderAppearance(Color3f color, boolean lit, boolean hasTexture)
 	{
-		if (lit)
+		if (lit || hasTexture)
 		{
-			String vertexProgram = versionString;
-			vertexProgram += vertexAttributeInString + " vec4 glVertex;\n";
-			vertexProgram += vertexAttributeInString + " vec4 glColor;\n";
-			vertexProgram += vertexAttributeInString + " vec3 glNormal; \n";
-			vertexProgram += hasTexture ? "attribute vec2 glMultiTexCoord0;\n" : "";
-			vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
-			vertexProgram += "uniform mat4 glModelViewMatrix;\n";
-			vertexProgram += "uniform mat3 glNormalMatrix;\n";
-			vertexProgram += "uniform int ignoreVertexColors;\n";
-			vertexProgram += "uniform vec4 glLightModelambient;\n";
-			vertexProgram += glFrontMaterial;
-			vertexProgram += glLightSource;
-			vertexProgram += hasTexture ? outString + " vec2 glTexCoord0;\n" : "";
-			vertexProgram += outString + "  vec3 LightDir;\n";
-			vertexProgram += outString + "  vec3 ViewDir;\n";
-			vertexProgram += outString + "  vec3 N;\n";
-			vertexProgram += outString + "  vec4 A;\n";
-			vertexProgram += outString + "  vec4 C;\n";
-			vertexProgram += outString + "  vec4 D;\n";
-			vertexProgram += outString + "  vec3 emissive;\n";
-			vertexProgram += outString + "  vec3 specular;\n";
-			vertexProgram += outString + "  float shininess;\n";
-			vertexProgram += "void main( void ){\n";
-			vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
-			vertexProgram += hasTexture ? "glTexCoord0 = glMultiTexCoord0.st;\n" : "";
-			vertexProgram += "N = normalize(glNormalMatrix * glNormal);\n";
-			vertexProgram += "vec3 v = vec3(glModelViewMatrix * glVertex);\n";
-			vertexProgram += "ViewDir = -v.xyz;\n";
-			vertexProgram += "LightDir = glLightSource[0].position.xyz;\n";
-			vertexProgram += "A = glLightModelambient * glFrontMaterial.ambient;\n";
-			vertexProgram += "if( ignoreVertexColors != 0) \n";
-			// objectColor should be used if it is no lighting, and reusing material diffuse appears wrong
-			vertexProgram += "	C = vec4(1,1,1,1);//glFrontMaterial.diffuse; \n";
-			vertexProgram += "else \n";
-			vertexProgram += "	C = glColor; \n";
-			vertexProgram += "D = glLightSource[0].diffuse * glFrontMaterial.diffuse;\n";
-			vertexProgram += "emissive = glFrontMaterial.emission.rgb;\n";
-			vertexProgram += "specular = glFrontMaterial.specular;\n";
-			vertexProgram += "shininess = glFrontMaterial.shininess;\n";
-			vertexProgram += "}";
-
-			String fragmentProgram = versionString;
-			fragmentProgram += "precision mediump float;\n";
-			if (hasTexture)
-			{
-				fragmentProgram += alphaTestUniforms;
-
-				fragmentProgram += inString + " vec2 glTexCoord0;\n";
-				fragmentProgram += "uniform sampler2D BaseMap;\n";
-			}
-
-			fragmentProgram += inString + " vec3 LightDir;\n";
-			fragmentProgram += inString + " vec3 ViewDir;\n";
-
-			fragmentProgram += inString + " vec3 N;\n";
-
-			fragmentProgram += inString + " vec4 A;\n";
-			fragmentProgram += inString + " vec4 C;\n";
-			fragmentProgram += inString + " vec4 D;\n";
-
-			fragmentProgram += inString + " vec3 emissive;\n";
-			fragmentProgram += inString + " vec3 specular;\n";
-			fragmentProgram += inString + " float shininess;\n";
-			fragmentProgram += fragColorDec;
-			fragmentProgram += "void main( void ){\n ";
-			if (hasTexture)
-			{
-				fragmentProgram += "vec4 baseMap = "+texture2D+"( BaseMap, glTexCoord0.st );\n";
-				fragmentProgram += alphaTestMethod;
-			}
-			fragmentProgram += "vec3 normal = N;\n";
-
-			fragmentProgram += "vec3 L = normalize(LightDir);\n";
-			fragmentProgram += "vec3 E = normalize(ViewDir);\n";
-			fragmentProgram += "vec3 R = reflect(-L, normal);\n";
-			fragmentProgram += "vec3 H = normalize( L + E );\n";
-
-			fragmentProgram += "float NdotL = max( dot(normal, L), 0.0 );\n";
-			fragmentProgram += "float NdotH = max( dot(normal, H), 0.0 );\n";
-			fragmentProgram += "float EdotN = max( dot(normal, E), 0.0 );\n";
-			fragmentProgram += "float NdotNegL = max( dot(normal, -L), 0.0 );\n";
-
-			fragmentProgram += "vec4 color;\n";
-			if (hasTexture)
-			{
-				fragmentProgram += "vec3 albedo = baseMap.rgb * C.rgb;\n";
-			}
-			else
-			{
-				fragmentProgram += "vec3 albedo = C.rgb;\n";
-			}
-			fragmentProgram += "vec3 diffuse = A.rgb + (D.rgb * NdotL);\n";
-
-			// 0.3 is just what the calc is
-			fragmentProgram += "vec3 spec = specular * pow(NdotH, 0.3*shininess);\n";
-			// D is not right it should be the light source spec color, probably just 1,1,1 but java3d has no spec on lights
-			//fragmentProgram += "spec *= D.rgb;\n";
-
-			fragmentProgram += "color.rgb = albedo * (diffuse + emissive) + spec;\n";
-			if (hasTexture)
-			{
-				fragmentProgram += "color.a = C.a * baseMap.a;\n";
-			}
-			else
-			{
-				fragmentProgram += "color.a = C.a;\n";
-			}
-
-			fragmentProgram += fragColorVar + " = color;\n";
-
-			fragmentProgram += "}";
-			if (hasTexture)
-			{
-				if (litTextureShaderProgram == null)
-				{
-					litTextureShaderProgram = new GLSLShaderProgram() {
-						@Override
-						public String toString()
-						{
-							return "SimpleShaderAppearance litTextureShaderProgram";
-						}
-					};
-					litTextureShaderProgram.setShaders(makeShaders(vertexProgram, fragmentProgram));
-					litTextureShaderProgram.setShaderAttrNames(new String[] { "BaseMap" });
-
-				}
-
-				setShaderProgram(litTextureShaderProgram);
-
-				ShaderAttributeSet shaderAttributeSet = new ShaderAttributeSet();
-				shaderAttributeSet.put(new ShaderAttributeValue("BaseMap", new Integer(0)));
-				setShaderAttributeSet(shaderAttributeSet);
-			}
-			else
-			{
-				if (litFlatShaderProgram == null)
-				{
-					litFlatShaderProgram = new GLSLShaderProgram() {
-
-						@Override
-						public String toString()
-						{
-							return "SimpleShaderAppearance litFlatShaderProgram";
-						}
-					};
-					litFlatShaderProgram.setShaders(makeShaders(vertexProgram, fragmentProgram));
-
-					//System.out.println("vertexProgram " + vertexProgram);
-					//System.out.println("fragmentProgram " + fragmentProgram);
-
-				}
-
-				setShaderProgram(litFlatShaderProgram);
-
-			}
+			boolean hasTextureCoordGen = false;
+			boolean texCoordGenModeObjLinear = false;
+			build(hasTexture, lit, hasTextureCoordGen, texCoordGenModeObjLinear);
 		}
 		else
 		{
-			if (hasTexture)
+			if (color != null)
 			{
-				if (textureShaderProgram == null)
+				PolygonAttributes polyAtt = new PolygonAttributes(PolygonAttributes.POLYGON_LINE, PolygonAttributes.CULL_NONE, 0.0f);
+				polyAtt.setPolygonOffset(0.1f);
+				setPolygonAttributes(polyAtt);
+				LineAttributes lineAtt = new LineAttributes(1, LineAttributes.PATTERN_SOLID, false);
+				setLineAttributes(lineAtt);
+
+				ColoringAttributes colorAtt = new ColoringAttributes(color, ColoringAttributes.FASTEST);
+				setColoringAttributes(colorAtt);
+
+				RenderingAttributes ra = new RenderingAttributes();
+				ra.setIgnoreVertexColors(true);
+				setRenderingAttributes(ra);
+
+				Material mat = new Material();
+				setMaterial(mat);
+
+				if (colorLineShaderProgram == null)
 				{
-					textureShaderProgram = new GLSLShaderProgram() {
+					colorLineShaderProgram = new GLSLShaderProgram() {
 						@Override
 						public String toString()
 						{
-							return "SimpleShaderAppearance textureShaderProgram";
+							return "SimpleShaderAppearance colorLineShaderProgram";
 						}
 					};
 					String vertexProgram = versionString;
 					vertexProgram += vertexAttributeInString + " vec4 glVertex;\n";
-					vertexProgram += vertexAttributeInString + " vec2 glMultiTexCoord0;\n";
+					vertexProgram += vertexAttributeInString + " vec4 glColor;\n";
+					vertexProgram += "uniform int ignoreVertexColors;\n";
+					vertexProgram += "uniform vec4 objectColor;\n";
 					vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
-					vertexProgram += outString + " vec2 glTexCoord0;\n";
+					vertexProgram += outString + " vec4 glFrontColor;\n";
 					vertexProgram += "void main( void ){\n";
 					vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
-					vertexProgram += "glTexCoord0 = glMultiTexCoord0.st;\n";
+					vertexProgram += "if( ignoreVertexColors != 0 )\n";
+					vertexProgram += "	glFrontColor = objectColor;\n";
+					vertexProgram += "else\n";
+					vertexProgram += "	glFrontColor = glColor;\n";
 					vertexProgram += "}";
 
 					String fragmentProgram = versionString;
 					fragmentProgram += "precision mediump float;\n";
-					fragmentProgram += alphaTestUniforms;
-					fragmentProgram += inString + " vec2 glTexCoord0;\n";
-					fragmentProgram += "uniform sampler2D BaseMap;\n";
+					fragmentProgram += inString + " vec4 glFrontColor;\n";
 					fragmentProgram += fragColorDec;
-					fragmentProgram += "void main( void ){\n ";
-					fragmentProgram += "vec4 baseMap = "+texture2D+"( BaseMap, glTexCoord0.st );\n";
-					fragmentProgram += alphaTestMethod;
-					fragmentProgram += fragColorVar + " = baseMap;\n";
+					fragmentProgram += "void main( void ){\n";
+					fragmentProgram += fragColorVar + " = glFrontColor;\n";
 					fragmentProgram += "}";
 
-					textureShaderProgram.setShaders(makeShaders(vertexProgram, fragmentProgram));
-					textureShaderProgram.setShaderAttrNames(new String[] { "BaseMap" });
+					colorLineShaderProgram.setShaders(makeShaders(vertexProgram, fragmentProgram));
 				}
 
-				setShaderProgram(textureShaderProgram);
-
-				ShaderAttributeSet shaderAttributeSet = new ShaderAttributeSet();
-				shaderAttributeSet.put(new ShaderAttributeValue("BaseMap", new Integer(0)));
-				setShaderAttributeSet(shaderAttributeSet);
+				setShaderProgram(colorLineShaderProgram);
 
 			}
 			else
-
 			{
-				if (color != null)
+
+				if (flatShaderProgram == null)
 				{
-					PolygonAttributes polyAtt = new PolygonAttributes(PolygonAttributes.POLYGON_LINE, PolygonAttributes.CULL_NONE, 0.0f);
-					polyAtt.setPolygonOffset(0.1f);
-					setPolygonAttributes(polyAtt);
-					LineAttributes lineAtt = new LineAttributes(1, LineAttributes.PATTERN_SOLID, false);
-					setLineAttributes(lineAtt);
+					flatShaderProgram = new GLSLShaderProgram() {
+						@Override
+						public String toString()
+						{
+							return "SimpleShaderAppearance flatShaderProgram";
+						}
+					};
+					String vertexProgram = versionString;
+					vertexProgram += vertexAttributeInString + " vec4 glVertex;\n";
+					vertexProgram += vertexAttributeInString + " vec4 glColor;\n";
+					vertexProgram += "uniform int ignoreVertexColors;\n";
+					vertexProgram += "uniform vec4 objectColor;\n";
+					vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
+					vertexProgram += outString + " vec4 glFrontColor;\n";
+					vertexProgram += "void main( void ){\n";
+					vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
+					vertexProgram += "if( ignoreVertexColors != 0 )\n";
+					vertexProgram += "	glFrontColor = objectColor;\n";
+					vertexProgram += "else\n";
+					vertexProgram += "	glFrontColor = glColor;\n";
+					vertexProgram += "}";
 
-					ColoringAttributes colorAtt = new ColoringAttributes(color, ColoringAttributes.FASTEST);
-					setColoringAttributes(colorAtt);
+					String fragmentProgram = versionString;
+					fragmentProgram += "precision mediump float;\n";
+					fragmentProgram += inString + " vec4 glFrontColor;\n";
+					fragmentProgram += fragColorDec;
+					fragmentProgram += "void main( void ){\n";
+					fragmentProgram += fragColorVar + " = glFrontColor;\n";
+					fragmentProgram += "}";
 
-					RenderingAttributes ra = new RenderingAttributes();
-					ra.setIgnoreVertexColors(true);
-					setRenderingAttributes(ra);
-
-					Material mat = new Material();
-					setMaterial(mat);
-
-					if (colorLineShaderProgram == null)
-					{
-						colorLineShaderProgram = new GLSLShaderProgram() {
-							@Override
-							public String toString()
-							{
-								return "SimpleShaderAppearance colorLineShaderProgram";
-							}
-						};
-						String vertexProgram = versionString;
-						vertexProgram += vertexAttributeInString + " vec4 glVertex;\n";
-						vertexProgram += vertexAttributeInString + " vec4 glColor;\n";
-						vertexProgram += "uniform int ignoreVertexColors;\n";
-						vertexProgram += "uniform vec4 objectColor;\n";
-						vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
-						vertexProgram += outString + " vec4 glFrontColor;\n";
-						vertexProgram += "void main( void ){\n";
-						vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
-						vertexProgram += "if( ignoreVertexColors != 0 )\n";
-						vertexProgram += "	glFrontColor = objectColor;\n";
-						vertexProgram += "else\n";
-						vertexProgram += "	glFrontColor = glColor;\n";
-						vertexProgram += "}";
-
-						String fragmentProgram = versionString;
-						fragmentProgram += "precision mediump float;\n";
-						fragmentProgram += inString + " vec4 glFrontColor;\n";
-						fragmentProgram += fragColorDec;
-						fragmentProgram += "void main( void ){\n";
-						fragmentProgram += fragColorVar + " = glFrontColor;\n";
-						fragmentProgram += "}";
-
-						colorLineShaderProgram.setShaders(makeShaders(vertexProgram, fragmentProgram));
-					}
-
-					setShaderProgram(colorLineShaderProgram);
+					flatShaderProgram.setShaders(makeShaders(vertexProgram, fragmentProgram));
+					//System.out.println("vertexProgram " +vertexProgram);
+					//System.out.println("fragmentProgram " +fragmentProgram);
 
 				}
-				else
-				{
 
-					if (flatShaderProgram == null)
-					{
-						flatShaderProgram = new GLSLShaderProgram() {
-							@Override
-							public String toString()
-							{
-								return "SimpleShaderAppearance flatShaderProgram";
-							}
-						};
-						String vertexProgram = versionString;
-						vertexProgram += vertexAttributeInString + " vec4 glVertex;\n";
-						vertexProgram += vertexAttributeInString + " vec4 glColor;\n";
-						vertexProgram += "uniform int ignoreVertexColors;\n";
-						vertexProgram += "uniform vec4 objectColor;\n";
-						vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
-						vertexProgram += outString + " vec4 glFrontColor;\n";
-						vertexProgram += "void main( void ){\n";
-						vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
-						vertexProgram += "if( ignoreVertexColors != 0 )\n";
-						vertexProgram += "	glFrontColor = objectColor;\n";
-						vertexProgram += "else\n";
-						vertexProgram += "	glFrontColor = glColor;\n";
-						vertexProgram += "}";
+				setShaderProgram(flatShaderProgram);
 
-						String fragmentProgram = versionString;
-						fragmentProgram += "precision mediump float;\n";
-						fragmentProgram += inString + " vec4 glFrontColor;\n";
-						fragmentProgram += fragColorDec;
-						fragmentProgram += "void main( void ){\n";
-						fragmentProgram += fragColorVar + " = glFrontColor;\n";
-						fragmentProgram += "}";
-
-						flatShaderProgram.setShaders(makeShaders(vertexProgram, fragmentProgram));
-						//System.out.println("vertexProgram " +vertexProgram);
-						//System.out.println("fragmentProgram " +fragmentProgram);
-
-					}
-
-					setShaderProgram(flatShaderProgram);
-					
-					
-
-				}
 			}
 
 		}
@@ -499,11 +302,6 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		return shaders;
 	}
 
-	// we can't set it in the super calss as tex coord gen is not supported
-	private TexCoordGeneration texCoordGeneration = null;
-
-	private static HashMap<Integer, GLSLShaderProgram> shaderPrograms = new HashMap<Integer, GLSLShaderProgram>();
-
 	private void rebuildShaders()
 	{
 		if (buildBasedOnAttributes)
@@ -516,294 +314,299 @@ public class SimpleShaderAppearance extends ShaderAppearance
 			boolean hasTextureCoordGen = hasTexture && texCoordGeneration != null;
 
 			boolean texCoordGenModeObjLinear = hasTextureCoordGen && (texCoordGeneration.getGenMode() == TexCoordGeneration.OBJECT_LINEAR);
+			build(hasTexture, lit, hasTextureCoordGen, texCoordGenModeObjLinear);
+		}
+	}
 
-			int shaderKey = (hasTexture ? 1 : 0) + (lit ? 2 : 0) + (hasTextureCoordGen ? 4 : 0) + (texCoordGenModeObjLinear ? 8 : 0);
+	private void build(boolean hasTexture, boolean lit, boolean hasTextureCoordGen, boolean texCoordGenModeObjLinear)
+	{
+		int shaderKey = (hasTexture ? 1 : 0) + (lit ? 2 : 0) + (hasTextureCoordGen ? 4 : 0) + (texCoordGenModeObjLinear ? 8 : 0);
 
-			GLSLShaderProgram shaderProgram = shaderPrograms.get(new Integer(shaderKey));
-			if (shaderProgram == null)
+		GLSLShaderProgram shaderProgram = shaderPrograms.get(new Integer(shaderKey));
+		if (shaderProgram == null)
+		{
+			String vertexProgram = versionString;
+			String fragmentProgram = versionString;
+			if (hasTextureCoordGen)
 			{
-				String vertexProgram = versionString;
-				String fragmentProgram = versionString;
-				if (hasTextureCoordGen)
+				if (texCoordGeneration.getFormat() != 0)
+					System.out.println("texCoordGeneration.getFormat() must be 0");
+				/** 
+				 * Generates texture coordinates as a linear function in object coordinates.
+				 public static final int OBJECT_LINEAR = 0;				    
+				 * Generates texture coordinates as a linear function in eye coordinates.				    
+				 public static final int EYE_LINEAR    = 1;				   
+				 * Generates texture coordinates using a spherical reflection mapping in eye coordinates.
+				 public static final int SPHERE_MAP    = 2;
+				 * Generates texture coordinates that match vertices' normals in eye coordinates.
+				 public static final int NORMAL_MAP    = 3;
+				 * Generates texture coordinates that match vertices' reflection vectors in eye coordinates.
+				 public static final int REFLECTION_MAP = 4;
+				 see multitex.vert in examples for sphere map and cube map and google for the others
+				 */
+			}
+
+			if (lit)
+			{
+
+				vertexProgram += vertexAttributeInString + " vec4 glVertex;\n";
+				vertexProgram += vertexAttributeInString + " vec4 glColor;\n";
+				vertexProgram += vertexAttributeInString + " vec3 glNormal; \n";
+				if (hasTexture && !hasTextureCoordGen)
 				{
-					if (texCoordGeneration.getFormat() != 0)
-						System.out.println("texCoordGeneration.getFormat() must be 0");
-					/** 
-					 * Generates texture coordinates as a linear function in object coordinates.
-					 public static final int OBJECT_LINEAR = 0;				    
-					 * Generates texture coordinates as a linear function in eye coordinates.				    
-					 public static final int EYE_LINEAR    = 1;				   
-					 * Generates texture coordinates using a spherical reflection mapping in eye coordinates.
-					 public static final int SPHERE_MAP    = 2;
-					 * Generates texture coordinates that match vertices' normals in eye coordinates.
-					 public static final int NORMAL_MAP    = 3;
-					 * Generates texture coordinates that match vertices' reflection vectors in eye coordinates.
-					 public static final int REFLECTION_MAP = 4;
-					 see multitex.vert in examples for sphere map and cube map and google for the others
-					 */
+					vertexProgram += vertexAttributeInString + " vec2 glMultiTexCoord0;\n";
+				}
+				vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
+				vertexProgram += "uniform mat4 glModelViewMatrix;\n";
+				vertexProgram += "uniform mat3 glNormalMatrix;\n";
+				vertexProgram += "uniform int ignoreVertexColors;\n";
+				vertexProgram += "uniform vec4 glLightModelambient;\n";
+				vertexProgram += glFrontMaterial;
+				vertexProgram += glLightSource;
+				if (hasTextureCoordGen && texCoordGenModeObjLinear)
+				{
+					vertexProgram += "uniform vec4 texCoordGenPlaneS;\n";
+					vertexProgram += "uniform vec4 texCoordGenPlaneT;\n";
+				}
+				if (hasTexture)
+				{
+					vertexProgram += outString + " vec2 glTexCoord0;\n";
 				}
 
-				if (lit)
+				vertexProgram += outString + "  vec3 ViewVec;\n";
+				vertexProgram += outString + "  vec3 N;\n";
+				vertexProgram += outString + "  vec4 A;\n";
+				vertexProgram += outString + "  vec4 C;\n";
+				vertexProgram += outString + "  vec3 emissive;\n";
+				vertexProgram += outString + "  vec4 lightsD[maxLights];\n";
+				vertexProgram += outString + "  vec3 lightsS[maxLights];\n";
+				vertexProgram += outString + "  vec3 lightsLightDir[maxLights];\n";
+				vertexProgram += outString + "  float shininess;\n";
+				if (hasTextureCoordGen)
 				{
+					vertexProgram += "vec2 object_linear(vec4 pos, vec4 planeOS, vec4 planeOT)\n";
+					vertexProgram += "{\n";
+					vertexProgram += "	return vec2(pos.x*planeOS.x+pos.y*planeOS.y+pos.z*planeOS.z+pos.w*planeOS.w,pos.x*planeOT.x+pos.y*planeOT.y+pos.z*planeOT.z+pos.w*planeOT.w);\n";
+					vertexProgram += "}\n";
+				}
 
-					vertexProgram += vertexAttributeInString + " vec4 glVertex;\n";
-					vertexProgram += vertexAttributeInString + " vec4 glColor;\n";
-					vertexProgram += vertexAttributeInString + " vec3 glNormal; \n";
-					if (hasTexture && !hasTextureCoordGen)
+				vertexProgram += "void main( void ){\n";
+				vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
+				vertexProgram += "N = normalize(glNormalMatrix * glNormal);\n";
+				if (hasTexture)
+				{
+					if (!hasTextureCoordGen)
 					{
-						vertexProgram += vertexAttributeInString + " vec2 glMultiTexCoord0;\n";
+						vertexProgram += "glTexCoord0 = glMultiTexCoord0.st;\n";
 					}
-					vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
-					vertexProgram += "uniform mat4 glModelViewMatrix;\n";
-					vertexProgram += "uniform mat3 glNormalMatrix;\n";
-					vertexProgram += "uniform int ignoreVertexColors;\n";
-					vertexProgram += "uniform vec4 glLightModelambient;\n";
-					vertexProgram += glFrontMaterial;
-					vertexProgram += glLightSource;
-					if (hasTextureCoordGen && texCoordGenModeObjLinear)
+					else
 					{
-						vertexProgram += "uniform vec4 texCoordGenPlaneS;\n";
-						vertexProgram += "uniform vec4 texCoordGenPlaneT;\n";
-					}
-					if (hasTexture)
-					{
-						vertexProgram += outString + " vec2 glTexCoord0;\n";
-					}
-					vertexProgram += outString + "  vec3 LightDir;\n";
-					vertexProgram += outString + "  vec3 ViewDir;\n";
-					vertexProgram += outString + "  vec3 N;\n";
-					vertexProgram += outString + "  vec4 A;\n";
-					vertexProgram += outString + "  vec4 C;\n";
-					vertexProgram += outString + "  vec4 D;\n";
-					vertexProgram += outString + "  vec3 emissive;\n";
-					vertexProgram += outString + "  vec3 specular;\n";
-					vertexProgram += outString + "  float shininess;\n";
-					if (hasTextureCoordGen)
-					{
-						vertexProgram += "vec2 object_linear(vec4 pos, vec4 planeOS, vec4 planeOT)\n";
-						vertexProgram += "{\n";
-						vertexProgram += "	return vec2(pos.x*planeOS.x+pos.y*planeOS.y+pos.z*planeOS.z+pos.w*planeOS.w,pos.x*planeOT.x+pos.y*planeOT.y+pos.z*planeOT.z+pos.w*planeOT.w);\n";
-						vertexProgram += "}\n";
-					}
-
-					vertexProgram += "void main( void ){\n";
-					vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
-					vertexProgram += "N = normalize(glNormalMatrix * glNormal);\n";
-					if (hasTexture)
-					{
-						if (!hasTextureCoordGen)
+						if (texCoordGenModeObjLinear)
 						{
-							vertexProgram += "glTexCoord0 = glMultiTexCoord0.st;\n";
+							vertexProgram += "glTexCoord0 = object_linear(glVertex, texCoordGenPlaneS, texCoordGenPlaneT);\n";
 						}
 						else
 						{
-							if (texCoordGenModeObjLinear)
-							{
-								vertexProgram += "glTexCoord0 = object_linear(glVertex, texCoordGenPlaneS, texCoordGenPlaneT);\n";
-							}
-							else
-							{
-								System.err.println("texCoordGeneration.getGenMode() not supported " + texCoordGeneration.getGenMode());
-							}
+							System.err.println("texCoordGeneration.getGenMode() not supported " + texCoordGeneration.getGenMode());
 						}
 					}
+				}
 
-					vertexProgram += "vec3 v = vec3(glModelViewMatrix * glVertex);\n";
+				vertexProgram += "vec3 v = vec3(glModelViewMatrix * glVertex);\n";
 
-					vertexProgram += "ViewDir = -v.xyz;\n";
-					vertexProgram += "LightDir = glLightSource[0].position.xyz;\n";
+				vertexProgram += "ViewVec = -v.xyz;\n";
 
-					vertexProgram += "A = glLightModelambient * glFrontMaterial.ambient;\n";
-					vertexProgram += "if( ignoreVertexColors != 0) \n";
-					// objectColor should be used if it is no lighting, and reusing material diffuse appears wrong
-					vertexProgram += "	C = vec4(1,1,1,1);//glFrontMaterial.diffuse; \n";
-					vertexProgram += "else \n";
-					vertexProgram += "	C = glColor; \n";
+				vertexProgram += "A = glLightModelambient * glFrontMaterial.ambient;\n";
+				vertexProgram += "if( ignoreVertexColors != 0) \n";
+				// objectColor should be used if it is no lighting, and reusing material diffuse appears wrong
+				vertexProgram += "	C = vec4(1,1,1,1);//glFrontMaterial.diffuse; \n";
+				vertexProgram += "else \n";
+				vertexProgram += "	C = glColor; \n";
 
-					vertexProgram += "D = glLightSource[0].diffuse * glFrontMaterial.diffuse;\n";
+				vertexProgram += "emissive = glFrontMaterial.emission.rgb;\n";
+				vertexProgram += "shininess = glFrontMaterial.shininess;\n";
 
-					vertexProgram += "emissive = glFrontMaterial.emission.rgb;\n";
-					vertexProgram += "specular = glFrontMaterial.specular;\n";
-					vertexProgram += "shininess = glFrontMaterial.shininess;\n";
+				vertexProgram += "for (int index = 0; index < numberOfLights && index < maxLights; index++) // for all light sources\n";
+				vertexProgram += "{	\n";
+				vertexProgram += "	lightsD[index] = glLightSource[index].diffuse * glFrontMaterial.diffuse;	\n";
+				vertexProgram += "	lightsS[index] = glLightSource[index].specular.rgb * glFrontMaterial.specular;\n";
+				vertexProgram += "	lightsLightDir[index] = glLightSource[index].position.xyz;	\n";
+				vertexProgram += "}\n";
+				vertexProgram += "}";
+
+				fragmentProgram += "precision mediump float;\n";
+				fragmentProgram += "precision highp int;\n";
+				if (hasTexture)
+				{
+					fragmentProgram += alphaTestUniforms;
+
+					fragmentProgram += inString + " vec2 glTexCoord0;\n";
+					fragmentProgram += "uniform sampler2D BaseMap;\n";
+				}
+				fragmentProgram += "uniform int numberOfLights;\n";
+				fragmentProgram += inString + " vec3 ViewVec;\n";
+
+				fragmentProgram += inString + " vec3 N;\n";
+
+				fragmentProgram += inString + " vec4 A;\n";
+				fragmentProgram += inString + " vec4 C;\n";
+
+				fragmentProgram += inString + " vec3 emissive;\n";
+				fragmentProgram += inString + " float shininess;\n";
+				fragmentProgram += " const int maxLights = 3;\n";
+				fragmentProgram += inString + " vec4 lightsD[maxLights]; \n";
+				fragmentProgram += inString + " vec3 lightsS[maxLights]; \n";
+				fragmentProgram += inString + " vec3 lightsLightDir[maxLights]; \n";
+
+				fragmentProgram += fragColorDec;
+				fragmentProgram += "void main( void ){\n ";
+				if (hasTexture)
+				{
+					fragmentProgram += "vec4 baseMap = " + texture2D + "( BaseMap, glTexCoord0.st );\n";
+				}
+				if (hasTexture)
+				{
+					fragmentProgram += alphaTestMethod;
+				}
+
+				fragmentProgram += "vec4 color;\n";
+				fragmentProgram += "vec3 albedo = " + (hasTexture ? "baseMap.rgb *" : "") + " C.rgb;\n";
+
+				fragmentProgram += "vec3 diffuse = A.rgb;\n";
+				fragmentProgram += "vec3 spec;\n";
+
+				fragmentProgram += "vec3 normal = N;\n";
+				fragmentProgram += "vec3 E = normalize(ViewVec);\n";
+				fragmentProgram += "float EdotN = max( dot(normal, E), 0.0 );\n";
+
+				fragmentProgram += "for (int index = 0; index < numberOfLights && index < maxLights; index++) // for all light sources\n";
+				fragmentProgram += "{ 	\n";
+				fragmentProgram += "	vec3 L = normalize( lightsLightDir[index] );\n";
+				fragmentProgram += "	//vec3 R = reflect(-L, normal);\n";
+				fragmentProgram += "	vec3 H = normalize( L + E );		\n";
+				fragmentProgram += "	float NdotL = max( dot(normal, L), 0.0 );\n";
+				fragmentProgram += "	float NdotH = max( dot(normal, H), 0.0 );	\n";
+				fragmentProgram += "	float NdotNegL = max( dot(normal, -L), 0.0 );	\n";
+
+				fragmentProgram += "	diffuse = diffuse + (lightsD[index].rgb * NdotL);\n";
+				fragmentProgram += "	spec = spec + (lightsS[index] * pow(NdotH, 0.3*shininess));\n";
+				fragmentProgram += "}\n";
+
+				fragmentProgram += "color.rgb = albedo * (diffuse + emissive) + spec;\n";
+				if (hasTexture)
+				{
+					fragmentProgram += "color.a = C.a * baseMap.a;\n";
+				}
+				else
+				{
+					fragmentProgram += "color.a = C.a;\n";
+				}
+
+				fragmentProgram += fragColorVar + " = color;\n";
+				//for debug of the incorrect looking tex coord gen values
+				//if (hasTexture)
+				//fragmentProgram += fragColorVar + " = vec4(mod(glTexCoord0.s,1.0),mod(glTexCoord0.t,1.0),0,1);\n";
+
+				fragmentProgram += "}";
+
+			}
+			else
+			{
+				// not lit
+				if (hasTexture)
+				{
+					vertexProgram += vertexAttributeInString + " vec4 glVertex;\n";
+					vertexProgram += vertexAttributeInString + " vec2 glMultiTexCoord0;\n";
+					vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
+					vertexProgram += outString + " vec2 glTexCoord0;\n";
+					vertexProgram += "void main( void ){\n";
+					vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
+					vertexProgram += "glTexCoord0 = glMultiTexCoord0.st;\n";
 					vertexProgram += "}";
 
 					fragmentProgram += "precision mediump float;\n";
-					if (hasTexture)
-					{
-						fragmentProgram += alphaTestUniforms;
-
-						fragmentProgram += inString + " vec2 glTexCoord0;\n";
-						fragmentProgram += "uniform sampler2D BaseMap;\n";
-					}
-
-					fragmentProgram += inString + " vec3 LightDir;\n";
-					fragmentProgram += inString + " vec3 ViewDir;\n";
-
-					fragmentProgram += inString + " vec3 N;\n";
-
-					fragmentProgram += inString + " vec4 A;\n";
-					fragmentProgram += inString + " vec4 C;\n";
-					fragmentProgram += inString + " vec4 D;\n";
-
-					fragmentProgram += inString + " vec3 emissive;\n";
-					fragmentProgram += inString + " vec3 specular;\n";
-					fragmentProgram += inString + " float shininess;\n";
+					fragmentProgram += alphaTestUniforms;
+					fragmentProgram += inString + " vec2 glTexCoord0;\n";
+					fragmentProgram += "uniform sampler2D BaseMap;\n";
 					fragmentProgram += fragColorDec;
 					fragmentProgram += "void main( void ){\n ";
-					if (hasTexture)
-					{
-						fragmentProgram += "vec4 baseMap = "+texture2D+"( BaseMap, glTexCoord0.st );\n";
-					}
-					if (hasTexture)
-					{
-						fragmentProgram += alphaTestMethod;
-					}
-					fragmentProgram += "vec3 normal = N;\n";
-
-					fragmentProgram += "vec3 L = normalize(LightDir);\n";
-					fragmentProgram += "vec3 E = normalize(ViewDir);\n";
-					fragmentProgram += "vec3 R = reflect(-L, normal);\n";
-					fragmentProgram += "vec3 H = normalize( L + E );\n";
-
-					fragmentProgram += "float NdotL = max( dot(normal, L), 0.0 );\n";
-					fragmentProgram += "float NdotH = max( dot(normal, H), 0.0 );\n";
-					fragmentProgram += "float EdotN = max( dot(normal, E), 0.0 );\n";
-					fragmentProgram += "float NdotNegL = max( dot(normal, -L), 0.0 );\n";
-
-					fragmentProgram += "vec4 color;\n";
-					if (hasTexture)
-					{
-						fragmentProgram += "vec3 albedo = baseMap.rgb * C.rgb;\n";
-					}
-					else
-					{
-						fragmentProgram += "vec3 albedo = C.rgb;\n";
-					}
-					fragmentProgram += "vec3 diffuse = A.rgb + (D.rgb * NdotL);\n";
-
-					// 0.3 is just what the calc is
-					fragmentProgram += "vec3 spec = specular * pow(NdotH, 0.3*shininess);\n";
-					// D is not right it should be the light source spec color, probably just 1,1,1 but java3d has no spec on lights
-					//fragmentProgram += "spec *= D.rgb;\n";
-
-					fragmentProgram += "color.rgb = albedo * (diffuse + emissive) + spec;\n";
-					if (hasTexture)
-					{
-						fragmentProgram += "color.a = C.a * baseMap.a;\n";
-					}
-					else
-					{
-						fragmentProgram += "color.a = C.a;\n";
-					}
-
-					fragmentProgram += fragColorVar + " = color;\n";
-					//for debug of the incorrect looking tex coord gen values
-					//if (hasTexture)
-					//fragmentProgram += fragColorVar + " = vec4(mod(glTexCoord0.s,1.0),mod(glTexCoord0.t,1.0),0,1);\n";
-
+					fragmentProgram += "vec4 baseMap = " + texture2D + "( BaseMap, glTexCoord0.st );\n";
+					fragmentProgram += alphaTestMethod;
+					fragmentProgram += fragColorVar + " = baseMap;\n";
 					fragmentProgram += "}";
 
 				}
 				else
 				{
-					// not lit
-					if (hasTexture)
-					{
-						vertexProgram += vertexAttributeInString + " vec4 glVertex;\n";
-						vertexProgram += vertexAttributeInString + " vec2 glMultiTexCoord0;\n";
-						vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
-						vertexProgram += outString + " vec2 glTexCoord0;\n";
-						vertexProgram += "void main( void ){\n";
-						vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
-						vertexProgram += "glTexCoord0 = glMultiTexCoord0.st;\n";
-						vertexProgram += "}";
+					//no lit no texture					
+					vertexProgram += vertexAttributeInString + " vec4 glVertex;\n";
+					vertexProgram += vertexAttributeInString + " vec4 glColor;\n";
+					vertexProgram += "uniform int ignoreVertexColors;\n";
+					vertexProgram += "uniform vec4 objectColor;\n";
+					vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
+					vertexProgram += outString + " vec4 glFrontColor;\n";
+					vertexProgram += "void main( void ){\n";
+					vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
+					vertexProgram += "if( ignoreVertexColors != 0 )\n";
+					vertexProgram += "	glFrontColor = objectColor;\n";
+					vertexProgram += "else\n";
+					vertexProgram += "	glFrontColor = glColor;\n";
+					vertexProgram += "}";
 
-						fragmentProgram += "precision mediump float;\n";
-						fragmentProgram += alphaTestUniforms;
-						fragmentProgram += inString + " vec2 glTexCoord0;\n";
-						fragmentProgram += "uniform sampler2D BaseMap;\n";
-						fragmentProgram += fragColorDec;
-						fragmentProgram += "void main( void ){\n ";
-						fragmentProgram += "vec4 baseMap = "+texture2D+"( BaseMap, glTexCoord0.st );\n";
-						fragmentProgram += alphaTestMethod;
-						fragmentProgram += fragColorVar + " = baseMap;\n";
-						fragmentProgram += "}";
-
-					}
-					else
-					{
-						//no lit no texture					
-						vertexProgram += vertexAttributeInString + " vec4 glVertex;\n";
-						vertexProgram += vertexAttributeInString + " vec4 glColor;\n";
-						vertexProgram += "uniform int ignoreVertexColors;\n";
-						vertexProgram += "uniform vec4 objectColor;\n";
-						vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
-						vertexProgram += outString + " vec4 glFrontColor;\n";
-						vertexProgram += "void main( void ){\n";
-						vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
-						vertexProgram += "if( ignoreVertexColors != 0 )\n";
-						vertexProgram += "	glFrontColor = objectColor;\n";
-						vertexProgram += "else\n";
-						vertexProgram += "	glFrontColor = glColor;\n";
-						vertexProgram += "}";
-
-						fragmentProgram += "precision mediump float;\n";
-						fragmentProgram += inString + " vec4 glFrontColor;\n";
-						fragmentProgram += fragColorDec;
-						fragmentProgram += "void main( void ){\n";
-						fragmentProgram += fragColorVar + " = glFrontColor;\n";
-						fragmentProgram += "}";
-
-					}
+					fragmentProgram += "precision mediump float;\n";
+					fragmentProgram += inString + " vec4 glFrontColor;\n";
+					fragmentProgram += fragColorDec;
+					fragmentProgram += "void main( void ){\n";
+					fragmentProgram += fragColorVar + " = glFrontColor;\n";
+					fragmentProgram += "}";
 
 				}
 
-				// build the shader program and cache it
-				shaderProgram = new GLSLShaderProgram() {
-					@Override
-					public String toString()
-					{
-						return "SimpleShaderAppearance " + getName();
-					}
-				};
-				shaderProgram.setName("shaderkey = " + shaderKey);
-				shaderProgram.setShaders(makeShaders(vertexProgram, fragmentProgram));
-				if (hasTexture)
-				{
-					if (texCoordGenModeObjLinear)
-					{
-						shaderProgram.setShaderAttrNames(new String[] { "BaseMap", "texCoordGenPlaneS", "texCoordGenPlaneT" });
-					}
-					else
-					{
-						shaderProgram.setShaderAttrNames(new String[] { "BaseMap" });
-					}
-				}
-				shaderPrograms.put(new Integer(shaderKey), shaderProgram);
-				
- 
 			}
 
-			setShaderProgram(shaderProgram);
-
+			// build the shader program and cache it
+			shaderProgram = new GLSLShaderProgram() {
+				@Override
+				public String toString()
+				{
+					return "SimpleShaderAppearance " + getName();
+				}
+			};
+			shaderProgram.setName("shaderkey = " + shaderKey);
+			shaderProgram.setShaders(makeShaders(vertexProgram, fragmentProgram));
 			if (hasTexture)
 			{
-				ShaderAttributeSet shaderAttributeSet = new ShaderAttributeSet();
-				shaderAttributeSet.put(new ShaderAttributeValue("BaseMap", new Integer(0)));
 				if (texCoordGenModeObjLinear)
 				{
-					Vector4f planeS = new Vector4f();
-					texCoordGeneration.getPlaneS(planeS);
-					Vector4f planeT = new Vector4f();
-					texCoordGeneration.getPlaneT(planeT);
-
-					shaderAttributeSet.put(new ShaderAttributeValue("texCoordGenPlaneS", planeS));
-					shaderAttributeSet.put(new ShaderAttributeValue("texCoordGenPlaneT", planeT));
+					shaderProgram.setShaderAttrNames(new String[] { "BaseMap", "texCoordGenPlaneS", "texCoordGenPlaneT" });
 				}
+				else
+				{
+					shaderProgram.setShaderAttrNames(new String[] { "BaseMap" });
+				}
+			}
+			shaderPrograms.put(new Integer(shaderKey), shaderProgram);
 
-				setShaderAttributeSet(shaderAttributeSet);
+		}
+
+		setShaderProgram(shaderProgram);
+
+		if (hasTexture)
+		{
+			ShaderAttributeSet shaderAttributeSet = new ShaderAttributeSet();
+			shaderAttributeSet.put(new ShaderAttributeValue("BaseMap", new Integer(0)));
+			if (texCoordGenModeObjLinear)
+			{
+				Vector4f planeS = new Vector4f();
+				texCoordGeneration.getPlaneS(planeS);
+				Vector4f planeT = new Vector4f();
+				texCoordGeneration.getPlaneT(planeT);
+
+				shaderAttributeSet.put(new ShaderAttributeValue("texCoordGenPlaneS", planeS));
+				shaderAttributeSet.put(new ShaderAttributeValue("texCoordGenPlaneT", planeT));
 			}
 
+			setShaderAttributeSet(shaderAttributeSet);
 		}
 
 	}
