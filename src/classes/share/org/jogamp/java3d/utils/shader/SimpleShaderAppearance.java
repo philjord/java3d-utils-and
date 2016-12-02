@@ -137,8 +137,6 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	public SimpleShaderAppearance()
 	{
 		buildBasedOnAttributes = true;
-		this.setCapability(ALLOW_SHADER_PROGRAM_WRITE);// as we will be re-writing a bit
-		this.setCapability(ALLOW_SHADER_ATTRIBUTE_SET_WRITE);
 	}
 
 	/**
@@ -306,15 +304,21 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	{
 		if (buildBasedOnAttributes)
 		{
-			boolean hasTexture = this.getTexture() != null || this.getTextureUnitCount() > 0;
-			if (this.getTextureUnitCount() > 0)
-				System.out.println("this.getTextureUnitCount() " + this.getTextureUnitCount());
-			boolean lit = this.getMaterial() != null; // having material== lit geometry
+			// we only rebuild if we are not yet live or the right capabilities have been set
+			if ((!this.isLive() && !this.isCompiled()) || (this.getCapability(ALLOW_MATERIAL_READ)
+					&& this.getCapability(ALLOW_TEXTURE_UNIT_STATE_READ) && this.getCapability(ALLOW_TEXTURE_READ)))
+			{
+				boolean hasTexture = this.getTexture() != null || this.getTextureUnitCount() > 0;
+				if (this.getTextureUnitCount() > 0)
+					System.out.println("this.getTextureUnitCount() " + this.getTextureUnitCount());
+				boolean lit = this.getMaterial() != null; // having material== lit geometry
 
-			boolean hasTextureCoordGen = hasTexture && texCoordGeneration != null;
+				boolean hasTextureCoordGen = hasTexture && texCoordGeneration != null;
 
-			boolean texCoordGenModeObjLinear = hasTextureCoordGen && (texCoordGeneration.getGenMode() == TexCoordGeneration.OBJECT_LINEAR);
-			build(hasTexture, lit, hasTextureCoordGen, texCoordGenModeObjLinear);
+				boolean texCoordGenModeObjLinear = hasTextureCoordGen
+						&& (texCoordGeneration.getGenMode() == TexCoordGeneration.OBJECT_LINEAR);
+				build(hasTexture, lit, hasTextureCoordGen, texCoordGenModeObjLinear);
+			}
 		}
 	}
 
@@ -436,6 +440,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 				fragmentProgram += "precision mediump float;\n";
 				fragmentProgram += "precision highp int;\n";
+				fragmentProgram += "uniform float transparencyAlpha;\n";				
 				if (hasTexture)
 				{
 					fragmentProgram += alphaTestUniforms;
@@ -502,6 +507,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					fragmentProgram += "color.a = C.a;\n";
 				}
 
+				fragmentProgram += "color.a *= transparencyAlpha;\n";
 				fragmentProgram += fragColorVar + " = color;\n";
 				//for debug of the incorrect looking tex coord gen values
 				//if (hasTexture)
@@ -525,6 +531,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					vertexProgram += "}";
 
 					fragmentProgram += "precision mediump float;\n";
+					fragmentProgram += "uniform float transparencyAlpha;\n";		
 					fragmentProgram += alphaTestUniforms;
 					fragmentProgram += inString + " vec2 glTexCoord0;\n";
 					fragmentProgram += "uniform sampler2D BaseMap;\n";
@@ -532,6 +539,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					fragmentProgram += "void main( void ){\n ";
 					fragmentProgram += "vec4 baseMap = " + texture2D + "( BaseMap, glTexCoord0.st );\n";
 					fragmentProgram += alphaTestMethod;
+					fragmentProgram += "baseMap.a *= transparencyAlpha;\n";
 					fragmentProgram += fragColorVar + " = baseMap;\n";
 					fragmentProgram += "}";
 
@@ -554,9 +562,11 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					vertexProgram += "}";
 
 					fragmentProgram += "precision mediump float;\n";
+					fragmentProgram += "uniform float transparencyAlpha;\n";		
 					fragmentProgram += inString + " vec4 glFrontColor;\n";
 					fragmentProgram += fragColorDec;
 					fragmentProgram += "void main( void ){\n";
+					fragmentProgram += "glFrontColor.a *= transparencyAlpha;\n";
 					fragmentProgram += fragColorVar + " = glFrontColor;\n";
 					fragmentProgram += "}";
 
