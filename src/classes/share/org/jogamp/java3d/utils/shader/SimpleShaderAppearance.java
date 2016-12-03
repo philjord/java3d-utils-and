@@ -26,6 +26,7 @@ import org.jogamp.vecmath.Vector4f;
 /**
  * NOTE!!!!  this defaults to the values for desktop, on ES hardware you must call
  * SimpleShaderAppearance.setVersionES300();
+ * or SimpleShaderAppearance.setVersionES100();
  * @author phil
  *
  */
@@ -125,11 +126,18 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	private static GLSLShaderProgram flatShaderProgram;
 	private static GLSLShaderProgram colorLineShaderProgram;
 
+	private static HashMap<GLSLShaderProgram, String> vertexShaderSources = new HashMap<GLSLShaderProgram, String>();
+	private static HashMap<GLSLShaderProgram, String> fragmentShaderSources = new HashMap<GLSLShaderProgram, String>();
+
 	private boolean buildBasedOnAttributes = false;
 
 	// we can't set it in the super class as tex coord gen is not supported in the pipeline
 	// so we record it in this class when set
 	private TexCoordGeneration texCoordGeneration = null;
+
+	private String vertexShaderSource = null;
+
+	private String fragmentShaderSource = null;
 
 	/**
 	 * This will define the shader code based on the attributes set
@@ -226,9 +234,14 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					fragmentProgram += "}";
 
 					colorLineShaderProgram.setShaders(makeShaders(vertexProgram, fragmentProgram));
+
+					vertexShaderSources.put(colorLineShaderProgram, vertexProgram);
+					fragmentShaderSources.put(colorLineShaderProgram, fragmentProgram);
 				}
 
 				setShaderProgram(colorLineShaderProgram);
+				vertexShaderSource = vertexShaderSources.get(colorLineShaderProgram);
+				fragmentShaderSource = fragmentShaderSources.get(colorLineShaderProgram);
 
 			}
 			else
@@ -267,17 +280,30 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					fragmentProgram += "}";
 
 					flatShaderProgram.setShaders(makeShaders(vertexProgram, fragmentProgram));
+					vertexShaderSources.put(flatShaderProgram, vertexProgram);
+					fragmentShaderSources.put(flatShaderProgram, fragmentProgram);
 					//System.out.println("vertexProgram " +vertexProgram);
 					//System.out.println("fragmentProgram " +fragmentProgram);
 
 				}
 
 				setShaderProgram(flatShaderProgram);
-
+				vertexShaderSource = vertexShaderSources.get(flatShaderProgram);
+				fragmentShaderSource = fragmentShaderSources.get(flatShaderProgram);
 			}
 
 		}
 
+	}
+
+	public String getVertexShaderSource()
+	{
+		return vertexShaderSource;
+	}
+
+	public String getFragmentShaderSource()
+	{
+		return fragmentShaderSource;
 	}
 
 	private static Shader[] makeShaders(String vertexProgram, String fragmentProgram)
@@ -440,7 +466,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 				fragmentProgram += "precision mediump float;\n";
 				fragmentProgram += "precision highp int;\n";
-				fragmentProgram += "uniform float transparencyAlpha;\n";				
+				fragmentProgram += "uniform float transparencyAlpha;\n";
 				if (hasTexture)
 				{
 					fragmentProgram += alphaTestUniforms;
@@ -531,7 +557,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					vertexProgram += "}";
 
 					fragmentProgram += "precision mediump float;\n";
-					fragmentProgram += "uniform float transparencyAlpha;\n";		
+					fragmentProgram += "uniform float transparencyAlpha;\n";
 					fragmentProgram += alphaTestUniforms;
 					fragmentProgram += inString + " vec2 glTexCoord0;\n";
 					fragmentProgram += "uniform sampler2D BaseMap;\n";
@@ -562,12 +588,12 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					vertexProgram += "}";
 
 					fragmentProgram += "precision mediump float;\n";
-					fragmentProgram += "uniform float transparencyAlpha;\n";		
+					fragmentProgram += "uniform float transparencyAlpha;\n";
 					fragmentProgram += inString + " vec4 glFrontColor;\n";
 					fragmentProgram += fragColorDec;
 					fragmentProgram += "void main( void ){\n";
-					fragmentProgram += "glFrontColor.a *= transparencyAlpha;\n";
 					fragmentProgram += fragColorVar + " = glFrontColor;\n";
+					fragmentProgram += fragColorVar + ".a *= transparencyAlpha;\n";
 					fragmentProgram += "}";
 
 				}
@@ -584,6 +610,9 @@ public class SimpleShaderAppearance extends ShaderAppearance
 			};
 			shaderProgram.setName("shaderkey = " + shaderKey);
 			shaderProgram.setShaders(makeShaders(vertexProgram, fragmentProgram));
+			vertexShaderSources.put(shaderProgram, vertexProgram);
+			fragmentShaderSources.put(shaderProgram, fragmentProgram);
+
 			if (hasTexture)
 			{
 				if (texCoordGenModeObjLinear)
@@ -600,6 +629,8 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		}
 
 		setShaderProgram(shaderProgram);
+		vertexShaderSource = vertexShaderSources.get(shaderProgram);
+		fragmentShaderSource = fragmentShaderSources.get(shaderProgram);
 
 		if (hasTexture)
 		{
@@ -712,6 +743,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	/**
 	* Must implement or clones turn out to be ShaderAppearance
 	*/
+	@SuppressWarnings("deprecation")
 	@Override
 	public NodeComponent cloneNodeComponent()
 	{
