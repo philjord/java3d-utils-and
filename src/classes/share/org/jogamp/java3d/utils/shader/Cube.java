@@ -120,7 +120,7 @@ public class Cube extends Shape3D
 		cube.setColorRefBuffer(new J3DBuffer(makeFloatBuffer(colors)));
 
 		this.setGeometry(cube);
-		this.setAppearance(new SimpleShaderAppearance(null,false,false));
+		this.setAppearance(new SimpleShaderAppearance());
 	}
 
 	/**
@@ -142,7 +142,7 @@ public class Cube extends Shape3D
 
 		this.setGeometry(cube);
 
-		this.setAppearance(new SimpleShaderAppearance(null,false,false));
+		this.setAppearance(new SimpleShaderAppearance());
 	}
 
 	public Cube(double scale, float r, float g, float b)
@@ -167,7 +167,7 @@ public class Cube extends Shape3D
 		cube.setColorRefBuffer(new J3DBuffer(makeFloatBuffer(colorsSet)));
 
 		this.setGeometry(cube);
-		this.setAppearance(new SimpleShaderAppearance(null,false,false));
+		this.setAppearance(new SimpleShaderAppearance());
 	}
 
 	/**
@@ -192,7 +192,7 @@ public class Cube extends Shape3D
 		cube.setColorRefBuffer(new J3DBuffer(makeFloatBuffer(colors)));
 
 		this.setGeometry(cube);
-		this.setAppearance(new SimpleShaderAppearance(null,false,false));
+		this.setAppearance(new SimpleShaderAppearance());
 	}
 
 	public Cube(double xScale, double yScale, double zScale, float r, float g, float b)
@@ -221,7 +221,7 @@ public class Cube extends Shape3D
 		cube.setColorRefBuffer(new J3DBuffer(makeFloatBuffer(colorsSet)));
 
 		this.setGeometry(cube);
-		this.setAppearance(new SimpleShaderAppearance(null,false,false));
+		this.setAppearance(new SimpleShaderAppearance());
 	}
 
 	public Cube(float xMin, float yMin, float zMin, float xMax, float yMax, float zMax)
@@ -277,7 +277,7 @@ public class Cube extends Shape3D
 		cube.setColorRefBuffer(new J3DBuffer(makeFloatBuffer(colors)));
 
 		this.setGeometry(cube);
-		this.setAppearance(new SimpleShaderAppearance(null,false,false));
+		this.setAppearance(new SimpleShaderAppearance());
 	}
 	public static FloatBuffer makeFloatBuffer(float[] arr)
 	{

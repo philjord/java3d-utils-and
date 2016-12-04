@@ -1,3 +1,31 @@
+/*
+ * Copyright (c) 2016 JogAmp Community. All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ *    list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * The views and conclusions contained in the software and documentation are those
+ * of the authors and should not be interpreted as representing official policies,
+ * either expressed or implied, of the JogAmp Community.
+ *
+ */
 package org.jogamp.java3d.utils.shader;
 
 import java.util.HashMap;
@@ -24,7 +52,24 @@ import org.jogamp.vecmath.Color3f;
 import org.jogamp.vecmath.Vector4f;
 
 /**
- * NOTE!!!!  this defaults to the values for desktop, on ES hardware you must call
+ * SimpleShaderAppearance is a mechanism to quickly build shaders compatible with Java3D 1.7.0 Jogl2es2Pipeline.
+ * It will use the set components to determine the shader to use, for example if you set a material
+ * then it will add the lighting uniforms values and do the calculations
+ * Similarly if you set a texture it will sample from it.
+ * 
+ * Sharing SimpleShaderAppearances (such as appears to be done by Box) will almost certainly cause problems, however the shader programs
+ * that are identical are automatically shared internally.
+ * 
+ * If you want to see examples of the shader source use getVertexShaderSource and getFragmentShaderSource after setting up
+ * a SimpleShaderAppearance as you would have done for a regular Appearance
+ * 
+ * Some pipeline data such as FogData are not used by this class and must be manually setup if desired.
+ * 
+ * To use the auto builder simply construct using SimpleShaderAppearance()
+ * To force a flat shader use SimpleShaderAppearance(false, false)
+ * To force a colored line shader use SimpleShaderAppearance(new Color4f(1,0,1,1,))
+ * 
+ * Note, this defaults to the values for desktop, on ES hardware you must call
  * SimpleShaderAppearance.setVersionES300();
  * or SimpleShaderAppearance.setVersionES100();
  * @author phil
@@ -145,6 +190,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	public SimpleShaderAppearance()
 	{
 		buildBasedOnAttributes = true;
+		rebuildShaders();
 	}
 
 	/**
@@ -156,14 +202,6 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		this(color, false, false);
 	}
 
-	/**
-	 * Polygons  if hasTexture is true a texture otherwise vertex attribute colors for face color
-	 */
-	public SimpleShaderAppearance(boolean hasTexture)
-	{
-		this(null, false, hasTexture);
-	}
-
 	public SimpleShaderAppearance(boolean lit, boolean hasTexture)
 	{
 		this(null, lit, hasTexture);
@@ -173,7 +211,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	 * otherwise simple poly appearance
 	 * @param color
 	 */
-	public SimpleShaderAppearance(Color3f color, boolean lit, boolean hasTexture)
+	private SimpleShaderAppearance(Color3f color, boolean lit, boolean hasTexture)
 	{
 		if (lit || hasTexture)
 		{
@@ -273,10 +311,12 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 					String fragmentProgram = versionString;
 					fragmentProgram += "precision mediump float;\n";
+					fragmentProgram += "uniform float transparencyAlpha;\n";
 					fragmentProgram += inString + " vec4 glFrontColor;\n";
 					fragmentProgram += fragColorDec;
 					fragmentProgram += "void main( void ){\n";
 					fragmentProgram += fragColorVar + " = glFrontColor;\n";
+					fragmentProgram += fragColorVar + ".a *= transparencyAlpha;\n";
 					fragmentProgram += "}";
 
 					flatShaderProgram.setShaders(makeShaders(vertexProgram, fragmentProgram));
@@ -339,6 +379,10 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					System.out.println("this.getTextureUnitCount() " + this.getTextureUnitCount());
 				boolean lit = this.getMaterial() != null; // having material== lit geometry
 
+				//POLYGON_LINE and POLYGON_POINT are not lit
+				lit = lit && (this.getPolygonAttributes() == null
+						|| this.getPolygonAttributes().getPolygonMode() == PolygonAttributes.POLYGON_FILL);
+				
 				boolean hasTextureCoordGen = hasTexture && texCoordGeneration != null;
 
 				boolean texCoordGenModeObjLinear = hasTextureCoordGen
@@ -535,6 +579,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 				fragmentProgram += "color.a *= transparencyAlpha;\n";
 				fragmentProgram += fragColorVar + " = color;\n";
+
 				//for debug of the incorrect looking tex coord gen values
 				//if (hasTexture)
 				//fragmentProgram += fragColorVar + " = vec4(mod(glTexCoord0.s,1.0),mod(glTexCoord0.t,1.0),0,1);\n";
