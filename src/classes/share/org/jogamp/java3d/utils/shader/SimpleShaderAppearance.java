@@ -371,18 +371,28 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		if (buildBasedOnAttributes)
 		{
 			// we only rebuild if we are not yet live or the right capabilities have been set
-			if ((!this.isLive() && !this.isCompiled()) || (this.getCapability(ALLOW_MATERIAL_READ)
-					&& this.getCapability(ALLOW_TEXTURE_UNIT_STATE_READ) && this.getCapability(ALLOW_TEXTURE_READ)))
+			if (
+			// first check is that the appearance is not live/compiled or if it is the various parts can be got at
+			((!this.isLive() && !this.isCompiled()) // appearance is not live/compiled
+					|| (this.getCapability(ALLOW_MATERIAL_READ)//
+							&& this.getCapability(ALLOW_TEXTURE_UNIT_STATE_READ) //
+							&& this.getCapability(ALLOW_TEXTURE_READ)//
+							&& this.getCapability(ALLOW_POLYGON_ATTRIBUTES_READ)))//		
+					// second part of check is that each component can be live/compiled elsewhere so need checking separately
+					&& (this.getPolygonAttributes() == null // no poly attributes
+							|| (!this.getPolygonAttributes().isLive() && !this.getPolygonAttributes().isCompiled()) // poly attributes are not yet live
+							|| this.getPolygonAttributes().getCapability(PolygonAttributes.ALLOW_MODE_READ))//poly attributes are live but can be read
+			)
 			{
 				boolean hasTexture = this.getTexture() != null || this.getTextureUnitCount() > 0;
 				if (this.getTextureUnitCount() > 0)
 					System.out.println("this.getTextureUnitCount() " + this.getTextureUnitCount());
 				boolean lit = this.getMaterial() != null; // having material== lit geometry
-
+				
 				//POLYGON_LINE and POLYGON_POINT are not lit
 				lit = lit && (this.getPolygonAttributes() == null
 						|| this.getPolygonAttributes().getPolygonMode() == PolygonAttributes.POLYGON_FILL);
-				
+
 				boolean hasTextureCoordGen = hasTexture && texCoordGeneration != null;
 
 				boolean texCoordGenModeObjLinear = hasTextureCoordGen
