@@ -39,7 +39,7 @@
 
 package org.jogamp.java3d.utils.behaviors.mouse.newt;
 
-import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 import org.jogamp.java3d.Behavior;
@@ -48,12 +48,10 @@ import org.jogamp.java3d.TransformGroup;
 import org.jogamp.java3d.WakeupCriterion;
 import org.jogamp.java3d.WakeupOnBehaviorPost;
 import org.jogamp.java3d.WakeupOr;
-import org.jogamp.java3d.internal.J3dUtilsI18N;
 
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
-import com.jogamp.newt.opengl.GLWindow;
 
 /**
  * Base class for all mouse manipulators (see MouseRotate, MouseZoom
@@ -256,7 +254,7 @@ public abstract class MouseBehavior extends Behavior implements MouseListener
 	 * All mouse manipulators must implement this.
 	 */
 	@Override
-	public abstract void processStimulus(Enumeration criteria);
+	public abstract void processStimulus(Iterator<WakeupCriterion> criteria);
 
 	/**
 	 * Adds this behavior as a MouseListener, mouseWheelListener and MouseMotionListener to

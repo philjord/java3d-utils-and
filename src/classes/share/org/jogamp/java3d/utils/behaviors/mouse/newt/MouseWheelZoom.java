@@ -41,7 +41,7 @@ package org.jogamp.java3d.utils.behaviors.mouse.newt;
 
  
  
-import java.util.Enumeration;
+import java.util.Iterator;
 
 import org.jogamp.java3d.Transform3D;
 import org.jogamp.java3d.TransformGroup;
@@ -139,13 +139,13 @@ public class MouseWheelZoom extends MouseBehavior {
 
 
     @Override
-    public void processStimulus(Enumeration criteria) {
+    public void processStimulus(Iterator<WakeupCriterion> criteria) {
 	WakeupCriterion wakeup;
 	 
 	MouseEvent evt;
 
-	while (criteria.hasMoreElements()) {
-	    wakeup = (WakeupCriterion) criteria.nextElement();
+	while (criteria.hasNext()) {
+	    wakeup = criteria.next();
 	      if (wakeup instanceof WakeupOnBehaviorPost) {
 		while (true) {
 		    synchronized (mouseq) {

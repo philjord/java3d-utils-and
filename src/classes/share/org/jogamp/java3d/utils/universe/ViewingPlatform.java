@@ -39,7 +39,7 @@
 
 package org.jogamp.java3d.utils.universe;
 
-import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Hashtable;
 
 import org.jogamp.java3d.BranchGroup;
@@ -188,10 +188,10 @@ public class ViewingPlatform extends BranchGroup {
 	tg.addChild(vp);
         viewPlatform = vp;
         // Assign this to all Viewers.
-        Enumeration e = viewerList.keys();
+        Iterator e = viewerList.keySet().iterator();
 
-        while (e.hasMoreElements())
-            ((Viewer)e.nextElement()).setViewingPlatform(this);
+        while (e.hasNext())
+            ((Viewer)e.next()).setViewingPlatform(this);
     }
 
     /**
@@ -300,7 +300,7 @@ public class ViewingPlatform extends BranchGroup {
 			(J3dUtilsI18N.getString("ViewingPlatform0"));
 		}
 
-		Viewer viewer = (Viewer)viewerList.keys().nextElement();
+		Viewer viewer = (Viewer)viewerList.keySet().iterator().next();
 		View view = viewer.getView();
 		fieldOfView = view.getFieldOfView();
 	    }

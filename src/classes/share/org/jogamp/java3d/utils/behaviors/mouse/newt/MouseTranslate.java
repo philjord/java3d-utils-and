@@ -39,7 +39,7 @@
 
 package org.jogamp.java3d.utils.behaviors.mouse.newt;
 
-import java.util.Enumeration;
+import java.util.Iterator;
 
 import org.jogamp.java3d.Transform3D;
 import org.jogamp.java3d.TransformGroup;
@@ -162,7 +162,7 @@ public class MouseTranslate extends MouseBehavior
 	}
 
 	@Override
-	public void processStimulus(Enumeration criteria)
+	public void processStimulus(Iterator<WakeupCriterion> criteria)
 	{
 		WakeupCriterion wakeup;
 
@@ -170,9 +170,9 @@ public class MouseTranslate extends MouseBehavior
 		// 	int id;
 		// 	int dx, dy;
 
-		while (criteria.hasMoreElements())
+		while (criteria.hasNext())
 		{
-			wakeup = (WakeupCriterion) criteria.nextElement();
+			wakeup = criteria.next();
 
 			if (wakeup instanceof WakeupOnBehaviorPost)
 			{
