@@ -382,6 +382,9 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					&& (this.getPolygonAttributes() == null // no poly attributes
 							|| (!this.getPolygonAttributes().isLive() && !this.getPolygonAttributes().isCompiled()) // poly attributes are not yet live
 							|| this.getPolygonAttributes().getCapability(PolygonAttributes.ALLOW_MODE_READ))//poly attributes are live but can be read
+			
+					// finally we must be allowed to set the shader program while live
+					&& ((!this.isLive() && !this.isCompiled()) || (this.getCapability(ALLOW_SHADER_PROGRAM_WRITE)))
 			)
 			{
 				boolean hasTexture = this.getTexture() != null || this.getTextureUnitCount() > 0;
