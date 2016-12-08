@@ -2216,7 +2216,7 @@ public class GeometryInfo
 	 * if array is not Tuple2f, Tuple3f, or Tuple4f.  Used by fillIn()
 	 * for BY_REFERENCE not INTERLEAVED geometry.
 	 */
-	private float[] vecmathToFloat(Object[] ar)
+	public static float[] vecmathToFloat(Object[] ar)
 	{
 		if (ar[0] instanceof Tuple2f)
 		{
