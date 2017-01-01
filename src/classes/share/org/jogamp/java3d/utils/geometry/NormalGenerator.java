@@ -41,8 +41,11 @@ package org.jogamp.java3d.utils.geometry;
 
 import java.util.ArrayList;
 
+import org.jogamp.java3d.SparseArray;
 import org.jogamp.vecmath.Point3f;
 import org.jogamp.vecmath.Vector3f;
+
+import android.util.SparseIntArray;
 
 /**
  * The NormalGenerator utility will calculate and fill in the normals
@@ -68,7 +71,7 @@ import org.jogamp.vecmath.Vector3f;
 public class NormalGenerator {
 
   private double creaseAngle;
-  private ArrayList<ArrayList<Integer>> tally;
+  private ArrayList<SparseArray> tally;
   private int coordInds[];
   private int normalInds[];
   private int colorInds[];
@@ -172,7 +175,7 @@ public class NormalGenerator {
   private int createHardEdges(Vector3f[] facetNorms)
   {
     EdgeTable et = new EdgeTable(coordInds);
-    tally = new ArrayList<ArrayList<Integer>>();
+    tally = new ArrayList<SparseArray>();
     int normalMap[] = new int[coordInds.length];
     int maxShare = 1;
     float cosine;
@@ -193,10 +196,10 @@ public class NormalGenerator {
 	    "Coordinate Index " + c + ": vertex " + coordInds[c]);
 	}
 	// Create a list of vertices used for calculating this normal
-	ArrayList<Integer> sharers = new ArrayList<Integer>();
+	SparseArray<SparseArray> sharers = new SparseArray<SparseArray>();
 	tally.add(sharers);
 	// Put this coordinate in the list
-	sharers.add(new Integer(c));
+	sharers.put(c, sharers);
 	// Point this coordinate's index at its list
 	normalMap[c] = tally.size() - 1;
 
@@ -216,20 +219,20 @@ public class NormalGenerator {
 	// Proceed from one triangle to the next
 	do {
 	  // Look up edge in Edge Table to find neighbor triangle
-	  Integer tableVal = et.get(edge.v2, edge.v1);
+	  int tableVal = et.get(edge.v2, edge.v1);
 	  if ((DEBUG & 32) != 0) {
 	    System.out.println(
 	      "  Search Edge: " + (new Edge(edge.v2, edge.v1)));
 	  }
 
 	  // See if there is no triangle on the other side of this edge
-	  if (tableVal == null) {
+	  if (tableVal == Integer.MAX_VALUE) {
 	    smooth = false;
 	    if ((DEBUG & 32) != 0)
 	      System.out.println("    No neighboring triangle found.");
 	  } else {
 
-	    int n = tableVal.intValue();
+	    int n = tableVal;//.intValue();
 	    if ((DEBUG & 32) != 0) {
 	      System.out.println(
 		"    Table lookup result: " + n + " (vertex " + coordInds[n] +
@@ -262,7 +265,7 @@ public class NormalGenerator {
 
 		// Consider this triangle's facet normal when calculating the
 		// vertex's normal
-		sharers.add(new Integer(centerv));
+		sharers.put( centerv, sharers);
 		if (sharers.size() > maxShare) maxShare = sharers.size();
 
 		// Continue on around the vertex to the next triangle
@@ -299,9 +302,9 @@ public class NormalGenerator {
       System.out.println("Tally:");
       for (int i = 0 ; i < tally.size() ; i++) {
 	System.out.print("  " + i + ": ");
-	ArrayList<Integer> sharers = tally.get(i);
+	SparseArray sharers = tally.get(i);
 	for (int j = 0 ; j < sharers.size() ; j++) {
-	  System.out.print(" " + sharers.get(j));
+	  System.out.print(" " + sharers.keyAt(j));
 	}
 	System.out.println();
       }
@@ -336,7 +339,7 @@ public class NormalGenerator {
   private void calculateVertexNormals(GeometryInfo gi, Vector3f[] facetNorms, int maxShare)
   {
     Vector3f normals[];
-    ArrayList<Integer> sharers;
+    SparseArray sharers;
     int triangle;
     Vector3f fn[];	// Normals of facets joined by this vertex
     int fnsize;		// Number of elements currently ised in fn
@@ -354,7 +357,7 @@ public class NormalGenerator {
 	fnsize = 0;
 	normals[n] = new Vector3f();
 	for (int t = 0 ; t < sharers.size() ; t++) {
-	  int v = sharers.get(t).intValue();
+	  int v = sharers.keyAt(t);//.intValue();
 	  // See if index removed by hard edge process
 	  if (v != -1) {
 	    triangle = v / 3;
@@ -384,7 +387,7 @@ public class NormalGenerator {
 	}
 	if ((DEBUG & 128) != 0) {
 	  for (int t = 0 ; t < sharers.size() ; t++) {
-	    int v = sharers.get(t).intValue();
+	    int v = sharers.keyAt(t);//.intValue();
 	    if (v != -1) {
 	      triangle = v / 3;
 	      System.out.println("  " + facetNorms[triangle]);

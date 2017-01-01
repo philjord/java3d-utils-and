@@ -1476,12 +1476,17 @@ public class GeometryInfo
 		int[] val;
 
 		int size;
+		
+		private int hash = Integer.MIN_VALUE;
 
 		//private static final int HASHCONST = 0xBABEFACE;
 
+		@Override
 		public int hashCode()
 		{
-			return Arrays.hashCode(val);
+			if( hash == Integer.MIN_VALUE)
+				hash = Arrays.hashCode(val);
+			return hash;
 			/*int bits = 0;
 			for (int i = 0; i < size; i++)
 			{
@@ -1490,9 +1495,11 @@ public class GeometryInfo
 			return bits;*/
 		} // End of IndexRow.hashCode
 
+		@Override
 		public boolean equals(Object obj)
 		{
 			return Arrays.equals(val, ((IndexRow) obj).val);
+
 			/*for (int i = 0; i < size; i++)
 			{
 				if (((IndexRow) obj).get(i) != val[i])
@@ -1501,15 +1508,18 @@ public class GeometryInfo
 			return true;*/
 		} // End of IndexRow.equals()
 
-		public int get(int index)
+		//PJPJPJ removed in favour of direct access
+		/*public int get(int index)
 		{
 			return val[index];
-		} // End of IndexRow.get
+		}*/ // End of IndexRow.get
 
-		public void set(int index, int value)
+		//PJPJPJ removed in favour of direct access
+		/*public void set(int index, int value)
 		{
+			hash = Integer.MIN_VALUE;
 			val[index] = value;
-		} // End of IndexRow.set
+		} */ // End of IndexRow.set
 
 		IndexRow(int numColumns)
 		{
@@ -1572,7 +1582,7 @@ public class GeometryInfo
 			{
 				ir[i] = new IndexRow(numLists);
 				j = 0;
-				ir[i].set(j++, coordinateIndices[i]);
+				/*ir[i].set(j++, coordinateIndices[i]);
 				if (colorIndices != null)
 					ir[i].set(j++, colorIndices[i]);
 				if (normalIndices != null)
@@ -1580,7 +1590,18 @@ public class GeometryInfo
 				for (int k = 0; k < texCoordSetCount; k++)
 				{
 					ir[i].set(j++, texCoordIndexSets[k][i]);
+				}*/
+				int[] val = ir[i].val;
+				val[j++]= coordinateIndices[i];
+				if (colorIndices != null)
+					val[j++]= colorIndices[i];
+				if (normalIndices != null)
+					val[j++]= normalIndices[i];
+				for (int k = 0; k < texCoordSetCount; k++)
+				{
+					val[j++]= texCoordIndexSets[k][i];
 				}
+				ir[i].hash = Integer.MIN_VALUE;
 			}
 
 			// Get index into that array
@@ -1632,20 +1653,22 @@ public class GeometryInfo
 			for (int i = 0; i < n; i++)
 			{
 				j = 0;
-				newCoords[i] = coordinates[(ir[i]).get(j++)];
+				//PJPJPJ swapped from get to direct access
+				int[] val = ir[i].val;
+				newCoords[i] = coordinates[val[j++]];
 				if (colors3 != null)
 				{
-					newColors3[i] = colors3[(ir[i]).get(j++)];
+					newColors3[i] = colors3[val[j++]];
 				}
 				else if (colors4 != null)
 				{
-					newColors4[i] = colors4[(ir[i]).get(j++)];
+					newColors4[i] = colors4[val[j++]];
 				}
 				if (normals != null)
-					newNormals[i] = normals[(ir[i]).get(j++)];
+					newNormals[i] = normals[val[j++]];
 				for (int k = 0; k < texCoordSetCount; k++)
 				{
-					newTexCoordSets[k][i] = texCoordSets[k][(ir[i]).get(j++)];
+					newTexCoordSets[k][i] = texCoordSets[k][val[j++]];
 				}
 			}
 

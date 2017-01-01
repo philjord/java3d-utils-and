@@ -39,26 +39,32 @@
 
 package org.jogamp.java3d.utils.geometry;
 
-import java.util.HashMap;
-import java.util.Iterator;
+import org.jogamp.java3d.util.LongSparseIntArray;
 
 class EdgeTable {
 
-  private HashMap edgeTable;
+  //private HashMap edgeTable;
+  private LongSparseIntArray edgeTable2;
   private static final int DEBUG = 0;
 
 
-
-  Integer get(int a, int b)
+  //see http://stackoverflow.com/questions/12772939/java-storing-two-ints-in-a-long
+  //long l = (((long)x) << 32) | (y & 0xffffffffL);
+ // int x = (int)(l >> 32);
+ // int y = (int)l;
+  int get(int a, int b)
   {
-    return (Integer)edgeTable.get(new Edge(a, b));
+	  long key = (((long)a) << 32) | (b & 0xffffffffL);
+	  int newVal =  edgeTable2.get(key);
+	  return  newVal ;
+    //return (Integer)edgeTable.get(new Edge(a, b));
   } // End of get()
 
 
-  Integer get(Edge e)
-  {
-    return (Integer)edgeTable.get(e);
-  } // End of get()
+  //Integer get(Edge e)
+  //{
+  //  return (Integer)edgeTable.get(e);
+  //} // End of get()
 
 
 
@@ -70,40 +76,58 @@ class EdgeTable {
   EdgeTable(int triangleIndices[])
   {
     // We'll have one edge for each vertex
-    edgeTable = new HashMap(triangleIndices.length * 2);
+   // edgeTable = new HashMap(triangleIndices.length * 2);
+    edgeTable2 = new LongSparseIntArray(triangleIndices.length * 2);
 
     // Fill in table
-    Edge e;
+    //Edge e;
     for (int t = 0 ; t < triangleIndices.length ; t += 3) {
       // Put all 3 edges of triangle into table
       for (int v = 0 ; v < 3 ; v++) {
-        e = new Edge(triangleIndices[t + v],
-                     triangleIndices[t + ((v + 1) % 3)]);
-
-	if (edgeTable.get(e) != null) {
-	  if ((DEBUG & 1) != 0) {
+    	  // e = new Edge(triangleIndices[t + v],
+          //              triangleIndices[t + ((v + 1) % 3)]);
+       	  int a = triangleIndices[t + v];
+       	  int b = triangleIndices[t + ((v + 1) % 3)];
+       	  long key = (((long)a) << 32) | (b & 0xffffffffL);
+    if ((DEBUG & 1) != 0) {
+       	  if (edgeTable2.get(key) != Integer.MAX_VALUE) {
+	//if (edgeTable.get(e) != null) {
+	 
 	    System.out.println("EdgeTable Error: duplicate edge (" +
 	    triangleIndices[t + v] + ", " +
 	    triangleIndices[t + ((v + 1) % 3)] + ").");
 	  }
-	} else {
+    }
+	
 	  // Store index of 3rd vertex (across from edge)
-	  edgeTable.put(e, new Integer(t + ((v + 2) % 3)));
-	}
+		int val = t + ((v + 2) % 3);
+		edgeTable2.put(key, val);
+	  //edgeTable.put(e, new Integer(t + ((v + 2) % 3)));
+	
       }
     }
 
-    if ((DEBUG & 1) != 0) {
+    if ((DEBUG & 1) != 0) 
+    {
       System.out.println("Edge Table:");
-      Iterator list = edgeTable.keySet().iterator();
+    /*  Iterator list = edgeTable.keySet().iterator();
       while (list.hasNext()) {
         Edge edge = (Edge)list.next();
         System.out.println("  (" + edge.v1 + ", " + edge.v2 + ") = " +
           get(edge.v1, edge.v2));
-      }
+      }*/
+      for (int i = 0; i < edgeTable2.size(); i++)
+		{
+      	long key = edgeTable2.keyAt(i);			
+  		int v1 = (int)(key >> 32);
+  		int v2 = (int)key;
+  		System.out.println("  (" + v1 + ", " + v2 + ") = " + get(v1, v2));		
+		}
     }
   } // End of constructor EdgeTable
 
 } // End of class EdgeTable
 
 // End of file EdgeTable.java
+
+
