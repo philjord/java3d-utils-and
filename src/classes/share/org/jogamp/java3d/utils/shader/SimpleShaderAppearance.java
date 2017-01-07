@@ -86,6 +86,16 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	private static String vertexAttributeInString = "attribute";
 	private static String texture2D = "texture2D";
 
+	private static int maxLights = 3;
+
+	public static void setMaxLights(int newMaxLights)
+	{
+		String currentMaxLightsString = "const int maxLights = " + maxLights + ";\n";
+		String newMaxLightsString = "const int maxLights = " + newMaxLights + ";\n";
+		glLightSource = glLightSource.replace(currentMaxLightsString, newMaxLightsString);
+		SimpleShaderAppearance.maxLights = newMaxLights;
+	}
+
 	public static void setVersionES100()
 	{
 		versionString = "#version 100\n";
@@ -163,7 +173,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 			"	};\n" + //
 			"\n" + //
 			"	uniform int numberOfLights;\n" + //
-			"	const int maxLights = 3;\n" + //
+			"	const int maxLights = " + maxLights + ";\n" + //
 			"	uniform lightSource glLightSource[maxLights];\n"; //
 
 	private static HashMap<Integer, GLSLShaderProgram> shaderPrograms = new HashMap<Integer, GLSLShaderProgram>();
@@ -543,7 +553,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 				fragmentProgram += inString + " vec3 emissive;\n";
 				fragmentProgram += inString + " float shininess;\n";
-				fragmentProgram += " const int maxLights = 3;\n";
+				fragmentProgram += " const int maxLights = " + maxLights + ";\n";
 				fragmentProgram += inString + " vec4 lightsD[maxLights]; \n";
 				fragmentProgram += inString + " vec3 lightsS[maxLights]; \n";
 				fragmentProgram += inString + " vec3 lightsLightDir[maxLights]; \n";
@@ -673,6 +683,8 @@ public class SimpleShaderAppearance extends ShaderAppearance
 			vertexShaderSources.put(shaderProgram, vertexProgram);
 			fragmentShaderSources.put(shaderProgram, fragmentProgram);
 
+			//System.out.println(vertexProgram);
+			//System.out.println(fragmentProgram);
 			if (hasTexture)
 			{
 				if (texCoordGenModeObjLinear)
