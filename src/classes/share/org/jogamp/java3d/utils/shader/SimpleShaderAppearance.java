@@ -96,6 +96,35 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		SimpleShaderAppearance.maxLights = newMaxLights;
 	}
 
+	/**
+	 * Alternative to setlights that gives the max vary vec4 supported
+	* http://stackoverflow.com/questions/26682631/webgl-shaders-maximum-number-of-varying-variables
+	* int[] tmp = new int[1];
+	* gl_window.getContext().getGL().glGetIntegerv(GL2ES2.GL_MAX_VARYING_VECTORS, tmp, 0);
+	* SimpleShaderAppearance.setMaxVaryings(tmp[0]);
+	*/
+	public static void setMaxVaryings(int maxVaryings)
+	{
+		// 	if (hasTexture)
+		//	vertexProgram += outString + " vec2 glTexCoord0;\n";
+
+		//vertexProgram += outString + "  vec3 ViewVec;\n";
+		//vertexProgram += outString + "  vec3 N;\n";
+		//vertexProgram += outString + "  vec4 A;\n";
+		//vertexProgram += outString + "  vec4 C;\n";
+		//vertexProgram += outString + "  vec3 emissive;\n";
+		//vertexProgram += outString + "  vec4 lightsD[maxLights];\n";
+		//vertexProgram += outString + "  vec3 lightsS[maxLights];\n";
+		//vertexProgram += outString + "  vec3 lightsLightDir[maxLights];\n";
+		//vertexProgram += outString + "  float shininess;\n";
+		// if shininess and glTExCoord are merged  = 6 before lights each light = 3
+		// so 1  = 9!
+		// I've seen an 8! varying vec4 on a old android
+
+		int newMaxLights = Math.max((maxVaryings - 6)/3, 1);
+		setMaxLights(newMaxLights);
+	}
+
 	public static void setVersionES100()
 	{
 		versionString = "#version 100\n";
