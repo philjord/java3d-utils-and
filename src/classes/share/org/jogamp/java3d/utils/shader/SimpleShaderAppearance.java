@@ -78,13 +78,14 @@ import org.jogamp.vecmath.Vector4f;
 public class SimpleShaderAppearance extends ShaderAppearance
 {
 
-	private static String versionString = "#version 120\n";
+	private static String versionString = "#version 100\n";
 	private static String outString = "varying";
 	private static String inString = "varying";
 	private static String fragColorDec = "";
 	private static String fragColorVar = "gl_FragColor";
 	private static String vertexAttributeInString = "attribute";
 	private static String texture2D = "texture2D";
+	private static String constMaxLights = "	const int maxLights = (gl_MaxVaryingVectors - 6) / 3;\n";
 
 	// a wee discussion on the max varying versus lights issue
 	//https://www.khronos.org/opengles/sdk/docs/reference_cards/OpenGL-ES-2_0-Reference-card.pdf
@@ -114,7 +115,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	//vertexProgram += outString + "  vec3 lightsS[maxLights];\n";
 	//vertexProgram += outString + "  vec3 lightsLightDir[maxLights];\n";
 	//vertexProgram += outString + "  float shininess;\n";
-	// if shininess and glTExCoord are merged  = 6 before lights each light = 3
+	// if shininess and glTexCoord are merged  = 6 before lights each light = 3
 	// so 1  = 9!
 	// I've seen an 8! varying vec4 on a old android
 
@@ -127,6 +128,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		fragColorVar = "gl_FragColor";
 		vertexAttributeInString = "attribute";
 		texture2D = "texture2D";
+		constMaxLights = "	const int maxLights = (gl_MaxVaryingVectors - 6) / 3;\n";
 	}
 
 	public static void setVersionES300()
@@ -138,6 +140,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		fragColorVar = "glFragColor";
 		vertexAttributeInString = "in";
 		texture2D = "texture";
+		constMaxLights = "	const int maxLights = (gl_MaxVaryingVectors - 6) / 3;\n";
 	}
 
 	public static void setVersion120()
@@ -149,6 +152,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		fragColorVar = "gl_FragColor";
 		vertexAttributeInString = "attribute";
 		texture2D = "texture2D";
+		constMaxLights = "	const int maxLights = 3;\n";//gl_MaxVaryingVectors does not exist
 	}
 
 	public static String alphaTestUniforms = "uniform int alphaTestEnabled;\n" + //
@@ -195,7 +199,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 			"	};\n" + //
 			"\n" + //
 			"	uniform int numberOfLights;\n" + //
-			"	const int maxLights = (gl_MaxVaryingVectors - 6) / 3;\n" + //
+			constMaxLights + //
 			"	uniform lightSource glLightSource[maxLights];\n"; //
 
 	private static HashMap<Integer, GLSLShaderProgram> shaderPrograms = new HashMap<Integer, GLSLShaderProgram>();
@@ -575,7 +579,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 				fragmentProgram += inString + " vec3 emissive;\n";
 				fragmentProgram += inString + " float shininess;\n";
-				fragmentProgram += "const int maxLights = (gl_MaxVaryingVectors - 6) / 3;\n";
+				fragmentProgram += constMaxLights;
 				fragmentProgram += inString + " vec4 lightsD[maxLights]; \n";
 				fragmentProgram += inString + " vec3 lightsS[maxLights]; \n";
 				fragmentProgram += inString + " vec3 lightsLightDir[maxLights]; \n";
