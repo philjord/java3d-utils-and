@@ -86,59 +86,37 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	private static String vertexAttributeInString = "attribute";
 	private static String texture2D = "texture2D";
 
-	private static int maxLights = 3;
+	// a wee discussion on the max varying versus lights issue
+	//https://www.khronos.org/opengles/sdk/docs/reference_cards/OpenGL-ES-2_0-Reference-card.pdf
+	//const mediump int gl_MaxVaryingVectors
 
-	public static void setMaxLights(int newMaxLights)
-	{
-		if (newMaxLights != maxLights)
-		{
-			String currentMaxLightsString = "const int maxLights = " + maxLights + ";\n";
-			String newMaxLightsString = "const int maxLights = " + newMaxLights + ";\n";
-			glLightSource = glLightSource.replace(currentMaxLightsString, newMaxLightsString);
-			SimpleShaderAppearance.maxLights = newMaxLights;
-		}
-	}
+	//when given a 3 lights value, fragment
+	//Out of varying space. Mali-400 PP provides space for 12 varying vec4s, this shader uses 15 varying vec4s.
 
-	/**
-	 * Alternative to setlights that gives the max vary vec4 supported
-	* http://stackoverflow.com/questions/26682631/webgl-shaders-maximum-number-of-varying-variables
-	* int[] tmp = new int[1];
-	* gl_window.getContext().getGL().glGetIntegerv(GL2ES2.GL_MAX_VARYING_VECTORS, tmp, 0);
-	* SimpleShaderAppearance.setMaxVaryings(tmp[0]);
-	*/
-	public static void setMaxVaryings(int maxVaryings)
-	{
-		//when given a 3 lights value, fragment
-		//Out of varying space. Mali-400 PP provides space for 12 varying vec4s, this shader uses 15 varying vec4s.
-		
-		// when give 4 
-		// shaderProgram = SimpleShaderAppearance shaderkey = 15
-		// shader = vertexProgram
-		//Detail Message
-		// --------------
-		// 0:1: L0006: Out of varying space. Mali-400 GP provides space for 16 varying vec4s, this shader uses 19 varying vec4s.
-		//fragment 
-		//Out of varying space. Mali-400 PP provides space for 12 varying vec4s, this shader uses 18 varying vec4s.
+	// when give 4 
+	// shaderProgram = SimpleShaderAppearance shaderkey = 15
+	// shader = vertexProgram
+	//Detail Message
+	// --------------
+	// 0:1: L0006: Out of varying space. Mali-400 GP provides space for 16 varying vec4s, this shader uses 19 varying vec4s.
+	//fragment 
+	//Out of varying space. Mali-400 PP provides space for 12 varying vec4s, this shader uses 18 varying vec4s.
 
-		// 	if (hasTexture)
-		//	vertexProgram += outString + " vec2 glTexCoord0;\n";
+	// 	if (hasTexture)
+	//	vertexProgram += outString + " vec2 glTexCoord0;\n";
 
-		//vertexProgram += outString + "  vec3 ViewVec;\n";
-		//vertexProgram += outString + "  vec3 N;\n";
-		//vertexProgram += outString + "  vec4 A;\n";
-		//vertexProgram += outString + "  vec4 C;\n";
-		//vertexProgram += outString + "  vec3 emissive;\n";
-		//vertexProgram += outString + "  vec4 lightsD[maxLights];\n";
-		//vertexProgram += outString + "  vec3 lightsS[maxLights];\n";
-		//vertexProgram += outString + "  vec3 lightsLightDir[maxLights];\n";
-		//vertexProgram += outString + "  float shininess;\n";
-		// if shininess and glTExCoord are merged  = 6 before lights each light = 3
-		// so 1  = 9!
-		// I've seen an 8! varying vec4 on a old android
-
-		int newMaxLights = Math.max((maxVaryings - 6) / 3, 1);
-		setMaxLights(newMaxLights);
-	}
+	//vertexProgram += outString + "  vec3 ViewVec;\n";
+	//vertexProgram += outString + "  vec3 N;\n";
+	//vertexProgram += outString + "  vec4 A;\n";
+	//vertexProgram += outString + "  vec4 C;\n";
+	//vertexProgram += outString + "  vec3 emissive;\n";
+	//vertexProgram += outString + "  vec4 lightsD[maxLights];\n";
+	//vertexProgram += outString + "  vec3 lightsS[maxLights];\n";
+	//vertexProgram += outString + "  vec3 lightsLightDir[maxLights];\n";
+	//vertexProgram += outString + "  float shininess;\n";
+	// if shininess and glTExCoord are merged  = 6 before lights each light = 3
+	// so 1  = 9!
+	// I've seen an 8! varying vec4 on a old android
 
 	public static void setVersionES100()
 	{
@@ -217,7 +195,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 			"	};\n" + //
 			"\n" + //
 			"	uniform int numberOfLights;\n" + //
-			"	const int maxLights = " + maxLights + ";\n" + //
+			"	const int maxLights = (gl_MaxVaryingVectors - 6) / 3;\n" + //
 			"	uniform lightSource glLightSource[maxLights];\n"; //
 
 	private static HashMap<Integer, GLSLShaderProgram> shaderPrograms = new HashMap<Integer, GLSLShaderProgram>();
@@ -597,7 +575,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 				fragmentProgram += inString + " vec3 emissive;\n";
 				fragmentProgram += inString + " float shininess;\n";
-				fragmentProgram += " const int maxLights = " + maxLights + ";\n";
+				fragmentProgram += "const int maxLights = (gl_MaxVaryingVectors - 6) / 3;\n";
 				fragmentProgram += inString + " vec4 lightsD[maxLights]; \n";
 				fragmentProgram += inString + " vec3 lightsS[maxLights]; \n";
 				fragmentProgram += inString + " vec3 lightsLightDir[maxLights]; \n";
@@ -650,8 +628,8 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				fragmentProgram += fragColorVar + " = color;\n";
 
 				//for debug of the incorrect looking tex coord gen values
-				//if (hasTexture)
-				//fragmentProgram += fragColorVar + " = vec4(mod(glTexCoord0.s,1.0),mod(glTexCoord0.t,1.0),0,1);\n";
+				//fragmentProgram += "if (gl_MaxVaryingVectors>14)\n";
+				//fragmentProgram += fragColorVar + " = vec4(1,1,0,1);\n";
 
 				fragmentProgram += "}";
 
