@@ -90,10 +90,13 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 	public static void setMaxLights(int newMaxLights)
 	{
-		String currentMaxLightsString = "const int maxLights = " + maxLights + ";\n";
-		String newMaxLightsString = "const int maxLights = " + newMaxLights + ";\n";
-		glLightSource = glLightSource.replace(currentMaxLightsString, newMaxLightsString);
-		SimpleShaderAppearance.maxLights = newMaxLights;
+		if (newMaxLights != maxLights)
+		{
+			String currentMaxLightsString = "const int maxLights = " + maxLights + ";\n";
+			String newMaxLightsString = "const int maxLights = " + newMaxLights + ";\n";
+			glLightSource = glLightSource.replace(currentMaxLightsString, newMaxLightsString);
+			SimpleShaderAppearance.maxLights = newMaxLights;
+		}
 	}
 
 	/**
@@ -109,7 +112,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		//Out of varying space. Mali-400 PP provides space for 12 varying vec4s, this shader uses 15 varying vec4s.
 		// when give 4 
 		//Out of varying space. Mali-400 PP provides space for 12 varying vec4s, this shader uses 18 varying vec4s.
-		
+
 		// 	if (hasTexture)
 		//	vertexProgram += outString + " vec2 glTexCoord0;\n";
 
@@ -126,7 +129,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		// so 1  = 9!
 		// I've seen an 8! varying vec4 on a old android
 
-		int newMaxLights = Math.max((maxVaryings - 6)/3, 1);
+		int newMaxLights = Math.max((maxVaryings - 6) / 3, 1);
 		setMaxLights(newMaxLights);
 	}
 
