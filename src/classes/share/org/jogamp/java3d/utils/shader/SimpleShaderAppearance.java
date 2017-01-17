@@ -108,9 +108,16 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	*/
 	public static void setMaxVaryings(int maxVaryings)
 	{
-		//when given a 3 lights value
+		//when given a 3 lights value, fragment
 		//Out of varying space. Mali-400 PP provides space for 12 varying vec4s, this shader uses 15 varying vec4s.
+		
 		// when give 4 
+		// shaderProgram = SimpleShaderAppearance shaderkey = 15
+		// shader = vertexProgram
+		//Detail Message
+		// --------------
+		// 0:1: L0006: Out of varying space. Mali-400 GP provides space for 16 varying vec4s, this shader uses 19 varying vec4s.
+		//fragment 
 		//Out of varying space. Mali-400 PP provides space for 12 varying vec4s, this shader uses 18 varying vec4s.
 
 		// 	if (hasTexture)
