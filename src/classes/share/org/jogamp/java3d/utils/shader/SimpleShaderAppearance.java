@@ -77,7 +77,8 @@ import org.jogamp.vecmath.Vector4f;
  */
 public class SimpleShaderAppearance extends ShaderAppearance
 {
-
+	//TODO: this is disabled, nothings shows on vodafone tiny phone, possibly too many uniforms or something?
+	// cut out for now
 	private static boolean PUSH_MUL_TO_SHADER = false;
 	private static String versionString = "#version 100\n";
 	private static String outString = "varying";
@@ -131,7 +132,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		texture2D = "texture2D";
 		constMaxLights = "	const int maxLights = (gl_MaxVaryingVectors - 6) / 3;\n";
 		
-		PUSH_MUL_TO_SHADER = true;
+		//PUSH_MUL_TO_SHADER = true;
 	}
 
 	public static void setVersionES300()
@@ -145,7 +146,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		texture2D = "texture";
 		constMaxLights = "	const int maxLights = (gl_MaxVaryingVectors - 6) / 3;\n";
 		
-		PUSH_MUL_TO_SHADER = true;
+		//PUSH_MUL_TO_SHADER = true;
 	}
 
 	public static void setVersion120()
@@ -159,7 +160,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		texture2D = "texture2D";
 		constMaxLights = "	const int maxLights = 3;\n";//gl_MaxVaryingVectors does not exist
 		
-		PUSH_MUL_TO_SHADER = false;
+		//PUSH_MUL_TO_SHADER = false;
 	}
 
 	public static String alphaTestUniforms = "uniform int alphaTestEnabled;\n" + //
