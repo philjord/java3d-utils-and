@@ -131,7 +131,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		vertexAttributeInString = "attribute";
 		texture2D = "texture2D";
 		constMaxLights = "	const int maxLights = (gl_MaxVaryingVectors - 6) / 3;\n";
-		
+
 		//PUSH_MUL_TO_SHADER = true;
 	}
 
@@ -145,7 +145,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		vertexAttributeInString = "in";
 		texture2D = "texture";
 		constMaxLights = "	const int maxLights = (gl_MaxVaryingVectors - 6) / 3;\n";
-		
+
 		//PUSH_MUL_TO_SHADER = true;
 	}
 
@@ -159,7 +159,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		vertexAttributeInString = "attribute";
 		texture2D = "texture2D";
 		constMaxLights = "	const int maxLights = 3;\n";//gl_MaxVaryingVectors does not exist
-		
+
 		//PUSH_MUL_TO_SHADER = false;
 	}
 
@@ -300,7 +300,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					vertexProgram += vertexAttributeInString + " vec4 glColor;\n";
 					vertexProgram += "uniform int ignoreVertexColors;\n";
 					vertexProgram += "uniform vec4 objectColor;\n";
-					if(!PUSH_MUL_TO_SHADER)
+					if (!PUSH_MUL_TO_SHADER)
 					{
 						vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
 					}
@@ -312,7 +312,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					}
 					vertexProgram += outString + " vec4 glFrontColor;\n";
 					vertexProgram += "void main( void ){\n";
-					if(!PUSH_MUL_TO_SHADER)
+					if (!PUSH_MUL_TO_SHADER)
 					{
 						vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
 					}
@@ -363,7 +363,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					vertexProgram += vertexAttributeInString + " vec4 glColor;\n";
 					vertexProgram += "uniform int ignoreVertexColors;\n";
 					vertexProgram += "uniform vec4 objectColor;\n";
-					if(!PUSH_MUL_TO_SHADER)
+					if (!PUSH_MUL_TO_SHADER)
 					{
 						vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
 					}
@@ -375,7 +375,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					}
 					vertexProgram += outString + " vec4 glFrontColor;\n";
 					vertexProgram += "void main( void ){\n";
-					if(!PUSH_MUL_TO_SHADER)
+					if (!PUSH_MUL_TO_SHADER)
 					{
 						vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
 					}
@@ -446,6 +446,20 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		};
 		return shaders;
 	}
+	
+
+	public void makeSetUpdatableCapabilities()
+	{
+		this.setCapability(ALLOW_MATERIAL_READ);
+		this.setCapability(ALLOW_TEXTURE_UNIT_STATE_READ);// TODO: do I need to mod the tus as well?
+		this.setCapability(ALLOW_TEXTURE_READ);
+		this.setCapability(ALLOW_POLYGON_ATTRIBUTES_READ);
+		if (this.getPolygonAttributes() != null)
+			this.getPolygonAttributes().setCapability(PolygonAttributes.ALLOW_MODE_READ);
+
+		this.setCapability(ALLOW_SHADER_PROGRAM_WRITE);
+		this.setCapability(ALLOW_SHADER_ATTRIBUTE_SET_WRITE);
+	}
 
 	private void rebuildShaders()
 	{
@@ -464,8 +478,10 @@ public class SimpleShaderAppearance extends ShaderAppearance
 							|| (!this.getPolygonAttributes().isLive() && !this.getPolygonAttributes().isCompiled()) // poly attributes are not yet live
 							|| this.getPolygonAttributes().getCapability(PolygonAttributes.ALLOW_MODE_READ))//poly attributes are live but can be read
 
-			// finally we must be allowed to set the shader program while live
-					&& ((!this.isLive() && !this.isCompiled()) || (this.getCapability(ALLOW_SHADER_PROGRAM_WRITE))))
+			// finally we must be allowed to set the shader program (and attributes) while live
+					&& ((!this.isLive() && !this.isCompiled()) || 
+							(this.getCapability(ALLOW_SHADER_PROGRAM_WRITE)
+									&& this.getCapability(ALLOW_SHADER_ATTRIBUTE_SET_WRITE))))
 			{
 				boolean hasTexture = this.getTexture() != null || this.getTextureUnitCount() > 0;
 				if (this.getTextureUnitCount() > 0)
@@ -481,6 +497,10 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				boolean texCoordGenModeObjLinear = hasTextureCoordGen
 						&& (texCoordGeneration.getGenMode() == TexCoordGeneration.OBJECT_LINEAR);
 				build(hasTexture, lit, hasTextureCoordGen, texCoordGenModeObjLinear);
+			}
+			else
+			{
+				System.out.println("Shader unable to be rebuild due to read capabilities missing, or write shader missing");
 			}
 		}
 	}
@@ -523,7 +543,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				{
 					vertexProgram += vertexAttributeInString + " vec2 glMultiTexCoord0;\n";
 				}
-				if(!PUSH_MUL_TO_SHADER)
+				if (!PUSH_MUL_TO_SHADER)
 				{
 					vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
 					vertexProgram += "uniform mat4 glModelViewMatrix;\n";
@@ -567,7 +587,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				}
 
 				vertexProgram += "void main( void ){\n";
-				if(!PUSH_MUL_TO_SHADER)
+				if (!PUSH_MUL_TO_SHADER)
 				{
 					vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
 				}
@@ -690,6 +710,8 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				fragmentProgram += "color.a *= transparencyAlpha;\n";
 				fragmentProgram += fragColorVar + " = color;\n";
 
+				
+				
 				//for debug of the incorrect looking tex coord gen values
 				//fragmentProgram += "if (gl_MaxVaryingVectors>14)\n";
 				//fragmentProgram += fragColorVar + " = vec4(1,1,0,1);\n";
@@ -704,7 +726,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				{
 					vertexProgram += vertexAttributeInString + " vec4 glVertex;\n";
 					vertexProgram += vertexAttributeInString + " vec2 glMultiTexCoord0;\n";
-					if(!PUSH_MUL_TO_SHADER)
+					if (!PUSH_MUL_TO_SHADER)
 					{
 						vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
 					}
@@ -716,7 +738,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					}
 					vertexProgram += outString + " vec2 glTexCoord0;\n";
 					vertexProgram += "void main( void ){\n";
-					if(!PUSH_MUL_TO_SHADER)
+					if (!PUSH_MUL_TO_SHADER)
 					{
 						vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
 					}
@@ -749,7 +771,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					vertexProgram += vertexAttributeInString + " vec4 glColor;\n";
 					vertexProgram += "uniform int ignoreVertexColors;\n";
 					vertexProgram += "uniform vec4 objectColor;\n";
-					if(!PUSH_MUL_TO_SHADER)
+					if (!PUSH_MUL_TO_SHADER)
 					{
 						vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
 					}
@@ -761,7 +783,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					}
 					vertexProgram += outString + " vec4 glFrontColor;\n";
 					vertexProgram += "void main( void ){\n";
-					if(!PUSH_MUL_TO_SHADER)
+					if (!PUSH_MUL_TO_SHADER)
 					{
 						vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
 					}
