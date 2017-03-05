@@ -222,7 +222,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	private static HashMap<String, ShaderAttributeSet> shaderAttributeSetCache = new HashMap<String, ShaderAttributeSet>();
 
 	private boolean buildBasedOnAttributes = false;
-
+	
 	// we can't set it in the super class as tex coord gen is not supported in the pipeline
 	// so we record it in this class when set
 	private TexCoordGeneration texCoordGeneration = null;
@@ -448,7 +448,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	}
 	
 
-	public void makeSetUpdatableCapabilities()
+	public void setUpdatableCapabilities()
 	{
 		this.setCapability(ALLOW_MATERIAL_READ);
 		this.setCapability(ALLOW_TEXTURE_UNIT_STATE_READ);// TODO: do I need to mod the tus as well?
@@ -501,6 +501,19 @@ public class SimpleShaderAppearance extends ShaderAppearance
 			else
 			{
 				System.out.println("Shader unable to be rebuild due to read capabilities missing, or write shader missing");
+			
+				System.out.println("this.getCapability(ALLOW_MATERIAL_READ) " + this.getCapability(ALLOW_MATERIAL_READ) );
+				System.out.println("this.getCapability(ALLOW_TEXTURE_UNIT_STATE_READ) " + this.getCapability(ALLOW_TEXTURE_UNIT_STATE_READ) );
+				System.out.println("this.getCapability(ALLOW_TEXTURE_READ) " + this.getCapability(ALLOW_TEXTURE_READ) );
+				System.out.println("this.getCapability(ALLOW_POLYGON_ATTRIBUTES_READ) " + this.getCapability(ALLOW_POLYGON_ATTRIBUTES_READ) );	
+				 
+				System.out.println("this.getPolygonAttributes() == null " + (this.getPolygonAttributes() == null));
+				if(this.getPolygonAttributes() != null)
+					System.out.println("this.getPolygonAttributes().getCapability(PolygonAttributes.ALLOW_MODE_READ) " + this.getPolygonAttributes().getCapability(PolygonAttributes.ALLOW_MODE_READ));
+
+				System.out.println("this.getCapability(ALLOW_SHADER_PROGRAM_WRITE) " + this.getCapability(ALLOW_SHADER_PROGRAM_WRITE));
+				System.out.println("this.getCapability(ALLOW_SHADER_ATTRIBUTE_SET_WRITE) " + this.getCapability(ALLOW_SHADER_ATTRIBUTE_SET_WRITE));
+				new Throwable().printStackTrace();
 			}
 		}
 	}
@@ -841,10 +854,14 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 		}
 
-		setShaderProgram(shaderProgram);
-		vertexShaderSource = vertexShaderSources.get(shaderProgram);
-		fragmentShaderSource = fragmentShaderSources.get(shaderProgram);
-
+		// if live, clear the program before updating shaderattributeset for the new program
+		// otherwise you get mismatches and exceptions thrown
+		if(this.isLive())
+		{			
+			setShaderProgram(null);
+		}
+				
+				
 		//It is REALLY important for render performance to try to have the same shader program object 
 		// and the exact same shader attribute set object
 		if (hasTexture)
@@ -865,7 +882,8 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					shaderAttributeSet.put(new ShaderAttributeValue("texCoordGenPlaneT", planeT));
 					shaderAttributeSetCache.put(key, shaderAttributeSet);
 				}
-				setShaderAttributeSet(shaderAttributeSet);
+				setShaderAttributeSet(shaderAttributeSet);			
+				
 			}
 			else
 			{
@@ -874,11 +892,23 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					baseMapShaderAttributeSet = new ShaderAttributeSet();
 					baseMapShaderAttributeSet.put(new ShaderAttributeValue("BaseMap", new Integer(0)));
 				}
-				setShaderAttributeSet(baseMapShaderAttributeSet);
+				
+				setShaderAttributeSet(baseMapShaderAttributeSet);	
 			}
-
+		}
+		else
+		{
+			// in case we had one set before from having a textured shader program
+			setShaderAttributeSet(null);
 		}
 
+		
+		
+		setShaderProgram(shaderProgram);
+		vertexShaderSource = vertexShaderSources.get(shaderProgram);
+		fragmentShaderSource = fragmentShaderSources.get(shaderProgram);
+
+		
 	}
 
 	@Override
