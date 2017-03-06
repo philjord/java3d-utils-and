@@ -749,7 +749,22 @@ public class SimpleShaderAppearance extends ShaderAppearance
 						vertexProgram += "uniform mat4 glViewMatrix;\n";
 						vertexProgram += "uniform mat4 glModelMatrix;\n";
 					}
-					vertexProgram += outString + " vec2 glTexCoord0;\n";
+					if (hasTextureCoordGen && texCoordGenModeObjLinear)
+					{
+						vertexProgram += "uniform vec4 texCoordGenPlaneS;\n";
+						vertexProgram += "uniform vec4 texCoordGenPlaneT;\n";
+					}
+					if (hasTexture)
+					{
+						vertexProgram += outString + " vec2 glTexCoord0;\n";
+					}
+					if (hasTextureCoordGen)
+					{
+						vertexProgram += "vec2 object_linear(vec4 pos, vec4 planeOS, vec4 planeOT)\n";
+						vertexProgram += "{\n";
+						vertexProgram += "	return vec2(pos.x*planeOS.x+pos.y*planeOS.y+pos.z*planeOS.z+pos.w*planeOS.w,pos.x*planeOT.x+pos.y*planeOT.y+pos.z*planeOT.z+pos.w*planeOT.w);\n";
+						vertexProgram += "}\n";
+					}
 					vertexProgram += "void main( void ){\n";
 					if (!PUSH_MUL_TO_SHADER)
 					{
@@ -760,7 +775,24 @@ public class SimpleShaderAppearance extends ShaderAppearance
 						vertexProgram += "mat4 glModelViewMatrix = glViewMatrix*glModelMatrix;\n";
 						vertexProgram += "gl_Position = glProjectionMatrix * glModelViewMatrix * glVertex;\n";
 					}
-					vertexProgram += "glTexCoord0 = glMultiTexCoord0.st;\n";
+					if (hasTexture)
+					{
+						if (!hasTextureCoordGen)
+						{
+							vertexProgram += "glTexCoord0 = glMultiTexCoord0.st;\n";
+						}
+						else
+						{
+							if (texCoordGenModeObjLinear)
+							{
+								vertexProgram += "glTexCoord0 = object_linear(glVertex, texCoordGenPlaneS, texCoordGenPlaneT);\n";
+							}
+							else
+							{
+								System.err.println("texCoordGeneration.getGenMode() not supported " + texCoordGeneration.getGenMode());
+							}
+						}
+					}
 					vertexProgram += "}";
 
 					fragmentProgram += "precision mediump float;\n";
