@@ -658,7 +658,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				{
 					fragmentProgram += alphaTestUniforms;
 
-					fragmentProgram += inString + " vec2 glTexCoord0;\n";
+					fragmentProgram += inString + " highp vec2 glTexCoord0;\n";//highp cos of very large tex coords in Ground3D
 					fragmentProgram += "uniform sampler2D BaseMap;\n";
 				}
 				fragmentProgram += "uniform int numberOfLights;\n";
@@ -722,6 +722,16 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 				fragmentProgram += "color.a *= transparencyAlpha;\n";
 				fragmentProgram += fragColorVar + " = color;\n";
+				
+				if (hasTexture)
+				{
+					if (!hasTextureCoordGen)
+					{
+					//fragmentProgram += "float s =  mod(glTexCoord0.s,1.0);";
+					//fragmentProgram += "float t =  mod(glTexCoord0.t,1.0);";
+					//fragmentProgram += fragColorVar + " = vec4(s,0,t,1);\n";
+					}
+				}
 
 				
 				
@@ -798,7 +808,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					fragmentProgram += "precision mediump float;\n";
 					fragmentProgram += "uniform float transparencyAlpha;\n";
 					fragmentProgram += alphaTestUniforms;
-					fragmentProgram += inString + " vec2 glTexCoord0;\n";
+					fragmentProgram += inString + " highp vec2 glTexCoord0;\n";
 					fragmentProgram += "uniform sampler2D BaseMap;\n";
 					fragmentProgram += fragColorDec;
 					fragmentProgram += "void main( void ){\n ";
