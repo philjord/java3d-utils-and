@@ -80,6 +80,10 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	//TODO: this is disabled, nothings shows on vodafone tiny phone, possibly too many uniforms or something?
 	// cut out for now
 	private static boolean PUSH_MUL_TO_SHADER = false;
+	
+	// for debug PowerVR gpu's seem to have toruble with lighting calcs?
+	private static boolean DISABLE_LIGHTS = false;	
+
 	private static String versionString = "#version 100\n";
 	private static String outString = "varying";
 	private static String inString = "varying";
@@ -133,6 +137,10 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		constMaxLights = "	const int maxLights = (gl_MaxVaryingVectors - 6) / 3;\n";
 
 		//PUSH_MUL_TO_SHADER = true;
+		
+		shaderPrograms.clear();
+		vertexShaderSources.clear();
+		fragmentShaderSources.clear();
 	}
 
 	public static void setVersionES300()
@@ -147,6 +155,10 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		constMaxLights = "	const int maxLights = (gl_MaxVaryingVectors - 6) / 3;\n";
 
 		//PUSH_MUL_TO_SHADER = true;
+		
+		shaderPrograms.clear();
+		vertexShaderSources.clear();
+		fragmentShaderSources.clear();
 	}
 
 	public static void setVersion120()
@@ -161,6 +173,10 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		constMaxLights = "	const int maxLights = 3;\n";//gl_MaxVaryingVectors does not exist
 
 		//PUSH_MUL_TO_SHADER = false;
+		
+		shaderPrograms.clear();
+		vertexShaderSources.clear();
+		fragmentShaderSources.clear();
 	}
 
 	public static String alphaTestUniforms = "uniform int alphaTestEnabled;\n" + //
@@ -221,6 +237,16 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	private static ShaderAttributeSet baseMapShaderAttributeSet = null;
 	private static HashMap<String, ShaderAttributeSet> shaderAttributeSetCache = new HashMap<String, ShaderAttributeSet>();
 
+	
+	public static void setDISABLE_LIGHTS(boolean dISABLE_LIGHTS)
+	{
+		DISABLE_LIGHTS = dISABLE_LIGHTS;
+		shaderPrograms.clear();
+		vertexShaderSources.clear();
+		fragmentShaderSources.clear();
+	}
+	
+	
 	private boolean buildBasedOnAttributes = false;
 	
 	// we can't set it in the super class as tex coord gen is not supported in the pipeline
@@ -546,7 +572,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				 */
 			}
 
-			if (lit)
+			if (lit && !DISABLE_LIGHTS)
 			{
 
 				vertexProgram += vertexAttributeInString + " vec4 glVertex;\n";
@@ -836,6 +862,8 @@ public class SimpleShaderAppearance extends ShaderAppearance
 						vertexProgram += "uniform mat4 glViewMatrix;\n";
 						vertexProgram += "uniform mat4 glModelMatrix;\n";
 					}
+					
+					vertexProgram += glFrontMaterial;
 					vertexProgram += outString + " vec4 glFrontColor;\n";
 					vertexProgram += "void main( void ){\n";
 					if (!PUSH_MUL_TO_SHADER)
@@ -844,11 +872,11 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					}
 					else
 					{
-						vertexProgram += "mat4 glModelViewMatrix = glViewMatrix*glModelMatrix;\n";
+						vertexProgram += "mat4 glModelViewMatrix = glViewMatrix * glModelMatrix;\n";
 						vertexProgram += "gl_Position = glProjectionMatrix * glModelViewMatrix * glVertex;\n";
 					}
 					vertexProgram += "if( ignoreVertexColors != 0 )\n";
-					vertexProgram += "	glFrontColor = objectColor;\n";
+					vertexProgram += "	glFrontColor = glFrontMaterial.diffuse; \n";
 					vertexProgram += "else\n";
 					vertexProgram += "	glFrontColor = glColor;\n";
 					vertexProgram += "}";
