@@ -876,7 +876,16 @@ public class SimpleShaderAppearance extends ShaderAppearance
 						vertexProgram += "gl_Position = glProjectionMatrix * glModelViewMatrix * glVertex;\n";
 					}
 					vertexProgram += "if( ignoreVertexColors != 0 )\n";
-					vertexProgram += "	glFrontColor = glFrontMaterial.diffuse; \n";
+					
+					// have we got here via the debug path? if so use the material (even though lighting is off)
+					if (DISABLE_LIGHTS)
+					{
+						vertexProgram += "	glFrontColor = glFrontMaterial.diffuse; \n";
+					}
+					else
+					{
+						vertexProgram += "	glFrontColor = objectColor;\n";
+					}
 					vertexProgram += "else\n";
 					vertexProgram += "	glFrontColor = glColor;\n";
 					vertexProgram += "}";
