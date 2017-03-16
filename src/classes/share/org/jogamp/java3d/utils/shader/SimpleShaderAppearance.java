@@ -80,9 +80,9 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	//TODO: this is disabled, nothings shows on vodafone tiny phone, possibly too many uniforms or something?
 	// cut out for now
 	private static boolean PUSH_MUL_TO_SHADER = false;
-	
+
 	// for debug PowerVR gpu's seem to have toruble with lighting calcs?
-	private static boolean DISABLE_LIGHTS = false;	
+	private static boolean DISABLE_LIGHTS = false;
 
 	private static String versionString = "#version 100\n";
 	private static String outString = "varying";
@@ -137,7 +137,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		constMaxLights = "	const int maxLights = (gl_MaxVaryingVectors - 6) / 3;\n";
 
 		//PUSH_MUL_TO_SHADER = true;
-		
+
 		shaderPrograms.clear();
 		vertexShaderSources.clear();
 		fragmentShaderSources.clear();
@@ -155,7 +155,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		constMaxLights = "	const int maxLights = (gl_MaxVaryingVectors - 6) / 3;\n";
 
 		//PUSH_MUL_TO_SHADER = true;
-		
+
 		shaderPrograms.clear();
 		vertexShaderSources.clear();
 		fragmentShaderSources.clear();
@@ -173,7 +173,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		constMaxLights = "	const int maxLights = 3;\n";//gl_MaxVaryingVectors does not exist
 
 		//PUSH_MUL_TO_SHADER = false;
-		
+
 		shaderPrograms.clear();
 		vertexShaderSources.clear();
 		fragmentShaderSources.clear();
@@ -237,7 +237,6 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	private static ShaderAttributeSet baseMapShaderAttributeSet = null;
 	private static HashMap<String, ShaderAttributeSet> shaderAttributeSetCache = new HashMap<String, ShaderAttributeSet>();
 
-	
 	public static void setDISABLE_LIGHTS(boolean dISABLE_LIGHTS)
 	{
 		DISABLE_LIGHTS = dISABLE_LIGHTS;
@@ -245,10 +244,9 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		vertexShaderSources.clear();
 		fragmentShaderSources.clear();
 	}
-	
-	
+
 	private boolean buildBasedOnAttributes = false;
-	
+
 	// we can't set it in the super class as tex coord gen is not supported in the pipeline
 	// so we record it in this class when set
 	private TexCoordGeneration texCoordGeneration = null;
@@ -472,7 +470,6 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		};
 		return shaders;
 	}
-	
 
 	public void setUpdatableCapabilities()
 	{
@@ -505,9 +502,8 @@ public class SimpleShaderAppearance extends ShaderAppearance
 							|| this.getPolygonAttributes().getCapability(PolygonAttributes.ALLOW_MODE_READ))//poly attributes are live but can be read
 
 			// finally we must be allowed to set the shader program (and attributes) while live
-					&& ((!this.isLive() && !this.isCompiled()) || 
-							(this.getCapability(ALLOW_SHADER_PROGRAM_WRITE)
-									&& this.getCapability(ALLOW_SHADER_ATTRIBUTE_SET_WRITE))))
+					&& ((!this.isLive() && !this.isCompiled())
+							|| (this.getCapability(ALLOW_SHADER_PROGRAM_WRITE) && this.getCapability(ALLOW_SHADER_ATTRIBUTE_SET_WRITE))))
 			{
 				boolean hasTexture = this.getTexture() != null || this.getTextureUnitCount() > 0;
 				if (this.getTextureUnitCount() > 0)
@@ -527,18 +523,22 @@ public class SimpleShaderAppearance extends ShaderAppearance
 			else
 			{
 				System.out.println("Shader unable to be rebuild due to read capabilities missing, or write shader missing");
-			
-				System.out.println("this.getCapability(ALLOW_MATERIAL_READ) " + this.getCapability(ALLOW_MATERIAL_READ) );
-				System.out.println("this.getCapability(ALLOW_TEXTURE_UNIT_STATE_READ) " + this.getCapability(ALLOW_TEXTURE_UNIT_STATE_READ) );
-				System.out.println("this.getCapability(ALLOW_TEXTURE_READ) " + this.getCapability(ALLOW_TEXTURE_READ) );
-				System.out.println("this.getCapability(ALLOW_POLYGON_ATTRIBUTES_READ) " + this.getCapability(ALLOW_POLYGON_ATTRIBUTES_READ) );	
-				 
+
+				System.out.println("this.getCapability(ALLOW_MATERIAL_READ) " + this.getCapability(ALLOW_MATERIAL_READ));
+				System.out
+						.println("this.getCapability(ALLOW_TEXTURE_UNIT_STATE_READ) " + this.getCapability(ALLOW_TEXTURE_UNIT_STATE_READ));
+				System.out.println("this.getCapability(ALLOW_TEXTURE_READ) " + this.getCapability(ALLOW_TEXTURE_READ));
+				System.out
+						.println("this.getCapability(ALLOW_POLYGON_ATTRIBUTES_READ) " + this.getCapability(ALLOW_POLYGON_ATTRIBUTES_READ));
+
 				System.out.println("this.getPolygonAttributes() == null " + (this.getPolygonAttributes() == null));
-				if(this.getPolygonAttributes() != null)
-					System.out.println("this.getPolygonAttributes().getCapability(PolygonAttributes.ALLOW_MODE_READ) " + this.getPolygonAttributes().getCapability(PolygonAttributes.ALLOW_MODE_READ));
+				if (this.getPolygonAttributes() != null)
+					System.out.println("this.getPolygonAttributes().getCapability(PolygonAttributes.ALLOW_MODE_READ) "
+							+ this.getPolygonAttributes().getCapability(PolygonAttributes.ALLOW_MODE_READ));
 
 				System.out.println("this.getCapability(ALLOW_SHADER_PROGRAM_WRITE) " + this.getCapability(ALLOW_SHADER_PROGRAM_WRITE));
-				System.out.println("this.getCapability(ALLOW_SHADER_ATTRIBUTE_SET_WRITE) " + this.getCapability(ALLOW_SHADER_ATTRIBUTE_SET_WRITE));
+				System.out.println(
+						"this.getCapability(ALLOW_SHADER_ATTRIBUTE_SET_WRITE) " + this.getCapability(ALLOW_SHADER_ATTRIBUTE_SET_WRITE));
 				new Throwable().printStackTrace();
 			}
 		}
@@ -609,14 +609,9 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				}
 
 				vertexProgram += outString + "  vec3 ViewVec;\n";
-				vertexProgram += outString + "  vec3 N;\n";
-				vertexProgram += outString + "  vec4 A;\n";
 				vertexProgram += outString + "  vec4 C;\n";
-				vertexProgram += outString + "  vec3 emissive;\n";
-				vertexProgram += outString + "  vec4 lightsD[maxLights];\n";
-				vertexProgram += outString + "  vec3 lightsS[maxLights];\n";
-				vertexProgram += outString + "  vec3 lightsLightDir[maxLights];\n";
-				vertexProgram += outString + "  float shininess;\n";
+				vertexProgram += outString + "  vec3 light;\n";
+
 				if (hasTextureCoordGen)
 				{
 					vertexProgram += "vec2 object_linear(vec4 pos, vec4 planeOS, vec4 planeOT)\n";
@@ -635,7 +630,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					vertexProgram += "mat4 glModelViewMatrix = glViewMatrix*glModelMatrix;\n";
 					vertexProgram += "gl_Position = glProjectionMatrix * glModelViewMatrix * glVertex;\n";
 				}
-				vertexProgram += "N = normalize(glNormalMatrix * glNormal);\n";
+				vertexProgram += "vec3 N = normalize(glNormalMatrix * glNormal);\n";
 				if (hasTexture)
 				{
 					if (!hasTextureCoordGen)
@@ -659,22 +654,57 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 				vertexProgram += "ViewVec = -v.xyz;\n";
 
-				vertexProgram += "A = glLightModelambient * glFrontMaterial.ambient;\n";
+				vertexProgram += "vec4 A = glLightModelambient * glFrontMaterial.ambient;\n";
 				vertexProgram += "if( ignoreVertexColors != 0) \n";
 				// objectColor should be used if it is no lighting, and reusing material diffuse appears wrong
 				vertexProgram += "	C = vec4(1,1,1,1);//glFrontMaterial.diffuse; \n";
 				vertexProgram += "else \n";
 				vertexProgram += "	C = glColor; \n";
 
-				vertexProgram += "emissive = glFrontMaterial.emission.rgb;\n";
-				vertexProgram += "shininess = glFrontMaterial.shininess;\n";
+				vertexProgram += "vec3 emissive = glFrontMaterial.emission.rgb;\n";
+				vertexProgram += "float shininess = glFrontMaterial.shininess;\n";
+
+				vertexProgram += "vec3 diffuse = A.rgb;\n";
+				vertexProgram += "vec3 spec = vec3(0,0,0);\n";
+
+				vertexProgram += "vec3 normal = N;\n";
+				vertexProgram += "vec3 E = normalize(ViewVec);\n";
+				vertexProgram += "float EdotN = max( dot(normal, E), 0.0 );\n";
+
+				//vertexProgram += "vec4 vertPos = glModelMatrix * glVertex;\n";
 
 				vertexProgram += "for (int index = 0; index < numberOfLights && index < maxLights; index++) // for all light sources\n";
-				vertexProgram += "{	\n";
-				vertexProgram += "	lightsD[index] = glLightSource[index].diffuse * glFrontMaterial.diffuse;	\n";
-				vertexProgram += "	lightsS[index] = glLightSource[index].specular.rgb * glFrontMaterial.specular;\n";
-				vertexProgram += "	lightsLightDir[index] = glLightSource[index].position.xyz;	\n";
-				vertexProgram += "}\n";
+				vertexProgram += "{ \n";
+				vertexProgram += "	vec4 Lp = glLightSource[index].position;\n";
+				vertexProgram += "	vec3 Ld = normalize( glLightSource[index].position.xyz );	\n";
+				vertexProgram += "	//vec3 R = reflect(-L, normal);\n";
+				vertexProgram += "	vec3 H = normalize( Ld + E );\n";
+
+				vertexProgram += "	float NdotL = max( dot(normal, Ld), 0.0 );\n";
+				vertexProgram += "	float NdotH = max( dot(normal, H), 0.0 );\n";
+				vertexProgram += "	float NdotNegL = max( dot(normal, -Ld), 0.0 );\n";
+
+				vertexProgram += "	vec3 d = ((glLightSource[index].diffuse * glFrontMaterial.diffuse).rgb * NdotL);\n";
+				vertexProgram += "	vec3 s = ((glLightSource[index].specular.rgb * glFrontMaterial.specular) * pow(NdotH, 0.3*shininess));\n";
+
+				/*vertexProgram += "	// Attenuate the light based on distance. but not for directional!\n";
+				vertexProgram += "	if(Lp.w == 1.0)\n";
+				vertexProgram += "	{\n";
+				vertexProgram += "		float dist = length(vertPos - glLightSource[index].position);\n";
+				vertexProgram += "		float att = (1.0 / (glLightSource[index].constantAttenuation + \n";
+				vertexProgram += "		(glLightSource[index].linearAttenuation*dist) + \n";
+				vertexProgram += "			(glLightSource[index].quadraticAttenuation*dist*dist)));\n";
+				vertexProgram += "		d = d * att;\n";
+				vertexProgram += "		s = s * att;\n";
+				vertexProgram += "	}\n";*/
+
+				vertexProgram += "	diffuse = diffuse + d;\n";
+				vertexProgram += "	spec = spec + s;\n";
+
+				vertexProgram += "}	\n";
+
+				vertexProgram += "light = (diffuse + emissive) + spec;	\n";
+
 				vertexProgram += "}";
 
 				fragmentProgram += "precision mediump float;\n";
@@ -689,18 +719,8 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				}
 				fragmentProgram += "uniform int numberOfLights;\n";
 				fragmentProgram += inString + " vec3 ViewVec;\n";
-
-				fragmentProgram += inString + " vec3 N;\n";
-
-				fragmentProgram += inString + " vec4 A;\n";
 				fragmentProgram += inString + " vec4 C;\n";
-
-				fragmentProgram += inString + " vec3 emissive;\n";
-				fragmentProgram += inString + " float shininess;\n";
-				fragmentProgram += constMaxLights;
-				fragmentProgram += inString + " vec4 lightsD[maxLights]; \n";
-				fragmentProgram += inString + " vec3 lightsS[maxLights]; \n";
-				fragmentProgram += inString + " vec3 lightsLightDir[maxLights]; \n";
+				fragmentProgram += inString + " vec3 light;\n";
 
 				fragmentProgram += fragColorDec;
 				fragmentProgram += "void main( void ){\n ";
@@ -716,27 +736,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				fragmentProgram += "vec4 color;\n";
 				fragmentProgram += "vec3 albedo = " + (hasTexture ? "baseMap.rgb *" : "") + " C.rgb;\n";
 
-				fragmentProgram += "vec3 diffuse = A.rgb;\n";
-				fragmentProgram += "vec3 spec;\n";
-
-				fragmentProgram += "vec3 normal = N;\n";
-				fragmentProgram += "vec3 E = normalize(ViewVec);\n";
-				fragmentProgram += "float EdotN = max( dot(normal, E), 0.0 );\n";
-
-				fragmentProgram += "for (int index = 0; index < numberOfLights && index < maxLights; index++) // for all light sources\n";
-				fragmentProgram += "{ 	\n";
-				fragmentProgram += "	vec3 L = normalize( lightsLightDir[index] );\n";
-				fragmentProgram += "	//vec3 R = reflect(-L, normal);\n";
-				fragmentProgram += "	vec3 H = normalize( L + E );		\n";
-				fragmentProgram += "	float NdotL = max( dot(normal, L), 0.0 );\n";
-				fragmentProgram += "	float NdotH = max( dot(normal, H), 0.0 );	\n";
-				fragmentProgram += "	float NdotNegL = max( dot(normal, -L), 0.0 );	\n";
-
-				fragmentProgram += "	diffuse = diffuse + (lightsD[index].rgb * NdotL);\n";
-				fragmentProgram += "	spec = spec + (lightsS[index] * pow(NdotH, 0.3*shininess));\n";
-				fragmentProgram += "}\n";
-
-				fragmentProgram += "color.rgb = albedo * (diffuse + emissive) + spec;\n";
+				fragmentProgram += "color.rgb = albedo * light;\n";
 				if (hasTexture)
 				{
 					fragmentProgram += "color.a = C.a * baseMap.a;\n";
@@ -748,22 +748,6 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 				fragmentProgram += "color.a *= transparencyAlpha;\n";
 				fragmentProgram += fragColorVar + " = color;\n";
-				
-				if (hasTexture)
-				{
-					if (!hasTextureCoordGen)
-					{
-					//fragmentProgram += "float s =  mod(glTexCoord0.s,1.0);";
-					//fragmentProgram += "float t =  mod(glTexCoord0.t,1.0);";
-					//fragmentProgram += fragColorVar + " = vec4(s,0,t,1);\n";
-					}
-				}
-
-				
-				
-				//for debug of the incorrect looking tex coord gen values
-				//fragmentProgram += "if (gl_MaxVaryingVectors>14)\n";
-				//fragmentProgram += fragColorVar + " = vec4(1,1,0,1);\n";
 
 				fragmentProgram += "}";
 
@@ -862,7 +846,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 						vertexProgram += "uniform mat4 glViewMatrix;\n";
 						vertexProgram += "uniform mat4 glModelMatrix;\n";
 					}
-					
+
 					vertexProgram += glFrontMaterial;
 					vertexProgram += outString + " vec4 glFrontColor;\n";
 					vertexProgram += "void main( void ){\n";
@@ -876,7 +860,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 						vertexProgram += "gl_Position = glProjectionMatrix * glModelViewMatrix * glVertex;\n";
 					}
 					vertexProgram += "if( ignoreVertexColors != 0 )\n";
-					
+
 					// have we got here via the debug path? if so use the material (even though lighting is off)
 					if (DISABLE_LIGHTS)
 					{
@@ -935,12 +919,11 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 		// if live, clear the program before updating shaderattributeset for the new program
 		// otherwise you get mismatches and exceptions thrown
-		if(this.isLive())
-		{			
+		if (this.isLive())
+		{
 			setShaderProgram(null);
 		}
-				
-				
+
 		//It is REALLY important for render performance to try to have the same shader program object 
 		// and the exact same shader attribute set object
 		if (hasTexture)
@@ -961,8 +944,8 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					shaderAttributeSet.put(new ShaderAttributeValue("texCoordGenPlaneT", planeT));
 					shaderAttributeSetCache.put(key, shaderAttributeSet);
 				}
-				setShaderAttributeSet(shaderAttributeSet);			
-				
+				setShaderAttributeSet(shaderAttributeSet);
+
 			}
 			else
 			{
@@ -971,8 +954,8 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					baseMapShaderAttributeSet = new ShaderAttributeSet();
 					baseMapShaderAttributeSet.put(new ShaderAttributeValue("BaseMap", new Integer(0)));
 				}
-				
-				setShaderAttributeSet(baseMapShaderAttributeSet);	
+
+				setShaderAttributeSet(baseMapShaderAttributeSet);
 			}
 		}
 		else
@@ -981,13 +964,10 @@ public class SimpleShaderAppearance extends ShaderAppearance
 			setShaderAttributeSet(null);
 		}
 
-		
-		
 		setShaderProgram(shaderProgram);
 		vertexShaderSource = vertexShaderSources.get(shaderProgram);
 		fragmentShaderSource = fragmentShaderSources.get(shaderProgram);
 
-		
 	}
 
 	@Override
