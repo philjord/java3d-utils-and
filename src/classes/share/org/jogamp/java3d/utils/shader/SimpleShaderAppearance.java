@@ -671,6 +671,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				vertexProgram += "vec3 E = normalize(ViewVec);\n";
 				vertexProgram += "float EdotN = max( dot(normal, E), 0.0 );\n";
 
+				//Can't attentuate as I'd have to hand in the glModelMatrix and impact needs to be assessed
 				//vertexProgram += "vec4 vertPos = glModelMatrix * glVertex;\n";
 
 				vertexProgram += "for (int index = 0; index < numberOfLights && index < maxLights; index++) // for all light sources\n";
