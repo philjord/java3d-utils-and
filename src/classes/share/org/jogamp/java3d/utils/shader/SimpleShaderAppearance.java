@@ -77,11 +77,7 @@ import org.jogamp.vecmath.Vector4f;
  */
 public class SimpleShaderAppearance extends ShaderAppearance
 {
-	//TODO: this is disabled, nothings shows on vodafone tiny phone, possibly too many uniforms or something?
-	// cut out for now
-	private static boolean PUSH_MUL_TO_SHADER = false;
-
-	// for debug PowerVR gpu's seem to have toruble with lighting calcs?
+	// some PowerVR gpu's didn't like lights, but solved now, possibly a varying issue anyway
 	private static boolean DISABLE_LIGHTS = false;
 
 	private static String versionString = "#version 100\n";
@@ -91,7 +87,20 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	private static String fragColorVar = "gl_FragColor";
 	private static String vertexAttributeInString = "attribute";
 	private static String texture2D = "texture2D";
-	private static String constMaxLights = "	const int maxLights = (gl_MaxVaryingVectors - 6) / 3;\n";
+	private static String constMaxLights = "	const int maxLights = 8\n;";//(gl_MaxVaryingVectors - 6) / 3;\n";
+
+	//NOTE all the discussion below does not affect the current SimpleShader
+	// I was sending a lot of pre-computed data from the vertex to the fragment in order to do fragment lighting
+	// but now I only do vertex lighting, in future do all fragment light calcs from uniforms!
+	// my very low end phone returns number on left desktop number on right
+	//GL_MAX_VERTEX_ATTRIBS 16 : 16
+	//GL_MAX_VARYING_VECTORS 12 : 31
+	//GL_MAX_VERTEX_UNIFORM_VECTORS 256 : 1024
+	//GL_MAX_FRAGMENT_UNIFORM_VECTORS 256 : 1024
+	//GL_VERSION OpenGL ES 2.0 : 4.5.0 NVIDIA 376.53
+	//GL_SHADING_LANGUAGE_VERSION OpenGL ES GLSL ES 1.00 : 4.50 NVIDIA
+
+	//so with each light at max 6 vec's half the low phone can take up to 21 lights! 
 
 	// a wee discussion on the max varying versus lights issue
 	//https://www.khronos.org/opengles/sdk/docs/reference_cards/OpenGL-ES-2_0-Reference-card.pdf
@@ -134,9 +143,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		fragColorVar = "gl_FragColor";
 		vertexAttributeInString = "attribute";
 		texture2D = "texture2D";
-		constMaxLights = "	const int maxLights = (gl_MaxVaryingVectors - 6) / 3;\n";
-
-		//PUSH_MUL_TO_SHADER = true;
+		constMaxLights = "	const int maxLights = 8\n;";//(gl_MaxVaryingVectors - 6) / 3;\n";
 
 		shaderPrograms.clear();
 		vertexShaderSources.clear();
@@ -152,9 +159,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		fragColorVar = "glFragColor";
 		vertexAttributeInString = "in";
 		texture2D = "texture";
-		constMaxLights = "	const int maxLights = (gl_MaxVaryingVectors - 6) / 3;\n";
-
-		//PUSH_MUL_TO_SHADER = true;
+		constMaxLights = "	const int maxLights = 8\n;";//(gl_MaxVaryingVectors - 6) / 3;\n";
 
 		shaderPrograms.clear();
 		vertexShaderSources.clear();
@@ -170,7 +175,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		fragColorVar = "gl_FragColor";
 		vertexAttributeInString = "attribute";
 		texture2D = "texture2D";
-		constMaxLights = "	const int maxLights = 3;\n";//gl_MaxVaryingVectors does not exist
+		constMaxLights = "	const int maxLights = 8;\n";//gl_MaxVaryingVectors does not exist
 
 		//PUSH_MUL_TO_SHADER = false;
 
@@ -214,7 +219,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 	public static String glLightSource = "struct lightSource\n" + //
 			"	{\n" + //
-			"		vec4 position;\n" + //
+			"		vec4 position;// in eye space\n " + //
 			"		vec4 diffuse;\n" + //
 			"		vec4 specular;\n" + //
 			"		float constantAttenuation, linearAttenuation, quadraticAttenuation;\n" + //
@@ -324,27 +329,12 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					vertexProgram += vertexAttributeInString + " vec4 glColor;\n";
 					vertexProgram += "uniform int ignoreVertexColors;\n";
 					vertexProgram += "uniform vec4 objectColor;\n";
-					if (!PUSH_MUL_TO_SHADER)
-					{
-						vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
-					}
-					else
-					{
-						vertexProgram += "uniform mat4 glProjectionMatrix;\n";
-						vertexProgram += "uniform mat4 glViewMatrix;\n";
-						vertexProgram += "uniform mat4 glModelMatrix;\n";
-					}
+					vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
+
 					vertexProgram += outString + " vec4 glFrontColor;\n";
 					vertexProgram += "void main( void ){\n";
-					if (!PUSH_MUL_TO_SHADER)
-					{
-						vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
-					}
-					else
-					{
-						vertexProgram += "mat4 glModelViewMatrix = glViewMatrix*glModelMatrix;\n";
-						vertexProgram += "gl_Position = glProjectionMatrix * glModelViewMatrix * glVertex;\n";
-					}
+					vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
+
 					vertexProgram += "if( ignoreVertexColors != 0 )\n";
 					vertexProgram += "	glFrontColor = objectColor;\n";
 					vertexProgram += "else\n";
@@ -387,27 +377,12 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					vertexProgram += vertexAttributeInString + " vec4 glColor;\n";
 					vertexProgram += "uniform int ignoreVertexColors;\n";
 					vertexProgram += "uniform vec4 objectColor;\n";
-					if (!PUSH_MUL_TO_SHADER)
-					{
-						vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
-					}
-					else
-					{
-						vertexProgram += "uniform mat4 glProjectionMatrix;\n";
-						vertexProgram += "uniform mat4 glViewMatrix;\n";
-						vertexProgram += "uniform mat4 glModelMatrix;\n";
-					}
+					vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
+
 					vertexProgram += outString + " vec4 glFrontColor;\n";
 					vertexProgram += "void main( void ){\n";
-					if (!PUSH_MUL_TO_SHADER)
-					{
-						vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
-					}
-					else
-					{
-						vertexProgram += "mat4 glModelViewMatrix = glViewMatrix*glModelMatrix;\n";
-						vertexProgram += "gl_Position = glProjectionMatrix * glModelViewMatrix * glVertex;\n";
-					}
+					vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
+
 					vertexProgram += "if( ignoreVertexColors != 0 )\n";
 					vertexProgram += "	glFrontColor = objectColor;\n";
 					vertexProgram += "else\n";
@@ -582,17 +557,13 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				{
 					vertexProgram += vertexAttributeInString + " vec2 glMultiTexCoord0;\n";
 				}
-				if (!PUSH_MUL_TO_SHADER)
-				{
-					vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
-					vertexProgram += "uniform mat4 glModelViewMatrix;\n";
-				}
-				else
-				{
-					vertexProgram += "uniform mat4 glProjectionMatrix;\n";
-					vertexProgram += "uniform mat4 glViewMatrix;\n";
-					vertexProgram += "uniform mat4 glModelMatrix;\n";
-				}
+
+				//vertexProgram += "uniform mat4 glViewMatrix;\n";
+				vertexProgram += "uniform mat4 glModelViewMatrix;\n";
+				vertexProgram += "uniform mat4 glProjectionMatrix;\n";				
+				//vertexProgram += "uniform mat4 glModelMatrix;\n";
+				
+
 				vertexProgram += "uniform mat3 glNormalMatrix;\n";
 				vertexProgram += "uniform int ignoreVertexColors;\n";
 				vertexProgram += "uniform vec4 glLightModelambient;\n";
@@ -621,15 +592,10 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				}
 
 				vertexProgram += "void main( void ){\n";
-				if (!PUSH_MUL_TO_SHADER)
-				{
-					vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
-				}
-				else
-				{
-					vertexProgram += "mat4 glModelViewMatrix = glViewMatrix*glModelMatrix;\n";
-					vertexProgram += "gl_Position = glProjectionMatrix * glModelViewMatrix * glVertex;\n";
-				}
+				
+				//vertexProgram += "mat4 glModelViewMatrix = glViewMatrix * glModelMatrix;\n";
+				vertexProgram += "gl_Position = glProjectionMatrix * glModelViewMatrix * glVertex;\n";
+				
 				vertexProgram += "vec3 N = normalize(glNormalMatrix * glNormal);\n";
 				if (hasTexture)
 				{
@@ -660,44 +626,44 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				vertexProgram += "	C = vec4(1,1,1,1);//glFrontMaterial.diffuse; \n";
 				vertexProgram += "else \n";
 				vertexProgram += "	C = glColor; \n";
-
+					  
 				vertexProgram += "vec3 emissive = glFrontMaterial.emission.rgb;\n";
 				vertexProgram += "float shininess = glFrontMaterial.shininess;\n";
 
 				vertexProgram += "vec3 diffuse = A.rgb;\n";
 				vertexProgram += "vec3 spec = vec3(0,0,0);\n";
 
-				vertexProgram += "vec3 normal = N;\n";
-				vertexProgram += "vec3 E = normalize(ViewVec);\n";
-				vertexProgram += "float EdotN = max( dot(normal, E), 0.0 );\n";
-
-				//Can't attentuate as I'd have to hand in the glModelMatrix and impact needs to be assessed
-				//vertexProgram += "vec4 vertPos = glModelMatrix * glVertex;\n";
+				vertexProgram += "vec4 vertPos = glModelViewMatrix * glVertex;// vertex position in eye space\n";
+				vertexProgram += "vec3 E = normalize(-vertPos.xyz);// vector from vert to eye in eye space\n";
 
 				vertexProgram += "for (int index = 0; index < numberOfLights && index < maxLights; index++) // for all light sources\n";
 				vertexProgram += "{ \n";
-				vertexProgram += "	vec4 Lp = glLightSource[index].position;\n";
-				vertexProgram += "	vec3 Ld = normalize( glLightSource[index].position.xyz );	\n";
-				vertexProgram += "	//vec3 R = reflect(-L, normal);\n";
-				vertexProgram += "	vec3 H = normalize( Ld + E );\n";
-
-				vertexProgram += "	float NdotL = max( dot(normal, Ld), 0.0 );\n";
-				vertexProgram += "	float NdotH = max( dot(normal, H), 0.0 );\n";
-				vertexProgram += "	float NdotNegL = max( dot(normal, -Ld), 0.0 );\n";
-
+				vertexProgram += "	vec4 Lp =  glLightSource[index].position; // in eye space\n";
+				vertexProgram += "	vec3 Ld;\n";
+				vertexProgram += "	if(Lp.w == 0.0 )\n";
+				vertexProgram += "		Ld = normalize( Lp.xyz );  //directional store dir in pos\n";
+				vertexProgram += "	else\n";
+				vertexProgram += "		Ld = normalize( Lp.xyz - vertPos.xyz );	\n";
+				
+				vertexProgram += "	float NdotL = max( dot(N, Ld), 0.0 );\n";
 				vertexProgram += "	vec3 d = ((glLightSource[index].diffuse * glFrontMaterial.diffuse).rgb * NdotL);\n";
-				vertexProgram += "	vec3 s = ((glLightSource[index].specular.rgb * glFrontMaterial.specular) * pow(NdotH, 0.3*shininess));\n";
+				vertexProgram += "	d = clamp(d, 0.0, 1.0);\n";
+				
+				vertexProgram += "	vec3 R = normalize(-reflect(Ld,N)); \n"; 
+				vertexProgram += "	vec3 s = ((glLightSource[index].specular.rgb * glFrontMaterial.specular) * pow(max(dot(R,E),0.0), 0.3*shininess));\n";
+				vertexProgram += "	s = clamp(s, 0.0, 1.0);    \n";
 
-				/*vertexProgram += "	// Attenuate the light based on distance. but not for directional!\n";
+				vertexProgram += "	// Attenuate the light based on distance. but not for directional!\n";
 				vertexProgram += "	if(Lp.w == 1.0)\n";
 				vertexProgram += "	{\n";
-				vertexProgram += "		float dist = length(vertPos - glLightSource[index].position);\n";
+				vertexProgram += "		float dist = length(Lp - vertPos);\n";
 				vertexProgram += "		float att = (1.0 / (glLightSource[index].constantAttenuation + \n";
 				vertexProgram += "		(glLightSource[index].linearAttenuation*dist) + \n";
 				vertexProgram += "			(glLightSource[index].quadraticAttenuation*dist*dist)));\n";
+				vertexProgram += "		att = clamp(att, 0.0, 1.0);  \n"; 
 				vertexProgram += "		d = d * att;\n";
 				vertexProgram += "		s = s * att;\n";
-				vertexProgram += "	}\n";*/
+				vertexProgram += "	}\n";
 
 				vertexProgram += "	diffuse = diffuse + d;\n";
 				vertexProgram += "	spec = spec + s;\n";
@@ -718,13 +684,13 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					fragmentProgram += inString + " highp vec2 glTexCoord0;\n";//highp cos of very large tex coords in Ground3D
 					fragmentProgram += "uniform sampler2D BaseMap;\n";
 				}
-				fragmentProgram += "uniform int numberOfLights;\n";
 				fragmentProgram += inString + " vec3 ViewVec;\n";
 				fragmentProgram += inString + " vec4 C;\n";
 				fragmentProgram += inString + " vec3 light;\n";
 
 				fragmentProgram += fragColorDec;
 				fragmentProgram += "void main( void ){\n ";
+				
 				if (hasTexture)
 				{
 					fragmentProgram += "vec4 baseMap = " + texture2D + "( BaseMap, glTexCoord0.st );\n";
@@ -749,7 +715,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 				fragmentProgram += "color.a *= transparencyAlpha;\n";
 				fragmentProgram += fragColorVar + " = color;\n";
-
+				
 				fragmentProgram += "}";
 
 			}
@@ -760,16 +726,9 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				{
 					vertexProgram += vertexAttributeInString + " vec4 glVertex;\n";
 					vertexProgram += vertexAttributeInString + " vec2 glMultiTexCoord0;\n";
-					if (!PUSH_MUL_TO_SHADER)
-					{
-						vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
-					}
-					else
-					{
-						vertexProgram += "uniform mat4 glProjectionMatrix;\n";
-						vertexProgram += "uniform mat4 glViewMatrix;\n";
-						vertexProgram += "uniform mat4 glModelMatrix;\n";
-					}
+
+					vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
+
 					if (hasTextureCoordGen && texCoordGenModeObjLinear)
 					{
 						vertexProgram += "uniform vec4 texCoordGenPlaneS;\n";
@@ -787,15 +746,8 @@ public class SimpleShaderAppearance extends ShaderAppearance
 						vertexProgram += "}\n";
 					}
 					vertexProgram += "void main( void ){\n";
-					if (!PUSH_MUL_TO_SHADER)
-					{
-						vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
-					}
-					else
-					{
-						vertexProgram += "mat4 glModelViewMatrix = glViewMatrix*glModelMatrix;\n";
-						vertexProgram += "gl_Position = glProjectionMatrix * glModelViewMatrix * glVertex;\n";
-					}
+					vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
+
 					if (hasTexture)
 					{
 						if (!hasTextureCoordGen)
@@ -837,29 +789,13 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					vertexProgram += vertexAttributeInString + " vec4 glColor;\n";
 					vertexProgram += "uniform int ignoreVertexColors;\n";
 					vertexProgram += "uniform vec4 objectColor;\n";
-					if (!PUSH_MUL_TO_SHADER)
-					{
-						vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
-					}
-					else
-					{
-						vertexProgram += "uniform mat4 glProjectionMatrix;\n";
-						vertexProgram += "uniform mat4 glViewMatrix;\n";
-						vertexProgram += "uniform mat4 glModelMatrix;\n";
-					}
+					vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
 
 					vertexProgram += glFrontMaterial;
 					vertexProgram += outString + " vec4 glFrontColor;\n";
 					vertexProgram += "void main( void ){\n";
-					if (!PUSH_MUL_TO_SHADER)
-					{
-						vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
-					}
-					else
-					{
-						vertexProgram += "mat4 glModelViewMatrix = glViewMatrix * glModelMatrix;\n";
-						vertexProgram += "gl_Position = glProjectionMatrix * glModelViewMatrix * glVertex;\n";
-					}
+					vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
+
 					vertexProgram += "if( ignoreVertexColors != 0 )\n";
 
 					// have we got here via the debug path? if so use the material (even though lighting is off)
