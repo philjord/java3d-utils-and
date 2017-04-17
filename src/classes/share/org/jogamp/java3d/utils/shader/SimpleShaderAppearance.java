@@ -77,6 +77,8 @@ import org.jogamp.vecmath.Vector4f;
  */
 public class SimpleShaderAppearance extends ShaderAppearance
 {
+	private static final boolean UNROLL = true;
+
 	// some PowerVR gpu's didn't like lights, but solved now, possibly a varying issue anyway
 	private static boolean DISABLE_LIGHTS = false;
 
@@ -87,7 +89,8 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	private static String fragColorVar = "gl_FragColor";
 	private static String vertexAttributeInString = "attribute";
 	private static String texture2D = "texture2D";
-	private static String constMaxLights = "	const int maxLights = 8\n;";//(gl_MaxVaryingVectors - 6) / 3;\n";
+	private static int constMaxLights = 8;
+	private static String constMaxLightsStr = "	const int maxLights = " + constMaxLights + "\n;";
 
 	//NOTE all the discussion below does not affect the current SimpleShader
 	// I was sending a lot of pre-computed data from the vertex to the fragment in order to do fragment lighting
@@ -143,7 +146,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		fragColorVar = "gl_FragColor";
 		vertexAttributeInString = "attribute";
 		texture2D = "texture2D";
-		constMaxLights = "	const int maxLights = 8\n;";//(gl_MaxVaryingVectors - 6) / 3;\n";
+		constMaxLightsStr = "	const int maxLights = 8\n;";//(gl_MaxVaryingVectors - 6) / 3;\n";
 
 		shaderPrograms.clear();
 		vertexShaderSources.clear();
@@ -159,7 +162,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		fragColorVar = "glFragColor";
 		vertexAttributeInString = "in";
 		texture2D = "texture";
-		constMaxLights = "	const int maxLights = 8\n;";//(gl_MaxVaryingVectors - 6) / 3;\n";
+		constMaxLightsStr = "	const int maxLights = 8\n;";//(gl_MaxVaryingVectors - 6) / 3;\n";
 
 		shaderPrograms.clear();
 		vertexShaderSources.clear();
@@ -175,7 +178,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		fragColorVar = "gl_FragColor";
 		vertexAttributeInString = "attribute";
 		texture2D = "texture2D";
-		constMaxLights = "	const int maxLights = 8;\n";//gl_MaxVaryingVectors does not exist
+		constMaxLightsStr = "	const int maxLights = 8;\n";//gl_MaxVaryingVectors does not exist
 
 		//PUSH_MUL_TO_SHADER = false;
 
@@ -228,7 +231,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 			"	};\n" + //
 			"\n" + //
 			"	uniform int numberOfLights;\n" + //
-			constMaxLights + //
+			constMaxLightsStr + //
 			"	uniform lightSource glLightSource[maxLights];\n"; //
 
 	private static HashMap<Integer, GLSLShaderProgram> shaderPrograms = new HashMap<Integer, GLSLShaderProgram>();
@@ -636,6 +639,51 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				vertexProgram += "vec4 vertPos = glModelViewMatrix * glVertex;// vertex position in eye space\n";
 				vertexProgram += "vec3 E = normalize(-vertPos.xyz);// vector from vert to eye in eye space\n";
 
+				if (UNROLL)
+				{
+					// loop unrolling recommended for some Adreno compilers
+
+					for (int index = 0; index < constMaxLights; index++)
+					{
+						vertexProgram += "if (numberOfLights >= " + index + ")\n";
+						vertexProgram += "{ \n";
+						vertexProgram += "	vec4 Lp =  glLightSource[" + index + "].position; // in eye space\n";
+						vertexProgram += "	vec3 Ld;\n";
+						vertexProgram += "	if(Lp.w == 0.0 )\n";
+						vertexProgram += "		Ld = normalize( Lp.xyz );  //directional store dir in pos\n";
+						vertexProgram += "	else\n";
+						vertexProgram += "		Ld = normalize( Lp.xyz - vertPos.xyz );	\n";
+
+						vertexProgram += "	float NdotL = max( dot(N, Ld), 0.0 );\n";
+						vertexProgram += "	vec3 d = ((glLightSource[" + index + "].diffuse * glFrontMaterial.diffuse).rgb * NdotL);\n";
+						vertexProgram += "	d = clamp(d, 0.0, 1.0);\n";
+
+						vertexProgram += "	vec3 R = normalize(-reflect(Ld,N)); \n";
+						vertexProgram += "	vec3 s = ((glLightSource[" + index
+								+ "].specular.rgb * glFrontMaterial.specular) * pow(max(dot(R,E),0.0), 0.3*shininess));\n";
+						vertexProgram += "	s = clamp(s, 0.0, 1.0);    \n";
+
+						vertexProgram += "	// Attenuate the light based on distance. but not for directional!\n";
+						vertexProgram += "	if(Lp.w == 1.0)\n";
+						vertexProgram += "	{\n";
+						vertexProgram += "		float dist = length(Lp - vertPos);\n";
+						vertexProgram += "		float att = (1.0 / (glLightSource[" + index + "].constantAttenuation + \n";
+						vertexProgram += "		(glLightSource[" + index + "].linearAttenuation*dist) + \n";
+						vertexProgram += "			(glLightSource[" + index + "].quadraticAttenuation*dist*dist)));\n";
+						vertexProgram += "		att = clamp(att, 0.0, 1.0);  \n";
+						vertexProgram += "		d = d * att;\n";
+						vertexProgram += "		s = s * att;\n";
+						vertexProgram += "	}\n";
+
+						vertexProgram += "	diffuse = diffuse + d;\n";
+						vertexProgram += "	spec = spec + s;\n";
+					}
+					// ensure all ifs are nested
+					for (int index = 0; index < constMaxLights; index++)
+						vertexProgram += "}	\n";
+				}
+				else
+				{
 				vertexProgram += "for (int index = 0; index < numberOfLights && index < maxLights; index++) // for all light sources\n";
 				vertexProgram += "{ \n";
 				vertexProgram += "	vec4 Lp =  glLightSource[index].position; // in eye space\n";
@@ -670,18 +718,23 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 				vertexProgram += "}	\n";
 
+				}
 				vertexProgram += "light = (diffuse + emissive) + spec;	\n";
 
 				vertexProgram += "}";
 
 				fragmentProgram += "precision mediump float;\n";
-				fragmentProgram += "precision highp int;\n";
+				fragmentProgram += "precision mediump int;\n";
 				fragmentProgram += "uniform float transparencyAlpha;\n";
 				if (hasTexture)
 				{
 					fragmentProgram += alphaTestUniforms;
 
+					fragmentProgram += "#ifdef GL_FRAGMENT_PRECISION_HIGH\n";
 					fragmentProgram += inString + " highp vec2 glTexCoord0;\n";//highp cos of very large tex coords in Ground3D
+					fragmentProgram += "#else\n";
+					fragmentProgram += inString + " mediump vec2 glTexCoord0;\n";//not if not supported
+					fragmentProgram += "#endif\n";
 					fragmentProgram += "uniform sampler2D BaseMap;\n";
 				}
 				fragmentProgram += inString + " vec3 ViewVec;\n";
@@ -771,7 +824,12 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					fragmentProgram += "precision mediump float;\n";
 					fragmentProgram += "uniform float transparencyAlpha;\n";
 					fragmentProgram += alphaTestUniforms;
-					fragmentProgram += inString + " highp vec2 glTexCoord0;\n";
+					
+					fragmentProgram += "#ifdef GL_FRAGMENT_PRECISION_HIGH\n";
+					fragmentProgram += inString + " highp vec2 glTexCoord0;\n";//highp cos of very large tex coords in Ground3D
+					fragmentProgram += "#else\n";
+					fragmentProgram += inString + " mediump vec2 glTexCoord0;\n";//not if not supported
+					fragmentProgram += "#endif\n";
 					fragmentProgram += "uniform sampler2D BaseMap;\n";
 					fragmentProgram += fragColorDec;
 					fragmentProgram += "void main( void ){\n ";
