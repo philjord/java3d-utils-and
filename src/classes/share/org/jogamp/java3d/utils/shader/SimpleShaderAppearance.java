@@ -77,7 +77,7 @@ import org.jogamp.vecmath.Vector4f;
  */
 public class SimpleShaderAppearance extends ShaderAppearance
 {
-	private static final boolean UNROLL = true;
+	private static final boolean UNROLL = false;// can't set true as Vivante won't link!
 
 	// some PowerVR gpu's didn't like lights, but solved now, possibly a varying issue anyway
 	private static boolean DISABLE_LIGHTS = false;
@@ -90,7 +90,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	private static String vertexAttributeInString = "attribute";
 	private static String texture2D = "texture2D";
 	private static int constMaxLights = 8;
-	private static String constMaxLightsStr = "	const int maxLights = " + constMaxLights + "\n;";
+	private static String constMaxLightsStr = "	const int maxLights = " + constMaxLights + ";\n";
 
 	//NOTE all the discussion below does not affect the current SimpleShader
 	// I was sending a lot of pre-computed data from the vertex to the fragment in order to do fragment lighting
@@ -524,6 +524,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 	private void build(boolean hasTexture, boolean lit, boolean hasTextureCoordGen, boolean texCoordGenModeObjLinear)
 	{
+
 		int shaderKey = (hasTexture ? 1 : 0) + (lit ? 2 : 0) + (hasTextureCoordGen ? 4 : 0) + (texCoordGenModeObjLinear ? 8 : 0);
 
 		GLSLShaderProgram shaderProgram = shaderPrograms.get(new Integer(shaderKey));
@@ -552,6 +553,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 			if (lit && !DISABLE_LIGHTS)
 			{
+				// not lit
 
 				vertexProgram += vertexAttributeInString + " vec4 glVertex;\n";
 				vertexProgram += vertexAttributeInString + " vec4 glColor;\n";
@@ -563,9 +565,9 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 				//vertexProgram += "uniform mat4 glViewMatrix;\n";
 				vertexProgram += "uniform mat4 glModelViewMatrix;\n";
-				vertexProgram += "uniform mat4 glProjectionMatrix;\n";				
+				vertexProgram += "uniform mat4 glProjectionMatrix;\n";
 				//vertexProgram += "uniform mat4 glModelMatrix;\n";
-				
+				vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
 
 				vertexProgram += "uniform mat3 glNormalMatrix;\n";
 				vertexProgram += "uniform int ignoreVertexColors;\n";
@@ -594,11 +596,34 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					vertexProgram += "}\n";
 				}
 
+				vertexProgram += "float attCalc(lightSource ls, float dist)\n";
+				vertexProgram += "{\n";
+				vertexProgram += "	float att = (1.0 / (ls.constantAttenuation + \n";
+				vertexProgram += "	(ls.linearAttenuation*dist) + \n";
+				vertexProgram += "			(ls.quadraticAttenuation*dist*dist)));\n";
+				vertexProgram += "	return clamp(att, 0.0, 1.0);  \n";
+				vertexProgram += "}\n";
+
+				vertexProgram += "vec3 diffCalc(lightSource ls, vec3 Ld, vec3 N)\n";
+				vertexProgram += "{\n";
+				vertexProgram += "	float NdotL = max( dot(N, Ld), 0.0 );\n";
+				vertexProgram += "	vec3 d = ((ls.diffuse * glFrontMaterial.diffuse).rgb * NdotL);\n";
+				vertexProgram += "	return clamp(d, 0.0, 1.0);\n";
+				vertexProgram += "}\n";
+
+				vertexProgram += "vec3 specCalc(lightSource ls, vec3 Ld, vec3 N, vec3 E, float shininess)\n";
+				vertexProgram += "{\n";
+				vertexProgram += "	vec3 R = normalize(-reflect(Ld,N)); \n";
+				vertexProgram += "	vec3 s = ((ls.specular.rgb * glFrontMaterial.specular) * pow(max(dot(R,E),0.0), 0.3*shininess));\n";
+				vertexProgram += "	return clamp(s, 0.0, 1.0);    \n";
+				vertexProgram += "}\n";
+
 				vertexProgram += "void main( void ){\n";
-				
-				//vertexProgram += "mat4 glModelViewMatrix = glViewMatrix * glModelMatrix;\n";
-				vertexProgram += "gl_Position = glProjectionMatrix * glModelViewMatrix * glVertex;\n";
-				
+
+				//DISCOVERY, using the multiplier here causes cock up ville on Vivante GPU, possibly matrix multiple is bad?
+				//BAD! vertexProgram += "gl_Position = glProjectionMatrix * glModelViewMatrix * glVertex;\n";
+				vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
+
 				vertexProgram += "vec3 N = normalize(glNormalMatrix * glNormal);\n";
 				if (hasTexture)
 				{
@@ -629,7 +654,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				vertexProgram += "	C = vec4(1,1,1,1);//glFrontMaterial.diffuse; \n";
 				vertexProgram += "else \n";
 				vertexProgram += "	C = glColor; \n";
-					  
+
 				vertexProgram += "vec3 emissive = glFrontMaterial.emission.rgb;\n";
 				vertexProgram += "float shininess = glFrontMaterial.shininess;\n";
 
@@ -641,8 +666,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 				if (UNROLL)
 				{
-					// loop unrolling recommended for some Adreno compilers
-
+					// loop unrolling recommended for some Adreno compilers I'm told
 					for (int index = 0; index < constMaxLights; index++)
 					{
 						vertexProgram += "if (numberOfLights >= " + index + ")\n";
@@ -654,23 +678,14 @@ public class SimpleShaderAppearance extends ShaderAppearance
 						vertexProgram += "	else\n";
 						vertexProgram += "		Ld = normalize( Lp.xyz - vertPos.xyz );	\n";
 
-						vertexProgram += "	float NdotL = max( dot(N, Ld), 0.0 );\n";
-						vertexProgram += "	vec3 d = ((glLightSource[" + index + "].diffuse * glFrontMaterial.diffuse).rgb * NdotL);\n";
-						vertexProgram += "	d = clamp(d, 0.0, 1.0);\n";
-
-						vertexProgram += "	vec3 R = normalize(-reflect(Ld,N)); \n";
-						vertexProgram += "	vec3 s = ((glLightSource[" + index
-								+ "].specular.rgb * glFrontMaterial.specular) * pow(max(dot(R,E),0.0), 0.3*shininess));\n";
-						vertexProgram += "	s = clamp(s, 0.0, 1.0);    \n";
+						vertexProgram += "	vec3 d = diffCalc(glLightSource[" + index + "], Ld, N);\n";
+						vertexProgram += "	vec3 s = specCalc(glLightSource[" + index + "], Ld, N, E, shininess);\n";
 
 						vertexProgram += "	// Attenuate the light based on distance. but not for directional!\n";
 						vertexProgram += "	if(Lp.w == 1.0)\n";
 						vertexProgram += "	{\n";
 						vertexProgram += "		float dist = length(Lp - vertPos);\n";
-						vertexProgram += "		float att = (1.0 / (glLightSource[" + index + "].constantAttenuation + \n";
-						vertexProgram += "		(glLightSource[" + index + "].linearAttenuation*dist) + \n";
-						vertexProgram += "			(glLightSource[" + index + "].quadraticAttenuation*dist*dist)));\n";
-						vertexProgram += "		att = clamp(att, 0.0, 1.0);  \n";
+						vertexProgram += "		float att = attCalc(glLightSource[" + index + "], dist);  \n";
 						vertexProgram += "		d = d * att;\n";
 						vertexProgram += "		s = s * att;\n";
 						vertexProgram += "	}\n";
@@ -684,45 +699,38 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				}
 				else
 				{
-				vertexProgram += "for (int index = 0; index < numberOfLights && index < maxLights; index++) // for all light sources\n";
-				vertexProgram += "{ \n";
-				vertexProgram += "	vec4 Lp =  glLightSource[index].position; // in eye space\n";
-				vertexProgram += "	vec3 Ld;\n";
-				vertexProgram += "	if(Lp.w == 0.0 )\n";
-				vertexProgram += "		Ld = normalize( Lp.xyz );  //directional store dir in pos\n";
-				vertexProgram += "	else\n";
-				vertexProgram += "		Ld = normalize( Lp.xyz - vertPos.xyz );	\n";
-				
-				vertexProgram += "	float NdotL = max( dot(N, Ld), 0.0 );\n";
-				vertexProgram += "	vec3 d = ((glLightSource[index].diffuse * glFrontMaterial.diffuse).rgb * NdotL);\n";
-				vertexProgram += "	d = clamp(d, 0.0, 1.0);\n";
-				
-				vertexProgram += "	vec3 R = normalize(-reflect(Ld,N)); \n"; 
-				vertexProgram += "	vec3 s = ((glLightSource[index].specular.rgb * glFrontMaterial.specular) * pow(max(dot(R,E),0.0), 0.3*shininess));\n";
-				vertexProgram += "	s = clamp(s, 0.0, 1.0);    \n";
+					vertexProgram += "for (int index = 0; index < numberOfLights && index < maxLights; index++) // for all light sources\n";
+					vertexProgram += "{ \n";
+					vertexProgram += "	vec4 Lp =  glLightSource[index].position; // in eye space\n";
+					vertexProgram += "	vec3 Ld;\n";
+					vertexProgram += "	if(Lp.w == 0.0 )\n";
+					vertexProgram += "		Ld = normalize( Lp.xyz );  //directional store dir in pos\n";
+					vertexProgram += "	else\n";
+					vertexProgram += "		Ld = normalize( Lp.xyz - vertPos.xyz );	\n";
 
-				vertexProgram += "	// Attenuate the light based on distance. but not for directional!\n";
-				vertexProgram += "	if(Lp.w == 1.0)\n";
-				vertexProgram += "	{\n";
-				vertexProgram += "		float dist = length(Lp - vertPos);\n";
-				vertexProgram += "		float att = (1.0 / (glLightSource[index].constantAttenuation + \n";
-				vertexProgram += "		(glLightSource[index].linearAttenuation*dist) + \n";
-				vertexProgram += "			(glLightSource[index].quadraticAttenuation*dist*dist)));\n";
-				vertexProgram += "		att = clamp(att, 0.0, 1.0);  \n"; 
-				vertexProgram += "		d = d * att;\n";
-				vertexProgram += "		s = s * att;\n";
-				vertexProgram += "	}\n";
+					vertexProgram += "	vec3 d = diffCalc(glLightSource[index], Ld, N);\n";
+					vertexProgram += "	vec3 s = specCalc(glLightSource[index], Ld, N, E, shininess);\n";
 
-				vertexProgram += "	diffuse = diffuse + d;\n";
-				vertexProgram += "	spec = spec + s;\n";
+					vertexProgram += "	// Attenuate the light based on distance. but not for directional!\n";
+					vertexProgram += "	if(Lp.w == 1.0)\n";
+					vertexProgram += "	{\n";
+					vertexProgram += "		float dist = length(Lp - vertPos);\n";
+					vertexProgram += "		float att = attCalc(glLightSource[index], dist);  \n";
+					vertexProgram += "		d = d * att;\n";
+					vertexProgram += "		s = s * att;\n";
+					vertexProgram += "	}\n";
+					vertexProgram += "	diffuse = diffuse + d;\n";
+					vertexProgram += "	spec = spec + s;\n";
 
-				vertexProgram += "}	\n";
+					vertexProgram += "}	\n";
 
 				}
+
 				vertexProgram += "light = (diffuse + emissive) + spec;	\n";
 
 				vertexProgram += "}";
-
+				
+				//////////////////////////////////////////////////////////////////
 				fragmentProgram += "precision mediump float;\n";
 				fragmentProgram += "precision mediump int;\n";
 				fragmentProgram += "uniform float transparencyAlpha;\n";
@@ -743,7 +751,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 				fragmentProgram += fragColorDec;
 				fragmentProgram += "void main( void ){\n ";
-				
+
 				if (hasTexture)
 				{
 					fragmentProgram += "vec4 baseMap = " + texture2D + "( BaseMap, glTexCoord0.st );\n";
@@ -768,7 +776,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 				fragmentProgram += "color.a *= transparencyAlpha;\n";
 				fragmentProgram += fragColorVar + " = color;\n";
-				
+
 				fragmentProgram += "}";
 
 			}
@@ -824,7 +832,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					fragmentProgram += "precision mediump float;\n";
 					fragmentProgram += "uniform float transparencyAlpha;\n";
 					fragmentProgram += alphaTestUniforms;
-					
+
 					fragmentProgram += "#ifdef GL_FRAGMENT_PRECISION_HIGH\n";
 					fragmentProgram += inString + " highp vec2 glTexCoord0;\n";//highp cos of very large tex coords in Ground3D
 					fragmentProgram += "#else\n";
@@ -895,8 +903,10 @@ public class SimpleShaderAppearance extends ShaderAppearance
 			vertexShaderSources.put(shaderProgram, vertexProgram);
 			fragmentShaderSources.put(shaderProgram, fragmentProgram);
 
+			//System.out.println("shaderkey = " + shaderKey);
 			//System.out.println(vertexProgram);
 			//System.out.println(fragmentProgram);
+
 			if (hasTexture)
 			{
 				if (texCoordGenModeObjLinear)
