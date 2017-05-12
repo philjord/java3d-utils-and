@@ -588,14 +588,6 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				vertexProgram += outString + "  vec4 C;\n";
 				vertexProgram += outString + "  vec3 light;\n";
 
-				if (hasTextureCoordGen)
-				{
-					vertexProgram += "vec2 object_linear(vec4 pos, vec4 planeOS, vec4 planeOT)\n";
-					vertexProgram += "{\n";
-					vertexProgram += "	return vec2(pos.x*planeOS.x+pos.y*planeOS.y+pos.z*planeOS.z+pos.w*planeOS.w,pos.x*planeOT.x+pos.y*planeOT.y+pos.z*planeOT.z+pos.w*planeOT.w);\n";
-					vertexProgram += "}\n";
-				}
-
 				vertexProgram += "float attCalc(lightSource ls, float dist)\n";
 				vertexProgram += "{\n";
 				vertexProgram += "	float att = (1.0 / (ls.constantAttenuation + \n";
@@ -635,7 +627,8 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					{
 						if (texCoordGenModeObjLinear)
 						{
-							vertexProgram += "glTexCoord0 = object_linear(glVertex, texCoordGenPlaneS, texCoordGenPlaneT);\n";
+							// note mali-400 complained when this was a method call
+							vertexProgram += "glTexCoord0 = vec2(glVertex.x*texCoordGenPlaneS.x+glVertex.y*texCoordGenPlaneS.y+glVertex.z*texCoordGenPlaneS.z+glVertex.w*texCoordGenPlaneS.w,glVertex.x*texCoordGenPlaneT.x+glVertex.y*texCoordGenPlaneT.y+glVertex.z*texCoordGenPlaneT.z+glVertex.w*texCoordGenPlaneT.w);\n";
 						}
 						else
 						{
@@ -799,13 +792,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					{
 						vertexProgram += outString + " vec2 glTexCoord0;\n";
 					}
-					if (hasTextureCoordGen)
-					{
-						vertexProgram += "vec2 object_linear(vec4 pos, vec4 planeOS, vec4 planeOT)\n";
-						vertexProgram += "{\n";
-						vertexProgram += "	return vec2(pos.x*planeOS.x+pos.y*planeOS.y+pos.z*planeOS.z+pos.w*planeOS.w,pos.x*planeOT.x+pos.y*planeOT.y+pos.z*planeOT.z+pos.w*planeOT.w);\n";
-						vertexProgram += "}\n";
-					}
+					
 					vertexProgram += "void main( void ){\n";
 					vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
 
@@ -819,7 +806,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 						{
 							if (texCoordGenModeObjLinear)
 							{
-								vertexProgram += "glTexCoord0 = object_linear(glVertex, texCoordGenPlaneS, texCoordGenPlaneT);\n";
+								vertexProgram += "glTexCoord0 = vec2(glVertex.x*texCoordGenPlaneS.x+glVertex.y*texCoordGenPlaneS.y+glVertex.z*texCoordGenPlaneS.z+glVertex.w*texCoordGenPlaneS.w,glVertex.x*texCoordGenPlaneT.x+glVertex.y*texCoordGenPlaneT.y+glVertex.z*texCoordGenPlaneT.z+glVertex.w*texCoordGenPlaneT.w);\n";
 							}
 							else
 							{
