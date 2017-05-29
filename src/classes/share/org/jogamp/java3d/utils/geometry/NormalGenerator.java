@@ -45,7 +45,6 @@ import org.jogamp.java3d.SparseArray;
 import org.jogamp.vecmath.Point3f;
 import org.jogamp.vecmath.Vector3f;
 
-import android.util.SparseIntArray;
 
 /**
  * The NormalGenerator utility will calculate and fill in the normals
