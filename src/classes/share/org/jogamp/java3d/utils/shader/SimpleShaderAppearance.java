@@ -509,10 +509,13 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				System.out
 						.println("this.getCapability(ALLOW_POLYGON_ATTRIBUTES_READ) " + this.getCapability(ALLOW_POLYGON_ATTRIBUTES_READ));
 
-				System.out.println("this.getPolygonAttributes() == null " + (this.getPolygonAttributes() == null));
-				if (this.getPolygonAttributes() != null)
-					System.out.println("this.getPolygonAttributes().getCapability(PolygonAttributes.ALLOW_MODE_READ) "
-							+ this.getPolygonAttributes().getCapability(PolygonAttributes.ALLOW_MODE_READ));
+				if(this.getCapability(ALLOW_POLYGON_ATTRIBUTES_READ))
+				{
+					System.out.println("this.getPolygonAttributes() == null " + (this.getPolygonAttributes() == null));
+					if (this.getPolygonAttributes() != null)
+						System.out.println("this.getPolygonAttributes().getCapability(PolygonAttributes.ALLOW_MODE_READ) "
+								+ this.getPolygonAttributes().getCapability(PolygonAttributes.ALLOW_MODE_READ));
+				}
 
 				System.out.println("this.getCapability(ALLOW_SHADER_PROGRAM_WRITE) " + this.getCapability(ALLOW_SHADER_PROGRAM_WRITE));
 				System.out.println(
