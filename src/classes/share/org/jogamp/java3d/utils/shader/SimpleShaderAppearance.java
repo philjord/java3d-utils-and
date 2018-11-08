@@ -453,18 +453,25 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 	public void setUpdatableCapabilities()
 	{
-		this.setCapability(ALLOW_MATERIAL_READ);
-		this.setCapability(ALLOW_TEXTURE_UNIT_STATE_READ);// TODO: do I need to mod the tus as well?
-		this.setCapability(ALLOW_TEXTURE_READ);
-		this.setCapability(ALLOW_POLYGON_ATTRIBUTES_READ);
-		if (this.getPolygonAttributes() != null)
+		if(!this.getCapability(ALLOW_MATERIAL_READ))
+			this.setCapability(ALLOW_MATERIAL_READ);
+		if(!this.getCapability(ALLOW_TEXTURE_UNIT_STATE_READ))
+			this.setCapability(ALLOW_TEXTURE_UNIT_STATE_READ);// TODO: do I need to mod the tus as well?
+		if(!this.getCapability(ALLOW_TEXTURE_READ))
+			this.setCapability(ALLOW_TEXTURE_READ);
+		if(!this.getCapability(ALLOW_POLYGON_ATTRIBUTES_READ))
+			this.setCapability(ALLOW_POLYGON_ATTRIBUTES_READ);
+		if (this.getPolygonAttributes() != null && !this.getPolygonAttributes().getCapability(PolygonAttributes.ALLOW_MODE_READ))
 			this.getPolygonAttributes().setCapability(PolygonAttributes.ALLOW_MODE_READ);
-		this.setCapability(ALLOW_TEXTURE_ATTRIBUTES_READ);
-		if (this.getTextureAttributes() != null)
+		if(!this.getCapability(ALLOW_TEXTURE_ATTRIBUTES_READ))
+			this.setCapability(ALLOW_TEXTURE_ATTRIBUTES_READ);
+		if (this.getTextureAttributes() != null && !this.getTextureAttributes().getCapability(TextureAttributes.ALLOW_TRANSFORM_READ))
 			this.getTextureAttributes().setCapability(TextureAttributes.ALLOW_TRANSFORM_READ);
 
-		this.setCapability(ALLOW_SHADER_PROGRAM_WRITE);
-		this.setCapability(ALLOW_SHADER_ATTRIBUTE_SET_WRITE);
+		if(!this.getCapability(ALLOW_SHADER_PROGRAM_WRITE))
+			this.setCapability(ALLOW_SHADER_PROGRAM_WRITE);
+		if(!this.getCapability(ALLOW_SHADER_ATTRIBUTE_SET_WRITE))
+			this.setCapability(ALLOW_SHADER_ATTRIBUTE_SET_WRITE);
 	}
 
 	public void rebuildShaders()
