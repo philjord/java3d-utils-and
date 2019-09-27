@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <groupId>org.jogamp.java3d</groupId>
+  <artifactId>java3d-utils-and</artifactId>
+  <version>1.7.0</version>
+  
+  <name>Java 3D Utils 4 Android</name>
+  <description>Extension of the Utility functions for the Java 3D Graphics API</description>
+
+	<licenses>
+		<license>
+			<name>Simplified BSD License</name>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<id>philjord</id>
+			<name>Philip Jordan</name>
+			<email>p.j.nz@outlook.com</email>
+			<url>https://github.com/philjord</url>
+			<organization>JogAmp</organization>
+			<organizationUrl>http://jogamp.org/</organizationUrl>
+			<roles>
+				<role>maintainer</role>
+			</roles>
+			<timezone>+12</timezone>
+		</developer>		
+	</developers>
+	
+	<scm>
+		<connection>scm:git:https://bitbucket.org/philjord/java3d-utils-and</connection>
+		<developerConnection></developerConnection>
+		<tag>HEAD</tag>
+		<url>https://bitbucket.org/philjord/java3d-utils-and</url>
+	</scm>
+	
+	<properties>
+		<jogamp.version>2.3.2</jogamp.version>
+
+		<!-- NB: Avoid platform encoding warning when copying resources. -->
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+				
+	</properties>
+	
+	<dependencies>
+	    <dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>java3d-core-and</artifactId>
+			<version>${project.version}</version>
+		</dependency>	
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>java3d-utils</artifactId>
+			<version>${project.version}</version>
+		</dependency>		
+	</dependencies>
+	
+  <build>
+  	<defaultGoal>install</defaultGoal>
+
+	<sourceDirectory>${basedir}/src/classes/share</sourceDirectory>
+    <resources>
+      <resource>
+        <directory>${project.basedir}/src/classes/share</directory>
+        <excludes>
+          <exclude>**/*.java</exclude>
+          <exclude>**/package.html</exclude>
+        </excludes>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.0</version>
+        <configuration>
+          <source>1.6</source>
+          <target>1.6</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
