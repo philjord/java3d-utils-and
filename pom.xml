@@ -51,13 +51,20 @@
 	    <dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>java3d-core-and</artifactId>
-			<version>${project.version}</version>
+			<version>${project.version}</version>	
+			<optional>true</optional> <!-- otherwise dependent projects will pull this in, but we don't want the transitive dependencies -->					
 		</dependency>	
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>java3d-utils</artifactId>
 			<version>${project.version}</version>
-		</dependency>		
+			<optional>true</optional> <!-- otherwise dependent project will pull this in, but we actually merge it into the output -->			
+		</dependency>	
+		<dependency>
+			<groupId>org.jogamp.joal</groupId>
+			<artifactId>joal-android</artifactId>
+			<version>${jogamp.version}</version>
+		</dependency>	
 	</dependencies>
 	
   <build>
@@ -81,6 +88,28 @@
           <source>1.6</source>
           <target>1.6</target>
         </configuration>
+      </plugin>
+      <!-- This project overrides a few of the classes in it's parent, but must publish the merged jar as an artifact -->      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.2.1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>shade</goal>
+            </goals>         
+            <configuration>
+		        <artifactSet>
+                	<includes>
+               			<include>${project.groupId}:java3d-utils-and:jar:</include>
+          				<include>${project.groupId}:java3d-utils:jar:</include>            	
+                	</includes>
+            	</artifactSet>   
+            	<createDependencyReducedPom>false</createDependencyReducedPom>                      
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
