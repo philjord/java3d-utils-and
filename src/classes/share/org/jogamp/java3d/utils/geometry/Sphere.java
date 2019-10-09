@@ -39,9 +39,9 @@
 
 package org.jogamp.java3d.utils.geometry;
 
-import org.jogamp.java3d.Appearance;
 import org.jogamp.java3d.Node;
 import org.jogamp.java3d.NodeComponent;
+import org.jogamp.java3d.ShaderAppearance;
 import org.jogamp.java3d.Shape3D;
 import org.jogamp.vecmath.Point3f;
 import org.jogamp.vecmath.TexCoord2f;
@@ -103,7 +103,7 @@ public class Sphere extends Primitive {
    *   @param ap Appearance
    */
 
-  public Sphere (float radius, Appearance ap) {
+  public Sphere (float radius, ShaderAppearance ap) {
     this(radius, GENERATE_NORMALS, MID_REZ_DIV, ap);
   }
 
@@ -114,7 +114,7 @@ public class Sphere extends Primitive {
    *   @param primflags
    *   @param ap appearance
    */
-  public Sphere(float radius, int primflags, Appearance ap) {
+  public Sphere(float radius, int primflags, ShaderAppearance ap) {
     this(radius, primflags, MID_REZ_DIV, ap);
   }
 
@@ -155,7 +155,7 @@ public class Sphere extends Primitive {
   /** Sets appearance of the Sphere.
    */
   @Override
-  public void setAppearance(Appearance ap) {
+  public void setAppearance(ShaderAppearance ap) {
 //     ((Shape3D)((Group)getChild(0)).getChild(BODY)).setAppearance(ap);
       ((Shape3D)getChild(BODY)).setAppearance(ap);
   }
@@ -171,9 +171,9 @@ public class Sphere extends Primitive {
      * @since Java 3D 1.2.1
      */
     @Override
-    public Appearance getAppearance(int partId) {
+    public ShaderAppearance getAppearance(int partId) {
 	if (partId != BODY) return null;
-	return getShape(partId).getAppearance();
+	return (ShaderAppearance)getShape(partId).getAppearance();
     }
 
 
@@ -186,7 +186,7 @@ public class Sphere extends Primitive {
    *   <p>
    *   If the appearance is null, the sphere defaults to a white appearance.
    */
-  public Sphere(float radius, int primflags, int divisions, Appearance ap) {
+  public Sphere(float radius, int primflags, int divisions, ShaderAppearance ap) {
     super();
 
     int sign;

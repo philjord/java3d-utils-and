@@ -41,10 +41,11 @@ package org.jogamp.java3d.utils.geometry;
 
 import java.util.Hashtable;
 
-import org.jogamp.java3d.Appearance;
 import org.jogamp.java3d.Group;
 import org.jogamp.java3d.Material;
+import org.jogamp.java3d.ShaderAppearance;
 import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.utils.shader.SimpleShaderAppearance;
 import org.jogamp.vecmath.Color3f;
 
 /**
@@ -191,8 +192,8 @@ public abstract class Primitive extends Group {
 
   /** Gets the appearance of the primitive (defaults to first subpart).
    */
-  public Appearance getAppearance(){
-    return getShape(0).getAppearance();
+  public ShaderAppearance getAppearance(){
+    return (ShaderAppearance)getShape(0).getAppearance();
   }
 
     /**
@@ -205,12 +206,12 @@ public abstract class Primitive extends Group {
      *
      * @since Java 3D 1.2.1
      */
-    public abstract Appearance getAppearance(int partId);
+    public abstract ShaderAppearance getAppearance(int partId);
 
   /** Sets the appearance of a subpart given a partid.
    */
 
-  public void setAppearance(int partid, Appearance ap)
+  public void setAppearance(int partid, ShaderAppearance ap)
   {
     getShape(partid).setAppearance(ap);
   }
@@ -218,7 +219,7 @@ public abstract class Primitive extends Group {
   /** Sets the main appearance of the primitive (all subparts) to
    *  same appearance.
    */
-  public abstract void setAppearance(Appearance ap);
+  public abstract void setAppearance(ShaderAppearance ap);
 
 
   /** Sets the main appearance of the primitive (all subparts) to
@@ -232,13 +233,13 @@ public abstract class Primitive extends Group {
     Color3f sColor  = new Color3f(1.0f, 1.0f, 1.0f);
 
     Material m = new Material(aColor, eColor, dColor, sColor, 100.0f);
-    Appearance a = new Appearance();
+    SimpleShaderAppearance a = new SimpleShaderAppearance();
     m.setLightingEnable(true);
     a.setMaterial(m);
     setAppearance(a);
   }
 
-  static Hashtable geomCache = new Hashtable();
+  static Hashtable<String, GeomBuffer> geomCache = new Hashtable<String, GeomBuffer>();
 
   String strfloat(float x)
   {

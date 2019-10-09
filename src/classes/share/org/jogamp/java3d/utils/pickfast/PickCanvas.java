@@ -79,8 +79,7 @@ import org.jogamp.vecmath.Vector3d;
  * by the distance from the ViewPlatform to the intersection point.
  * @see PickTool
  */
-public class PickCanvas extends PickTool
-{
+public class PickCanvas extends PickTool {
 
 	/* OPEN ISSUES:
 	   -- Should restrict the pick shape to the front/back clip plane
@@ -96,16 +95,14 @@ public class PickCanvas extends PickTool
 
 	/** Constructor with Canvas3D for mouse events and BranchGroup to be picked.
 	 */
-	public PickCanvas(Canvas3D c, BranchGroup b)
-	{
+	public PickCanvas(Canvas3D c, BranchGroup b) {
 		super(b);
 		canvas = c;
 	}
 
 	/** Constructor with Canvas3D for mouse events and Locale to be picked.
 	 */
-	public PickCanvas(Canvas3D c, Locale l)
-	{
+	public PickCanvas(Canvas3D c, Locale l) {
 		super(l);
 		canvas = c;
 	}
@@ -113,8 +110,7 @@ public class PickCanvas extends PickTool
 	/** Inquire the canvas to be used for picking operations.
 	@return the canvas.
 	 */
-	public Canvas3D getCanvas()
-	{
+	public Canvas3D getCanvas() {
 		return canvas;
 	}
 
@@ -124,16 +120,13 @@ public class PickCanvas extends PickTool
 	 * @param t The tolerance
 	 * @exception IllegalArgumentException if the tolerance is less than 0.
 	 */
-	public void setTolerance(float t)
-	{
-		if (t < 0.0f)
-		{
+	public void setTolerance(float t) {
+		if (t < 0.0f) {
 			throw new IllegalArgumentException();
 		}
 		tolerance = t;
 
-		if ((pickShape != null) && (!userDefineShape))
-		{
+		if ((pickShape != null) && (!userDefineShape)) {
 			// reset pickShape
 			pickShape = null;
 			setShapeLocation(save_xpos, save_ypos);
@@ -142,8 +135,7 @@ public class PickCanvas extends PickTool
 
 	/** Get the pick tolerance.
 	 */
-	public float getTolerance()
-	{
+	public float getTolerance() {
 		return tolerance;
 	}
 
@@ -152,8 +144,7 @@ public class PickCanvas extends PickTool
 	  @param mevent The MouseEvent for the picking point
 	*/
 
-	public void setShapeLocation(com.jogamp.newt.event.MouseEvent mevent)
-	{
+	public void setShapeLocation(com.jogamp.newt.event.MouseEvent mevent) {
 		setShapeLocation(mevent.getX(), mevent.getY());
 	}
 
@@ -162,8 +153,7 @@ public class PickCanvas extends PickTool
 	@param xpos the X position of the picking point
 	@param ypos the Y position of the picking point
 	*/
-	public void setShapeLocation(int xpos, int ypos)
-	{
+	public void setShapeLocation(int xpos, int ypos) {
 		Transform3D motion = new Transform3D();
 		Point3d eyePosn = new Point3d();
 		Point3d mousePosn = new Point3d();
@@ -177,8 +167,9 @@ public class PickCanvas extends PickTool
 		canvas.getCenterEyeInImagePlate(eyePosn);
 		canvas.getPixelLocationInImagePlate(xpos, ypos, mousePosn);
 
-		if ((canvas.getView() != null) && (canvas.getView().getProjectionPolicy() == View.PARALLEL_PROJECTION))
-		{
+		if ((canvas.getView() != null) &&
+			(canvas.getView().getProjectionPolicy() ==
+				View.PARALLEL_PROJECTION)) 	{
 			// Correct for the parallel projection: keep the eye's z
 			// coordinate, but make x,y be the same as the mouse, this
 			// simulates the eye being at "infinity"
@@ -219,48 +210,39 @@ public class PickCanvas extends PickTool
 			 " mouseVec " + mouseVec);
 			 */
 
-		if (tolerance == 0.0)
-		{
-			if ((pickShape != null) && (pickShape instanceof PickRay))
-			{
+		if (tolerance == 0.0) {
+			if ((pickShape != null) && (pickShape instanceof PickRay)) {
 				((PickRay) pickShape).set(eyePosn, mouseVec);
-			}
-			else
-			{
+			} else {
 				pickShape = (PickShape) new PickRay(eyePosn, mouseVec);
 			}
 			//      pickShape = (PickShape) new PickConeRay (eyePosn,
 			//		mouseVec,1.0*Math.PI/180.0);
-		}
-		else
-		{
-			if (isParallel)
-			{
+		} else {
+			if (isParallel) {
 				// Parallel projection, use a PickCylinderRay
 				distancePtToDelta *= motion.getScale();
-				if ((pickShape != null) && (pickShape instanceof PickCylinderRay))
-				{
-					((PickCylinderRay) pickShape).set(eyePosn, mouseVec, distancePtToDelta);
+				if ((pickShape != null) &&
+					(pickShape instanceof PickCylinderRay)) {
+					((PickCylinderRay) pickShape).set(eyePosn, mouseVec,
+						distancePtToDelta);
+				} else {
+					pickShape = (PickShape) new PickCylinderRay(eyePosn,
+						mouseVec, distancePtToDelta);
 				}
-				else
-				{
-					pickShape = (PickShape) new PickCylinderRay(eyePosn, mouseVec, distancePtToDelta);
-				}
-			}
-			else
-			{
+			} else {
 				// Perspective projection, use a PickConeRay
 
 				// Calculate spread angle
 				spreadAngle = Math.atan(distancePtToDelta / distanceEyeToCanvas);
 
-				if ((pickShape != null) && (pickShape instanceof PickConeRay))
-				{
-					((PickConeRay) pickShape).set(eyePosn, mouseVec, spreadAngle);
-				}
-				else
-				{
-					pickShape = (PickShape) new PickConeRay(eyePosn, mouseVec, spreadAngle);
+				if ((pickShape != null) &&
+					(pickShape instanceof PickConeRay)) {
+					((PickConeRay) pickShape).set(eyePosn, mouseVec,
+						spreadAngle);
+				} else {
+					pickShape = (PickShape) new PickConeRay(eyePosn, mouseVec,
+						spreadAngle);
 				}
 			}
 		}

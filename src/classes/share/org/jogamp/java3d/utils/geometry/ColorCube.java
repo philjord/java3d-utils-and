@@ -41,6 +41,8 @@ package org.jogamp.java3d.utils.geometry;
 
 import org.jogamp.java3d.QuadArray;
 import org.jogamp.java3d.Shape3D;
+import org.jogamp.java3d.TriangleArray;
+import org.jogamp.java3d.utils.shader.SimpleShaderAppearance;
 
 /**
  * Simple color-per-vertex cube with a different color for each face
@@ -51,30 +53,42 @@ public class ColorCube extends Shape3D {
 	 1.0f, -1.0f,  1.0f,
 	 1.0f,  1.0f,  1.0f,
 	-1.0f,  1.0f,  1.0f,
+	 1.0f, -1.0f,  1.0f,
+	-1.0f,  1.0f,  1.0f,
 	-1.0f, -1.0f,  1.0f,
     // back face
 	-1.0f, -1.0f, -1.0f,
 	-1.0f,  1.0f, -1.0f,
+	 1.0f,  1.0f, -1.0f,
+	-1.0f, -1.0f, -1.0f,
 	 1.0f,  1.0f, -1.0f,
 	 1.0f, -1.0f, -1.0f,
     // right face
 	 1.0f, -1.0f, -1.0f,
 	 1.0f,  1.0f, -1.0f,
 	 1.0f,  1.0f,  1.0f,
+	 1.0f, -1.0f, -1.0f,
+	 1.0f,  1.0f,  1.0f,
 	 1.0f, -1.0f,  1.0f,
     // left face
 	-1.0f, -1.0f,  1.0f,
 	-1.0f,  1.0f,  1.0f,
+	-1.0f,  1.0f, -1.0f,
+	-1.0f, -1.0f,  1.0f,
 	-1.0f,  1.0f, -1.0f,
 	-1.0f, -1.0f, -1.0f,
     // top face
 	 1.0f,  1.0f,  1.0f,
 	 1.0f,  1.0f, -1.0f,
 	-1.0f,  1.0f, -1.0f,
+	 1.0f,  1.0f,  1.0f,
+	-1.0f,  1.0f, -1.0f,
 	-1.0f,  1.0f,  1.0f,
     // bottom face
 	-1.0f, -1.0f,  1.0f,
 	-1.0f, -1.0f, -1.0f,
+	 1.0f, -1.0f, -1.0f,
+	-1.0f, -1.0f,  1.0f,
 	 1.0f, -1.0f, -1.0f,
 	 1.0f, -1.0f,  1.0f,
     };
@@ -85,7 +99,11 @@ public class ColorCube extends Shape3D {
 	1.0f, 0.0f, 0.0f,
 	1.0f, 0.0f, 0.0f,
 	1.0f, 0.0f, 0.0f,
+	1.0f, 0.0f, 0.0f,
+	1.0f, 0.0f, 0.0f,
     // back face (green)
+	0.0f, 1.0f, 0.0f,
+	0.0f, 1.0f, 0.0f,
 	0.0f, 1.0f, 0.0f,
 	0.0f, 1.0f, 0.0f,
 	0.0f, 1.0f, 0.0f,
@@ -95,7 +113,11 @@ public class ColorCube extends Shape3D {
 	0.0f, 0.0f, 1.0f,
 	0.0f, 0.0f, 1.0f,
 	0.0f, 0.0f, 1.0f,
+	0.0f, 0.0f, 1.0f,
+	0.0f, 0.0f, 1.0f,
     // left face (yellow)
+	1.0f, 1.0f, 0.0f,
+	1.0f, 1.0f, 0.0f,
 	1.0f, 1.0f, 0.0f,
 	1.0f, 1.0f, 0.0f,
 	1.0f, 1.0f, 0.0f,
@@ -105,7 +127,11 @@ public class ColorCube extends Shape3D {
 	1.0f, 0.0f, 1.0f,
 	1.0f, 0.0f, 1.0f,
 	1.0f, 0.0f, 1.0f,
+	1.0f, 0.0f, 1.0f,
+	1.0f, 0.0f, 1.0f,
     // bottom face (cyan)
+	0.0f, 1.0f, 1.0f,
+	0.0f, 1.0f, 1.0f,
 	0.0f, 1.0f, 1.0f,
 	0.0f, 1.0f, 1.0f,
 	0.0f, 1.0f, 1.0f,
@@ -119,14 +145,14 @@ public class ColorCube extends Shape3D {
      * color cube are [-1,-1,-1] and [1,1,1].
      */
     public ColorCube() {
-	QuadArray cube = new QuadArray(24, QuadArray.COORDINATES |
-		QuadArray.COLOR_3);
+	TriangleArray cube = new TriangleArray(36, TriangleArray.COORDINATES |
+			TriangleArray.COLOR_3);
 
 	cube.setCoordinates(0, verts);
 	cube.setColors(0, colors);
 
 	this.setGeometry(cube);
-
+	this.setAppearance(new SimpleShaderAppearance());
 	scale = 1.0;
     }
 
@@ -137,8 +163,8 @@ public class ColorCube extends Shape3D {
      * @param scale the scale of the cube
      */
     public ColorCube(double scale) {
-	QuadArray cube = new QuadArray(24, QuadArray.COORDINATES |
-		QuadArray.COLOR_3);
+    	TriangleArray cube = new TriangleArray(36, TriangleArray.COORDINATES |
+    			TriangleArray.COLOR_3);
 
 	float scaledVerts[] = new float[verts.length];
 	for (int i = 0; i < verts.length; i++)
@@ -148,7 +174,7 @@ public class ColorCube extends Shape3D {
 	cube.setColors(0, colors);
 
 	this.setGeometry(cube);
-
+	this.setAppearance(new SimpleShaderAppearance());
 	this.scale = scale;
     }
 

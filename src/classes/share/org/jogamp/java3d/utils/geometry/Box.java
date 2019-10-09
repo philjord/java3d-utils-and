@@ -39,9 +39,9 @@
 
 package org.jogamp.java3d.utils.geometry;
 
-import org.jogamp.java3d.Appearance;
 import org.jogamp.java3d.Node;
 import org.jogamp.java3d.NodeComponent;
+import org.jogamp.java3d.ShaderAppearance;
 import org.jogamp.java3d.Shape3D;
 import org.jogamp.vecmath.Vector3f;
 
@@ -139,7 +139,7 @@ public class Box extends Primitive {
    * @param ap Appearance
    */
 
-  public Box(float xdim, float ydim, float zdim, Appearance ap)
+  public Box(float xdim, float ydim, float zdim, ShaderAppearance ap)
   {
     this(xdim, ydim, zdim, GENERATE_NORMALS, ap);
   }
@@ -155,7 +155,7 @@ public class Box extends Primitive {
    */
 
   public Box(float xdim, float ydim, float zdim, int primflags,
-	     Appearance ap, int numTexUnit) {
+	     ShaderAppearance ap, int numTexUnit) {
     int i;
     double sign;
 
@@ -255,7 +255,7 @@ public class Box extends Primitive {
   }
 
   public Box(float xdim, float ydim, float zdim, int primflags,
-	     Appearance ap) {
+	     ShaderAppearance ap) {
     this(xdim, ydim, zdim, primflags, ap, 1);
   }
 
@@ -284,7 +284,7 @@ public class Box extends Primitive {
    */
 
   @Override
-  public void setAppearance(Appearance ap){
+  public void setAppearance(ShaderAppearance ap){
 //     ((Shape3D)((Group)getChild(0)).getChild(TOP)).setAppearance(ap);
 //     ((Shape3D)((Group)getChild(0)).getChild(LEFT)).setAppearance(ap);
 //     ((Shape3D)((Group)getChild(0)).getChild(RIGHT)).setAppearance(ap);
@@ -310,9 +310,9 @@ public class Box extends Primitive {
      * @since Java 3D 1.2.1
      */
     @Override
-    public Appearance getAppearance(int partId) {
+    public ShaderAppearance getAppearance(int partId) {
 	if (partId > BOTTOM || partId < FRONT) return null;
-	return getShape(partId).getAppearance();
+	return (ShaderAppearance)getShape(partId).getAppearance();
     }
 
 

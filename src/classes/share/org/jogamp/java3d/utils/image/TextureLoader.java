@@ -58,8 +58,7 @@ import javaawt.image.BufferedImage;
  * Default format is RGBA. Other legal formats are: RGBA, RGBA4, RGB5_A1,
  * RGB, RGB4, RGB5, R3_G3_B2, LUM8_ALPHA8, LUM4_ALPHA4, LUMINANCE and ALPHA
  */
-public class TextureLoader extends Object
-{
+public class TextureLoader extends Object {
 
 	/*
 	 * Private declaration for BufferedImage allocation
@@ -76,20 +75,24 @@ public class TextureLoader extends Object
 	 * Contructs a TextureLoader object using the specified BufferedImage,
 	 * format and option flags
 	 * @param bImage The BufferedImage used for loading the texture
-	 * @param format The format specifies which channels to use
-	 * @param flags The flags specify what options to use in texture loading (generate mipmap etc)
 	 *
 	 * @exception NullPointerException if bImage is null
 	 */
-	public TextureLoader(BufferedImage bImage)
-	{
+	public TextureLoader(BufferedImage bImage) {
 		//TODO: surely y up is much better less copying involved? but images  are definately upside down		
 		this(bImage, false);
 	}
-	public TextureLoader(BufferedImage bImage, boolean yUp)
-	{
-		if (bImage == null)
-		{
+	
+	/**
+	 * Contructs a TextureLoader object using the specified BufferedImage,
+	 * format and option flags
+	 * @param bImage The BufferedImage used for loading the texture
+	 * @param yUp Is the image y up (true results in more performance)	 
+	 *
+	 * @exception NullPointerException if bImage is null
+	 */
+	public TextureLoader(BufferedImage bImage, boolean yUp) {
+		if (bImage == null) {
 			throw new NullPointerException();
 		}
 
@@ -104,12 +107,10 @@ public class TextureLoader extends Object
 	 *
 	 * @return The associated Texture object
 	 */
-	public Texture getTexture()
-	{
+	public Texture getTexture() {
 		ImageComponent2D[] scaledImageComponents = null;
 		BufferedImage[] scaledBufferedImages = null;
-		if (tex == null)
-		{
+		if (tex == null) {
 
 			int width;
 			int height;
@@ -138,10 +139,8 @@ public class TextureLoader extends Object
 	* Choose the correct ImageComponent and Texture format for the given
 	* image
 	*/
-	private void chooseFormat(BufferedImage image)
-	{
-		switch (image.getType())
-		{
+	private void chooseFormat(BufferedImage image) {
+		switch (image.getType()) {
 		case BufferedImage.TYPE_4BYTE_ABGR:
 		case BufferedImage.TYPE_INT_ARGB:
 			imageComponentFormat = ImageComponent.FORMAT_RGBA;

@@ -39,9 +39,9 @@
 
 package org.jogamp.java3d.utils.geometry;
 
-import org.jogamp.java3d.Appearance;
 import org.jogamp.java3d.Node;
 import org.jogamp.java3d.NodeComponent;
+import org.jogamp.java3d.ShaderAppearance;
 import org.jogamp.java3d.Shape3D;
 
 /**
@@ -116,7 +116,7 @@ public class Cone extends Primitive {
    *
    * @since Java 3D 1.2.1
    */
-  public Cone (float radius, float height, Appearance ap)
+  public Cone (float radius, float height, ShaderAppearance ap)
   {
     this(radius, height, GENERATE_NORMALS, MID_REZ_DIV_X, MID_REZ_DIV_Y, ap);
   }
@@ -130,7 +130,7 @@ public class Cone extends Primitive {
    *   @param primflags Primitive flags
    *   @param ap Appearance
    */
-  public Cone (float radius, float height, int primflags, Appearance ap)
+  public Cone (float radius, float height, int primflags, ShaderAppearance ap)
   {
     this(radius, height, primflags, MID_REZ_DIV_X, MID_REZ_DIV_Y, ap);
   }
@@ -157,7 +157,7 @@ public class Cone extends Primitive {
    *  individual shape and call shape.setAppearance(ap).
    */
   @Override
-  public void setAppearance(Appearance ap){
+  public void setAppearance(ShaderAppearance ap){
       ((Shape3D)getChild(BODY)).setAppearance(ap);
       ((Shape3D)getChild(CAP)).setAppearance(ap);
   }
@@ -173,9 +173,9 @@ public class Cone extends Primitive {
      * @since Java 3D 1.2.1
      */
     @Override
-    public Appearance getAppearance(int partId) {
+    public ShaderAppearance getAppearance(int partId) {
 	if (partId > CAP || partId < BODY) return null;
-	return getShape(partId).getAppearance();
+	return (ShaderAppearance)getShape(partId).getAppearance();
     }
 
 
@@ -197,7 +197,7 @@ public class Cone extends Primitive {
 
   public Cone(float radius, float height, int primflags,
 	      int xdivision, int ydivision,
-	      Appearance ap)
+	      ShaderAppearance ap)
   {
     super();
 

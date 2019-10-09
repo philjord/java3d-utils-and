@@ -39,9 +39,9 @@
 
 package org.jogamp.java3d.utils.geometry;
 
-import org.jogamp.java3d.Appearance;
 import org.jogamp.java3d.Node;
 import org.jogamp.java3d.NodeComponent;
+import org.jogamp.java3d.ShaderAppearance;
 import org.jogamp.java3d.Shape3D;
 
 /**
@@ -123,7 +123,7 @@ public class Cylinder extends Primitive{
      *   @param height Height
      *   @param ap Appearance
      */
-    public Cylinder (float radius, float height, Appearance ap)
+    public Cylinder (float radius, float height, ShaderAppearance ap)
     {
 	this(radius, height, GENERATE_NORMALS, MID_REZ_DIV_X, MID_REZ_DIV_Y,
 	    ap);
@@ -138,7 +138,7 @@ public class Cylinder extends Primitive{
      *   @param primflags Flags
      *   @param ap Appearance
      */
-    public Cylinder (float radius, float height, int primflags, Appearance ap)
+    public Cylinder (float radius, float height, int primflags, ShaderAppearance ap)
     {
 	this(radius, height, primflags, MID_REZ_DIV_X, MID_REZ_DIV_Y, ap);
     }
@@ -163,7 +163,7 @@ public class Cylinder extends Primitive{
      *  individual shape and call shape.setAppearance(ap).
      */
     @Override
-    public void setAppearance(Appearance ap) {
+    public void setAppearance(ShaderAppearance ap) {
 	((Shape3D)getChild(BODY)).setAppearance(ap);
 	((Shape3D)getChild(TOP)).setAppearance(ap);
 	((Shape3D)getChild(BOTTOM)).setAppearance(ap);
@@ -180,9 +180,9 @@ public class Cylinder extends Primitive{
      * @since Java 3D 1.2.1
      */
     @Override
-    public Appearance getAppearance(int partId) {
+    public ShaderAppearance getAppearance(int partId) {
 	if (partId > BOTTOM || partId < BODY) return null;
-	return getShape(partId).getAppearance();
+	return (ShaderAppearance)getShape(partId).getAppearance();
     }
 
 
@@ -200,7 +200,7 @@ public class Cylinder extends Primitive{
      *   @param ap Appearance
      */
     public Cylinder(float radius, float height, int primflags,
-		    int xdivision, int ydivision, Appearance ap) {
+		    int xdivision, int ydivision, ShaderAppearance ap) {
       super();
 
       this.radius = radius;

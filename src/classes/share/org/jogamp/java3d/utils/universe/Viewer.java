@@ -95,8 +95,7 @@ import org.jogamp.java3d.audioengines.AudioEngine3DL2;
  * @see View
  * @see ViewerAvatar
  */
-public class Viewer
-{
+public class Viewer {
 	private static final boolean debug = false;
 	private static PhysicalBody physicalBody = null;
 	private static PhysicalEnvironment physicalEnvironment = null;
@@ -115,10 +114,10 @@ public class Viewer
 	 *  Canvas3D object is created
 	 * @since Java3D 1.1
 	 */
-	public Viewer(Canvas3D userCanvas)
-	{
+	public Viewer(Canvas3D userCanvas) {
 		// Call main constructor.
-		this(userCanvas == null ? null : new Canvas3D[] { userCanvas }, null, null, true);
+		this(userCanvas == null ? null : new Canvas3D[] { userCanvas },
+			null, null, true);
 	}
 
 	/**
@@ -131,8 +130,7 @@ public class Viewer
 	 *  Canvas3D object is created
 	 * @since Java3D 1.3
 	 */
-	public Viewer(Canvas3D[] userCanvases)
-	{
+	public Viewer(Canvas3D[] userCanvases) {
 		this(userCanvases, null, null, true);
 	}
 
@@ -150,37 +148,27 @@ public class Viewer
 	 * @param setVisible determines if the Frames should be set to visible once created
 	 * @since Java3D 1.3
 	 */
-	public Viewer(Canvas3D[] userCanvases, PhysicalBody userBody, PhysicalEnvironment userEnvironment, boolean setVisible)
-	{
+	public Viewer(Canvas3D[] userCanvases, PhysicalBody userBody,
+		PhysicalEnvironment userEnvironment, boolean setVisible) {
 
-		if (userBody == null)
-		{
+		if (userBody == null) {
 			physicalBody = new PhysicalBody();
-		}
-		else
-		{
+		} else {
 			physicalBody = userBody;
 		}
 
-		if (userEnvironment == null)
-		{
+		if (userEnvironment == null) {
 			physicalEnvironment = new PhysicalEnvironment();
-		}
-		else
-		{
+		} else {
 			physicalEnvironment = userEnvironment;
 		}
 
 		// Create Canvas3D object if none was passed in.
-		if (userCanvases == null)
-		{
+		if (userCanvases == null) {
 			throw new UnsupportedOperationException("Canvas3d cannt be null");
-		}
-		else
-		{
+		} else {
 			canvases = new Canvas3D[userCanvases.length];
-			for (int i = 0; i < userCanvases.length; i++)
-			{
+			for (int i = 0; i < userCanvases.length; i++) {
 				canvases[i] = userCanvases[i];
 				//canvases[i].setFocusable(true);
 			}
@@ -193,8 +181,7 @@ public class Viewer
 		// Fix to issue 424
 		view.setUserHeadToVworldEnable(true);
 
-		for (int i = 0; i < canvases.length; i++)
-		{
+		for (int i = 0; i < canvases.length; i++) {
 			view.addCanvas3D(canvases[i]);
 		}
 		view.setPhysicalBody(physicalBody);
@@ -206,8 +193,7 @@ public class Viewer
 	 *
 	 * @return The View object of this Viewer.
 	 */
-	public View getView()
-	{
+	public View getView() {
 		return view;
 	}
 
@@ -218,17 +204,14 @@ public class Viewer
 	 *  Viewer object.  Use null to unset the current value and
 	 *  not assign assign a new ViewingPlatform object.
 	 */
-	public void setViewingPlatform(ViewingPlatform platform)
-	{
-		if (viewingPlatform != null)
-		{
+	public void setViewingPlatform(ViewingPlatform platform) {
+		if (viewingPlatform != null) {
 			viewingPlatform.removeViewer(this);
 		}
 
 		viewingPlatform = platform;
 
-		if (platform != null)
-		{
+		if (platform != null) {
 			view.attachViewPlatform(platform.getViewPlatform());
 			platform.addViewer(this);
 
@@ -245,8 +228,7 @@ public class Viewer
 	 * @return The ViewingPlatform object used by this
 	 *  Viewer object.
 	 */
-	public ViewingPlatform getViewingPlatform()
-	{
+	public ViewingPlatform getViewingPlatform() {
 		return viewingPlatform;
 	}
 
@@ -259,8 +241,7 @@ public class Viewer
 	 *  Passing in null will cause any geometry associated with the Viewer
 	 *  to be removed from the scen graph.
 	 */
-	public void setAvatar(ViewerAvatar avatar)
-	{
+	public void setAvatar(ViewerAvatar avatar) {
 		// Just return if trying to set the same ViewerAvatar object.
 		if (this.avatar == avatar)
 			return;
@@ -278,8 +259,7 @@ public class Viewer
 	 * @return The root of the scene graph that is used to represent the
 	 *  viewer's avatar.
 	 */
-	public ViewerAvatar getAvatar()
-	{
+	public ViewerAvatar getAvatar() {
 		return avatar;
 	}
 
@@ -288,8 +268,7 @@ public class Viewer
 	 *
 	 * @return A reference to the PhysicalBody object.
 	 */
-	public PhysicalBody getPhysicalBody()
-	{
+	public PhysicalBody getPhysicalBody() {
 		return physicalBody;
 	}
 
@@ -299,8 +278,7 @@ public class Viewer
 	 *
 	 * @return A reference to the PhysicalEnvironment object.
 	 */
-	public PhysicalEnvironment getPhysicalEnvironment()
-	{
+	public PhysicalEnvironment getPhysicalEnvironment() {
 		return physicalEnvironment;
 	}
 
@@ -311,8 +289,7 @@ public class Viewer
 	 *  Viewer object
 	 * @since Java3D 1.3
 	 */
-	public Canvas3D getCanvas3D()
-	{
+	public Canvas3D getCanvas3D() {
 		return canvases[0];
 	}
 
@@ -326,10 +303,8 @@ public class Viewer
 	 *  Viewer object
 	 * @since Java3D 1.3
 	 */
-	public Canvas3D getCanvas3D(int canvasNum)
-	{
-		if (canvasNum > canvases.length)
-		{
+	public Canvas3D getCanvas3D(int canvasNum) {
+		if (canvasNum > canvases.length) {
 			return null;
 		}
 		return canvases[canvasNum];
@@ -342,11 +317,9 @@ public class Viewer
 	 *  this Viewer object
 	 * @since Java3D 1.3
 	 */
-	public Canvas3D[] getCanvas3Ds()
-	{
+	public Canvas3D[] getCanvas3Ds() {
 		Canvas3D[] ret = new Canvas3D[canvases.length];
-		for (int i = 0; i < canvases.length; i++)
-		{
+		for (int i = 0; i < canvases.length; i++) {
 			ret[i] = canvases[i];
 		}
 		return ret;
@@ -358,54 +331,46 @@ public class Viewer
 	 *
 	 * @return reference to created AudioDevice, or null if error occurs.
 	 */
-	public AudioDevice createAudioDevice()
-	{
-		if (physicalEnvironment == null)
-		{
+	public AudioDevice createAudioDevice() {
+		if (physicalEnvironment == null) {
 			System.err.println("Java 3D: createAudioDevice: physicalEnvironment is null");
 			return null;
 		}
 
-		try
-		{
-			String audioDeviceClassName = (String) java.security.AccessController.doPrivileged(new java.security.PrivilegedAction() {
+		try {
+			String audioDeviceClassName =
+				(String) java.security.AccessController.doPrivileged(
+					new java.security.PrivilegedAction() {
 				@Override
-				public Object run()
-				{
+				public Object run() {
 					return System.getProperty("j3d.audiodevice");
 				}
 			});
 
-			if (audioDeviceClassName == null)
-			{
+			if (audioDeviceClassName == null) {
 				throw new UnsupportedOperationException("No AudioDevice specified");
 			}
 
 			// Issue 341: try the current class loader first before trying the
 			// system class loader
 			Class audioDeviceClass = null;
-			try
-			{
+			try {
 				audioDeviceClass = Class.forName(audioDeviceClassName);
-			}
-			catch (ClassNotFoundException ex)
-			{
+			} catch (ClassNotFoundException ex) {
 				// Ignore excpetion and try system class loader
 			}
 
-			if (audioDeviceClass == null)
-			{
-				ClassLoader audioDeviceClassLoader = (ClassLoader) java.security.AccessController
-						.doPrivileged(new java.security.PrivilegedAction() {
+			if (audioDeviceClass == null) {
+				ClassLoader audioDeviceClassLoader =
+					(ClassLoader) java.security.AccessController.doPrivileged(
+						new java.security.PrivilegedAction() {
 							@Override
-							public Object run()
-							{
+							public Object run() {
 								return ClassLoader.getSystemClassLoader();
 							}
 						});
 
-				if (audioDeviceClassLoader == null)
-				{
+				if (audioDeviceClassLoader == null) {
 					throw new IllegalStateException("System ClassLoader is null");
 				}
 
@@ -413,14 +378,15 @@ public class Viewer
 			}
 
 			Class physEnvClass = PhysicalEnvironment.class;
-			Constructor audioDeviceConstructor = audioDeviceClass.getConstructor(new Class[] { physEnvClass });
+			Constructor audioDeviceConstructor = 
+				audioDeviceClass.getConstructor(new Class[] { physEnvClass });
 			PhysicalEnvironment[] args = new PhysicalEnvironment[] { physicalEnvironment };
-			AudioEngine3DL2 mixer = (AudioEngine3DL2) audioDeviceConstructor.newInstance((Object[]) args);
+			AudioEngine3DL2 mixer = 
+				(AudioEngine3DL2) audioDeviceConstructor.newInstance((Object[]) args);
 			mixer.initialize();
 			return mixer;
 		}
-		catch (Throwable e)
-		{
+		catch (Throwable e) {
 			e.printStackTrace();
 			physicalEnvironment.setAudioDevice(null);
 			System.err.println("Java 3D: audio is disabled");
@@ -434,8 +400,7 @@ public class Viewer
 	 * @return the Universe to which this Viewer is attached
 	 * @since Java 3D 1.3
 	 */
-	public SimpleUniverse getUniverse()
-	{
+	public SimpleUniverse getUniverse() {
 		return getViewingPlatform().getUniverse();
 	}
 
