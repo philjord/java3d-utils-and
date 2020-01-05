@@ -76,8 +76,7 @@ import org.jogamp.vecmath.Vector4f;
  * @author phil
  *
  */
-public class SimpleShaderAppearance extends ShaderAppearance
-{
+public class SimpleShaderAppearance extends ShaderAppearance {
 	private static final boolean UNROLL = false;// can't set true as Vivante won't link!
 
 	// some PowerVR gpu's didn't like lights, but solved now, possibly a varying issue anyway
@@ -138,8 +137,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	// so 1  = 9!
 	// I've seen an 8! varying vec4 on a old android
 
-	public static void setVersionES100()
-	{
+	public static void setVersionES100() {
 		versionString = "#version 100\n";
 		outString = "varying";
 		inString = "varying";
@@ -154,8 +152,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		fragmentShaderSources.clear();
 	}
 
-	public static void setVersionES300()
-	{
+	public static void setVersionES300() {
 		versionString = "#version 300 es\n";
 		outString = "out";
 		inString = "in";
@@ -170,8 +167,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		fragmentShaderSources.clear();
 	}
 
-	public static void setVersion120()
-	{
+	public static void setVersion120() {
 		versionString = "#version 120\n";
 		outString = "varying";
 		inString = "varying";
@@ -180,8 +176,6 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		vertexAttributeInString = "attribute";
 		texture2D = "texture2D";
 		constMaxLightsStr = "	const int maxLights = 8;\n";//gl_MaxVaryingVectors does not exist
-
-		//PUSH_MUL_TO_SHADER = false;
 
 		shaderPrograms.clear();
 		vertexShaderSources.clear();
@@ -267,8 +261,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	/**
 	 * This will define the shader code based on the attributes set
 	 */
-	public SimpleShaderAppearance()
-	{
+	public SimpleShaderAppearance() {
 		buildBasedOnAttributes = true;
 		rebuildShaders();
 	}
@@ -277,13 +270,11 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	 * Lines with a single color no texture, ignores vertex attribute of color
 	 * @param color
 	 */
-	public SimpleShaderAppearance(Color3f color)
-	{
+	public SimpleShaderAppearance(Color3f color) {
 		this(color, false, false);
 	}
 
-	public SimpleShaderAppearance(boolean lit, boolean hasTexture)
-	{
+	public SimpleShaderAppearance(boolean lit, boolean hasTexture) {
 		this(null, lit, hasTexture);
 	}
 
@@ -291,20 +282,13 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	 * otherwise simple poly appearance
 	 * @param color
 	 */
-	private SimpleShaderAppearance(Color3f color, boolean lit, boolean hasTexture)
-	{
-		if (lit || hasTexture)
-		{
-			boolean hasTextureCoordGen = false;
-			boolean texCoordGenModeObjLinear = false;
-			boolean hasTextureAttributeTransform = false;
-			build(hasTexture, lit, hasTextureCoordGen, texCoordGenModeObjLinear, hasTextureAttributeTransform);
-		}
-		else
-		{
-			if (color != null)
-			{
-				PolygonAttributes polyAtt = new PolygonAttributes(PolygonAttributes.POLYGON_LINE, PolygonAttributes.CULL_NONE, 0.0f);
+	private SimpleShaderAppearance(Color3f color, boolean lit, boolean hasTexture) {
+		if (lit || hasTexture) {
+			build(hasTexture, lit, false, false);
+		} else {
+			if (color != null) {
+				PolygonAttributes polyAtt = new PolygonAttributes(PolygonAttributes.POLYGON_LINE,
+						PolygonAttributes.CULL_NONE, 0.0f);
 				polyAtt.setPolygonOffset(0.1f);
 				setPolygonAttributes(polyAtt);
 				LineAttributes lineAtt = new LineAttributes(1, LineAttributes.PATTERN_SOLID, false);
@@ -320,12 +304,10 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				Material mat = new Material();
 				setMaterial(mat);
 
-				if (colorLineShaderProgram == null)
-				{
+				if (colorLineShaderProgram == null) {
 					colorLineShaderProgram = new GLSLShaderProgram() {
 						@Override
-						public String toString()
-						{
+						public String toString() {
 							return "SimpleShaderAppearance colorLineShaderProgram";
 						}
 					};
@@ -364,16 +346,12 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				vertexShaderSource = vertexShaderSources.get(colorLineShaderProgram);
 				fragmentShaderSource = fragmentShaderSources.get(colorLineShaderProgram);
 
-			}
-			else
-			{
+			} else {
 
-				if (flatShaderProgram == null)
-				{
+				if (flatShaderProgram == null) {
 					flatShaderProgram = new GLSLShaderProgram() {
 						@Override
-						public String toString()
-						{
+						public String toString() {
 							return "SimpleShaderAppearance flatShaderProgram";
 						}
 					};
@@ -421,38 +399,32 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 	}
 
-	public String getVertexShaderSource()
-	{
+	public String getVertexShaderSource() {
 		return vertexShaderSource;
 	}
 
-	public String getFragmentShaderSource()
-	{
+	public String getFragmentShaderSource() {
 		return fragmentShaderSource;
 	}
 
-	private static Shader[] makeShaders(String vertexProgram, String fragmentProgram)
-	{
+	private static Shader[] makeShaders(String vertexProgram, String fragmentProgram) {
 		Shader[] shaders = new Shader[2];
 		shaders[0] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_VERTEX, vertexProgram) {
 			@Override
-			public String toString()
-			{
+			public String toString() {
 				return "vertexProgram";
 			}
 		};
 		shaders[1] = new SourceCodeShader(Shader.SHADING_LANGUAGE_GLSL, Shader.SHADER_TYPE_FRAGMENT, fragmentProgram) {
 			@Override
-			public String toString()
-			{
+			public String toString() {
 				return "fragmentProgram";
 			}
 		};
 		return shaders;
 	}
 
-	public void setUpdatableCapabilities()
-	{
+	public void setUpdatableCapabilities() {
 		if(!this.getCapability(ALLOW_MATERIAL_READ))
 			this.setCapability(ALLOW_MATERIAL_READ);
 		if(!this.getCapability(ALLOW_TEXTURE_UNIT_STATE_READ))
@@ -474,10 +446,8 @@ public class SimpleShaderAppearance extends ShaderAppearance
 			this.setCapability(ALLOW_SHADER_ATTRIBUTE_SET_WRITE);
 	}
 
-	public void rebuildShaders()
-	{
-		if (buildBasedOnAttributes)
-		{
+	public void rebuildShaders() {
+		if (buildBasedOnAttributes) {
 			// we only rebuild if we are not yet live or the right capabilities have been set
 			if (
 			// first check is that the appearance is not live/compiled or if it is the various parts can be got at
@@ -510,27 +480,19 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 				boolean hasTextureCoordGen = hasTexture && texCoordGeneration != null;
 
-				boolean texCoordGenModeObjLinear = hasTextureCoordGen
-						&& (texCoordGeneration.getGenMode() == TexCoordGeneration.OBJECT_LINEAR);
-				
 				boolean hasTextureAttributeTransform = false;
-				if (this.getTexture() != null && this.getTextureAttributes() != null)
-				{
+				if (this.getTexture() != null && this.getTextureAttributes() != null) {
 					Transform3D t = new Transform3D();
 					this.getTextureAttributes().getTextureTransform(t);
 					hasTextureAttributeTransform = t.getBestType() != Transform3D.IDENTITY;
-				}
-				else if(this.getTextureUnitCount() > 0)
-				{
+				} else if (this.getTextureUnitCount() > 0) {
 					//only the first is dealt with?
 					Transform3D t = new Transform3D();
 					this.getTextureUnitState(0).getTextureAttributes().getTextureTransform(t);
 					hasTextureAttributeTransform = t.getBestType() != Transform3D.IDENTITY;
 				}
-				build(hasTexture, lit, hasTextureCoordGen, texCoordGenModeObjLinear, hasTextureAttributeTransform);
-			}
-			else
-			{
+				build(hasTexture, lit, hasTextureCoordGen, hasTextureAttributeTransform);
+			} else {
 				System.out.println("Shader unable to be rebuild due to read capabilities missing, or write shader missing");
 
 				System.out.println("this.getCapability(ALLOW_MATERIAL_READ) " + this.getCapability(ALLOW_MATERIAL_READ));
@@ -540,8 +502,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				System.out
 						.println("this.getCapability(ALLOW_POLYGON_ATTRIBUTES_READ) " + this.getCapability(ALLOW_POLYGON_ATTRIBUTES_READ));
 
-				if(this.getCapability(ALLOW_POLYGON_ATTRIBUTES_READ))
-				{
+				if(this.getCapability(ALLOW_POLYGON_ATTRIBUTES_READ)) {
 					System.out.println("this.getPolygonAttributes() == null " + (this.getPolygonAttributes() == null));
 					if (this.getPolygonAttributes() != null)
 						System.out.println("this.getPolygonAttributes().getCapability(PolygonAttributes.ALLOW_MODE_READ) "
@@ -550,8 +511,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				System.out
 					.println("this.getCapability(ALLOW_TEXTURE_ATTRIBUTES_READ) " + this.getCapability(ALLOW_TEXTURE_ATTRIBUTES_READ));
 
-				if(this.getCapability(ALLOW_TEXTURE_ATTRIBUTES_READ))
-				{
+				if(this.getCapability(ALLOW_TEXTURE_ATTRIBUTES_READ)) {
 					System.out.println("this.getTextureAttributes() == null " + (this.getTextureAttributes() == null));
 					if (this.getTextureAttributes() != null)
 						System.out.println("this.getTextureAttributes().getCapability(TextureAttributes.ALLOW_TRANSFORM_READ) "
@@ -566,69 +526,84 @@ public class SimpleShaderAppearance extends ShaderAppearance
 		}
 	}
 
-	private void build(boolean hasTexture, boolean lit, boolean hasTextureCoordGen, boolean texCoordGenModeObjLinear, boolean hasTextureAttributeTransform)
-	{
+	private void build(boolean hasTexture, boolean lit, boolean hasTextureCoordGen,
+	                   boolean hasTextureAttributeTransform) {
 
-		int shaderKey = (hasTexture ? 1 : 0) + (lit ? 2 : 0) + (hasTextureCoordGen ? 4 : 0) + (texCoordGenModeObjLinear ? 8 : 0) + (hasTextureAttributeTransform ? 16 : 0);
+		int shaderKey = (hasTexture ? 1 : 0)
+				+ (lit ? 2 : 0)
+				+ (hasTextureAttributeTransform ? 4 : 0)
+				+ (hasTextureCoordGen == false ? 8 :  
+				 (texCoordGeneration.getGenMode() == TexCoordGeneration.OBJECT_LINEAR ? 16 : 
+				 (texCoordGeneration.getGenMode() == TexCoordGeneration.EYE_LINEAR ? 32 :
+				 (texCoordGeneration.getGenMode() == TexCoordGeneration.SPHERE_MAP ? 64 : 0))));
 
 		GLSLShaderProgram shaderProgram = shaderPrograms.get(new Integer(shaderKey));
-		if (shaderProgram == null)
-		{
+		if (shaderProgram == null) {
 			String vertexProgram = versionString;
 			String fragmentProgram = versionString;
-			if (hasTextureCoordGen)
-			{
-				if (texCoordGeneration.getFormat() != 0)
-					System.out.println("texCoordGeneration.getFormat() must be 0");
-				/** 
-				 * Generates texture coordinates as a linear function in object coordinates.
-				 public static final int OBJECT_LINEAR = 0;				    
-				 * Generates texture coordinates as a linear function in eye coordinates.				    
-				 public static final int EYE_LINEAR    = 1;				   
-				 * Generates texture coordinates using a spherical reflection mapping in eye coordinates.
-				 public static final int SPHERE_MAP    = 2;
-				 * Generates texture coordinates that match vertices' normals in eye coordinates.
-				 public static final int NORMAL_MAP    = 3;
-				 * Generates texture coordinates that match vertices' reflection vectors in eye coordinates.
-				 public static final int REFLECTION_MAP = 4;
-				 see multitex.vert in examples for sphere map and cube map and google for the others
+			if (hasTextureCoordGen) {
+				if (texCoordGeneration.getFormat() != TexCoordGeneration.TEXTURE_COORDINATE_2)
+					System.out.println("texCoordGeneration.getFormat() must be TEXTURE_COORDINATE_2");
+				/*
+				 * Generates texture coordinates as a linear function in object coordinates. 
+				 * public static final int OBJECT_LINEAR = 0; Generates texture coordinates as a linear function in eye coordinates. 
+				 * public static final int EYE_LINEAR = 1; Generates texture coordinates using a spherical reflection mapping
+				 * in eye coordinates. 
+				 * public static final int SPHERE_MAP = 2; Generates texture coordinates that match vertices' normals in eye coordinates. 
+				 * public static final int NORMAL_MAP = 3; Generates texture coordinates that match vertices' reflection vectors in eye coordinates. 
+				 * public static final int REFLECTION_MAP = 4; 
+				 
+				 *
+				 * NORMAL_MAP and REFLECTION_MAP are for cube maps which require vec3 passed to fragment shader, not
+				 * done
+				 * 
+				 http://docs.gl/gl2/glTexGen 
+				 https://www.khronos.org/opengl/wiki/Mathematics_of_glTexGen
+				 http://what-when-how.com/opengl-programming-guide/automatic-texture-coordinate-generation-texture-mapping-opengl-programming-part-2/
+				 * 
+				 //shader for spheremap void main() { 
+				 * gl_Position = ftransform();
+				 * 
+				 * gl_TexCoord[0] = gl_MultiTexCoord0;
+				 * 
+				 * vec3 u = normalize( vec3(gl_ModelViewMatrix * gl_Vertex) ); 
+				 * vec3 n = normalize( gl_NormalMatrix * gl_Normal ); 
+				 * vec3 r = reflect( u, n ); 
+				 * float m = 2.0 * sqrt( r.x*r.x + r.y*r.y + (r.z+1.0)*(r.z+1.0)); 
+				 * gl_TexCoord[1].s = r.x/m + 0.5; 
+				 * gl_TexCoord[1].t = r.y/m + 0.5;
+				 * }
 				 */
 			}
 
-			if (lit && !DISABLE_LIGHTS)
-			{
-				// not lit
+			if (lit && !DISABLE_LIGHTS) {
 
 				vertexProgram += vertexAttributeInString + " vec4 glVertex;\n";
 				vertexProgram += vertexAttributeInString + " vec4 glColor;\n";
 				vertexProgram += vertexAttributeInString + " vec3 glNormal; \n";
-				if (hasTexture && !hasTextureCoordGen)
-				{
+				if (hasTexture && !hasTextureCoordGen) {
 					vertexProgram += vertexAttributeInString + " vec2 glMultiTexCoord0;\n";
 				}
-				if(hasTextureAttributeTransform)
-				{
+				if(hasTextureAttributeTransform) {
 					vertexProgram += "uniform mat4 textureTransform;\n";
 				}
 
-				//vertexProgram += "uniform mat4 glViewMatrix;\n";
-				vertexProgram += "uniform mat4 glModelViewMatrix;\n";
-				vertexProgram += "uniform mat4 glProjectionMatrix;\n";
+				//vertexProgram += "uniform mat4 glViewMatrix;\n";						
 				//vertexProgram += "uniform mat4 glModelMatrix;\n";
+				vertexProgram += "uniform mat4 glProjectionMatrix;\n";
 				vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
-
+				vertexProgram += "uniform mat4 glModelViewMatrix;\n";
 				vertexProgram += "uniform mat3 glNormalMatrix;\n";
 				vertexProgram += "uniform int ignoreVertexColors;\n";
 				vertexProgram += "uniform vec4 glLightModelambient;\n";
 				vertexProgram += glFrontMaterial;
 				vertexProgram += glLightSource;
-				if (hasTextureCoordGen && texCoordGenModeObjLinear)
-				{
+				if (hasTextureCoordGen && (texCoordGeneration.getGenMode() == TexCoordGeneration.OBJECT_LINEAR
+											|| texCoordGeneration.getGenMode() == TexCoordGeneration.EYE_LINEAR)) {
 					vertexProgram += "uniform vec4 texCoordGenPlaneS;\n";
 					vertexProgram += "uniform vec4 texCoordGenPlaneT;\n";
 				}
-				if (hasTexture)
-				{
+				if (hasTexture) {
 					vertexProgram += outString + " vec2 glTexCoord0;\n";
 				}
 
@@ -665,29 +640,28 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
 
 				vertexProgram += "vec3 N = normalize(glNormalMatrix * glNormal);\n";
-				if (hasTexture)
-				{
-					if (!hasTextureCoordGen)
-					{						 
-						vertexProgram += "glTexCoord0 = glMultiTexCoord0.st;\n";
-						if(hasTextureAttributeTransform)
-						{
-							vertexProgram += "glTexCoord0 = (textureTransform * vec4(glTexCoord0,0,1)).st;\n";
+				if (hasTexture) {
+					if (!hasTextureCoordGen) {						 
+						if (hasTextureAttributeTransform) {
+							vertexProgram += "glTexCoord0 = (textureTransform * vec4(glMultiTexCoord0,0,1)).st;\n";
+						} else {
+							vertexProgram += "glTexCoord0 = glMultiTexCoord0.st;\n";
 						}
-					}
-					else
-					{
-						if (texCoordGenModeObjLinear)
-						{
+					} else {
+						if (texCoordGeneration.getGenMode() == TexCoordGeneration.OBJECT_LINEAR) {
 							// note mali-400 complained when this was a method call
 							vertexProgram += "glTexCoord0 = vec2(glVertex.x*texCoordGenPlaneS.x+glVertex.y*texCoordGenPlaneS.y+glVertex.z*texCoordGenPlaneS.z+glVertex.w*texCoordGenPlaneS.w,glVertex.x*texCoordGenPlaneT.x+glVertex.y*texCoordGenPlaneT.y+glVertex.z*texCoordGenPlaneT.z+glVertex.w*texCoordGenPlaneT.w);\n";
-							if(hasTextureAttributeTransform)
-							{
-								vertexProgram += "glTexCoord0 = (textureTransform * vec4(glTexCoord0,0,1)).st;\n";
-							}
-						}
-						else
-						{
+						} else if (texCoordGeneration.getGenMode() == TexCoordGeneration.EYE_LINEAR) {
+							vertexProgram += "vec4 iglVertex = inverse(glVertex); \n";
+							vertexProgram += "glTexCoord0 = vec2(iglVertex.x*texCoordGenPlaneS.x+iglVertex.y*texCoordGenPlaneS.y+iglVertex.z*texCoordGenPlaneS.z+iglVertex.w*texCoordGenPlaneS.w,iglVertex.x*texCoordGenPlaneT.x+iglVertex.y*texCoordGenPlaneT.y+iglVertex.z*texCoordGenPlaneT.z+iglVertex.w*texCoordGenPlaneT.w);\n";
+						} else if (texCoordGeneration.getGenMode() == TexCoordGeneration.SPHERE_MAP) {						
+							vertexProgram += "vec3 u = normalize( vec3(glModelViewMatrix * glVertex) ); \n";
+							vertexProgram += "vec3 n = normalize( glNormalMatrix * glNormal ); \n";
+							vertexProgram += "vec3 r = reflect( u, n ); \n";
+							vertexProgram += "float m = 2.0 * sqrt( r.x*r.x + r.y*r.y + (r.z+1.0)*(r.z+1.0)); \n";
+							vertexProgram += "glTexCoord0.s = r.x/m + 0.5; \n";
+							vertexProgram += "glTexCoord0.t = r.y/m + 0.5; \n";
+						} else {
 							System.err.println("texCoordGeneration.getGenMode() not supported " + texCoordGeneration.getGenMode());
 						}
 					}
@@ -713,78 +687,42 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				vertexProgram += "vec4 vertPos = glModelViewMatrix * glVertex;// vertex position in eye space\n";
 				vertexProgram += "vec3 E = normalize(-vertPos.xyz);// vector from vert to eye in eye space\n";
 
-				if (UNROLL)
-				{
-					// loop unrolling recommended for some Adreno compilers I'm told
-					for (int index = 0; index < constMaxLights; index++)
-					{
-						vertexProgram += "if (numberOfLights >= " + index + ")\n";
-						vertexProgram += "{ \n";
-						vertexProgram += "	vec4 Lp =  glLightSource[" + index + "].position; // in eye space\n";
-						vertexProgram += "	vec3 Ld;\n";
-						vertexProgram += "	if(Lp.w == 0.0 )\n";
-						vertexProgram += "		Ld = normalize( Lp.xyz );  //directional store dir in pos\n";
-						vertexProgram += "	else\n";
-						vertexProgram += "		Ld = normalize( Lp.xyz - vertPos.xyz );	\n";
+				
+				vertexProgram += "for (int index = 0; index < numberOfLights && index < maxLights; index++) // for all light sources\n";
+				vertexProgram += "{ \n";
+				vertexProgram += "	vec4 Lp =  glLightSource[index].position; // in eye space\n";
+				vertexProgram += "	vec3 Ld;\n";
+				vertexProgram += "	if(Lp.w == 0.0 )\n";
+				vertexProgram += "		Ld = normalize( Lp.xyz );  //directional store dir in pos\n";
+				vertexProgram += "	else\n";
+				vertexProgram += "		Ld = normalize( Lp.xyz - vertPos.xyz );	\n";
 
-						vertexProgram += "	vec3 d = diffCalc(glLightSource[" + index + "], Ld, N);\n";
-						vertexProgram += "	vec3 s = specCalc(glLightSource[" + index + "], Ld, N, E, shininess);\n";
+				vertexProgram += "	vec3 d = diffCalc(glLightSource[index], Ld, N);\n";
+				vertexProgram += "	vec3 s = specCalc(glLightSource[index], Ld, N, E, shininess);\n";
 
-						vertexProgram += "	// Attenuate the light based on distance. but not for directional!\n";
-						vertexProgram += "	if(Lp.w == 1.0)\n";
-						vertexProgram += "	{\n";
-						vertexProgram += "		float dist = length(Lp - vertPos);\n";
-						vertexProgram += "		float att = attCalc(glLightSource[" + index + "], dist);  \n";
-						vertexProgram += "		d = d * att;\n";
-						vertexProgram += "		s = s * att;\n";
-						vertexProgram += "	}\n";
+				vertexProgram += "	// Attenuate the light based on distance. but not for directional!\n";
+				vertexProgram += "	if(Lp.w == 1.0)\n";
+				vertexProgram += "	{\n";
+				vertexProgram += "		float dist = length(Lp - vertPos);\n";
+				vertexProgram += "		float att = attCalc(glLightSource[index], dist);  \n";
+				vertexProgram += "		d = d * att;\n";
+				vertexProgram += "		s = s * att;\n";
+				vertexProgram += "	}\n";
+				vertexProgram += "	diffuse = diffuse + d;\n";
+				vertexProgram += "	spec = spec + s;\n";
 
-						vertexProgram += "	diffuse = diffuse + d;\n";
-						vertexProgram += "	spec = spec + s;\n";
-					}
-					// ensure all ifs are nested
-					for (int index = 0; index < constMaxLights; index++)
-						vertexProgram += "}	\n";
-				}
-				else
-				{
-					vertexProgram += "for (int index = 0; index < numberOfLights && index < maxLights; index++) // for all light sources\n";
-					vertexProgram += "{ \n";
-					vertexProgram += "	vec4 Lp =  glLightSource[index].position; // in eye space\n";
-					vertexProgram += "	vec3 Ld;\n";
-					vertexProgram += "	if(Lp.w == 0.0 )\n";
-					vertexProgram += "		Ld = normalize( Lp.xyz );  //directional store dir in pos\n";
-					vertexProgram += "	else\n";
-					vertexProgram += "		Ld = normalize( Lp.xyz - vertPos.xyz );	\n";
-
-					vertexProgram += "	vec3 d = diffCalc(glLightSource[index], Ld, N);\n";
-					vertexProgram += "	vec3 s = specCalc(glLightSource[index], Ld, N, E, shininess);\n";
-
-					vertexProgram += "	// Attenuate the light based on distance. but not for directional!\n";
-					vertexProgram += "	if(Lp.w == 1.0)\n";
-					vertexProgram += "	{\n";
-					vertexProgram += "		float dist = length(Lp - vertPos);\n";
-					vertexProgram += "		float att = attCalc(glLightSource[index], dist);  \n";
-					vertexProgram += "		d = d * att;\n";
-					vertexProgram += "		s = s * att;\n";
-					vertexProgram += "	}\n";
-					vertexProgram += "	diffuse = diffuse + d;\n";
-					vertexProgram += "	spec = spec + s;\n";
-
-					vertexProgram += "}	\n";
-
-				}
+				vertexProgram += "}	\n";
 
 				vertexProgram += "light = (diffuse + emissive) + spec;	\n";
 
 				vertexProgram += "}";
 				
 				//////////////////////////////////////////////////////////////////
+				
 				fragmentProgram += "precision mediump float;\n";
 				fragmentProgram += "precision mediump int;\n";
 				fragmentProgram += "uniform float transparencyAlpha;\n";
-				if (hasTexture)
-				{
+				if (hasTexture) {
 					fragmentProgram += alphaTestUniforms;
 
 					fragmentProgram += "#ifdef GL_FRAGMENT_PRECISION_HIGH\n";
@@ -801,12 +739,10 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				fragmentProgram += fragColorDec;
 				fragmentProgram += "void main( void ){\n ";
 
-				if (hasTexture)
-				{
+				if (hasTexture) {
 					fragmentProgram += "vec4 baseMap = " + texture2D + "( BaseMap, glTexCoord0.st );\n";
 				}
-				if (hasTexture)
-				{
+				if (hasTexture) {
 					fragmentProgram += alphaTestMethod;
 				}
 
@@ -814,65 +750,60 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				fragmentProgram += "vec3 albedo = " + (hasTexture ? "baseMap.rgb *" : "") + " C.rgb;\n";
 
 				fragmentProgram += "color.rgb = albedo * light;\n";
-				if (hasTexture)
-				{
+				if (hasTexture) {
 					fragmentProgram += "color.a = C.a * baseMap.a;\n";
-				}
-				else
-				{
+				} else {
 					fragmentProgram += "color.a = C.a;\n";
 				}
 
 				fragmentProgram += "color.a *= transparencyAlpha;\n";
 				fragmentProgram += fragColorVar + " = color;\n";
 
+				//for debug of the incorrect looking tex coord gen values
+				//if (hasTexture)
+				//fragmentProgram += fragColorVar + " = vec4(mod(glTexCoord0.s,1.0),mod(glTexCoord0.t,1.0),0,1);\n";
+
 				fragmentProgram += "}";
 
-			}
-			else
-			{
+			} else {
 				// not lit
-				if (hasTexture)
-				{
+				if (hasTexture) {
 					vertexProgram += vertexAttributeInString + " vec4 glVertex;\n";
-					vertexProgram += vertexAttributeInString + " vec2 glMultiTexCoord0;\n";
-					if(hasTextureAttributeTransform)
-					{
-						vertexProgram += "uniform mat4 textureTransform;\n";
-					}
-					vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
-
-					if (hasTextureCoordGen && texCoordGenModeObjLinear)
-					{
+					if (!hasTextureCoordGen) {
+						vertexProgram += vertexAttributeInString + " vec2 glMultiTexCoord0;\n";
+					} else {
 						vertexProgram += "uniform vec4 texCoordGenPlaneS;\n";
 						vertexProgram += "uniform vec4 texCoordGenPlaneT;\n";
 					}
-					
+					if(hasTextureAttributeTransform) {
+						vertexProgram += "uniform mat4 textureTransform;\n";
+					}
+					vertexProgram += "uniform mat4 glModelViewProjectionMatrix;\n";
 					vertexProgram += outString + " vec2 glTexCoord0;\n";
 					vertexProgram += "void main( void ){\n";
 					vertexProgram += "gl_Position = glModelViewProjectionMatrix * glVertex;\n";
 					
-					if (!hasTextureCoordGen)
-					{
-						vertexProgram += "glTexCoord0 = glMultiTexCoord0.st;\n";
-						if(hasTextureAttributeTransform)
-						{
-							vertexProgram += "glTexCoord0 = (textureTransform * vec4(glTexCoord0,0,1)).st;\n";
+					if (!hasTextureCoordGen) {
+						if(hasTextureAttributeTransform) {
+							vertexProgram += "glTexCoord0 = (textureTransform * vec4(glMultiTexCoord0,0,1)).st;\n";
+						} else {
+							vertexProgram += "glTexCoord0 = glMultiTexCoord0.st;\n";
 						}
-					}
-					else
-					{
-						if (texCoordGenModeObjLinear)
-						{
-							// again can't call a method here, so inline it
+					} else {						
+						if (texCoordGeneration.getGenMode() == TexCoordGeneration.OBJECT_LINEAR) {
+							// note mali-400 complained when this was a method call
 							vertexProgram += "glTexCoord0 = vec2(glVertex.x*texCoordGenPlaneS.x+glVertex.y*texCoordGenPlaneS.y+glVertex.z*texCoordGenPlaneS.z+glVertex.w*texCoordGenPlaneS.w,glVertex.x*texCoordGenPlaneT.x+glVertex.y*texCoordGenPlaneT.y+glVertex.z*texCoordGenPlaneT.z+glVertex.w*texCoordGenPlaneT.w);\n";
-							if(hasTextureAttributeTransform)
-							{
-								vertexProgram += "glTexCoord0 = (textureTransform * vec4(glTexCoord0,0,1)).st;\n";
-							}
-						}
-						else
-						{
+						} else if (texCoordGeneration.getGenMode() == TexCoordGeneration.EYE_LINEAR) {
+							vertexProgram += "vec4 iglVertex = inverse(glVertex); \n";
+							vertexProgram += "glTexCoord0 = vec2(iglVertex.x*texCoordGenPlaneS.x+iglVertex.y*texCoordGenPlaneS.y+iglVertex.z*texCoordGenPlaneS.z+iglVertex.w*texCoordGenPlaneS.w,iglVertex.x*texCoordGenPlaneT.x+iglVertex.y*texCoordGenPlaneT.y+iglVertex.z*texCoordGenPlaneT.z+iglVertex.w*texCoordGenPlaneT.w);\n";
+						} else if (texCoordGeneration.getGenMode() == TexCoordGeneration.SPHERE_MAP) {						
+							vertexProgram += "vec3 u = normalize( vec3(glModelViewMatrix * glVertex) ); \n";
+							vertexProgram += "vec3 n = normalize( glNormalMatrix * glNormal ); \n";
+							vertexProgram += "vec3 r = reflect( u, n ); \n";
+							vertexProgram += "float m = 2.0 * sqrt( r.x*r.x + r.y*r.y + (r.z+1.0)*(r.z+1.0)); \n";
+							vertexProgram += "glTexCoord0.s = r.x/m + 0.5; \n";
+							vertexProgram += "glTexCoord0.t = r.y/m + 0.5; \n";
+						} else {
 							System.err.println("texCoordGeneration.getGenMode() not supported " + texCoordGeneration.getGenMode());
 						}
 					}
@@ -897,9 +828,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					fragmentProgram += fragColorVar + " = baseMap;\n";
 					fragmentProgram += "}";
 
-				}
-				else
-				{
+				} else {
 					//no lit no texture					
 					vertexProgram += vertexAttributeInString + " vec4 glVertex;\n";
 					vertexProgram += vertexAttributeInString + " vec4 glColor;\n";
@@ -915,12 +844,9 @@ public class SimpleShaderAppearance extends ShaderAppearance
 					vertexProgram += "if( ignoreVertexColors != 0 )\n";
 
 					// have we got here via the debug path? if so use the material (even though lighting is off)
-					if (DISABLE_LIGHTS)
-					{
+					if (DISABLE_LIGHTS) {
 						vertexProgram += "	glFrontColor = glFrontMaterial.diffuse; \n";
-					}
-					else
-					{
+					} else {
 						vertexProgram += "	glFrontColor = objectColor;\n";
 					}
 					vertexProgram += "else\n";
@@ -943,8 +869,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 			// build the shader program and cache it
 			shaderProgram = new GLSLShaderProgram() {
 				@Override
-				public String toString()
-				{
+				public String toString() {
 					return "SimpleShaderAppearance " + getName();
 				}
 			};
@@ -956,15 +881,13 @@ public class SimpleShaderAppearance extends ShaderAppearance
 			//System.out.println("shaderkey = " + shaderKey);
 			//System.out.println(vertexProgram);
 			//System.out.println(fragmentProgram);
-
-			if (hasTexture)
-			{
-				if (texCoordGenModeObjLinear)
-				{
-					shaderProgram.setShaderAttrNames(new String[] { "BaseMap", "texCoordGenPlaneS", "texCoordGenPlaneT" });
-				}
-				else
-				{
+			if (hasTexture) {
+				if (texCoordGeneration != null &&
+						(texCoordGeneration.getGenMode() == TexCoordGeneration.OBJECT_LINEAR
+							|| texCoordGeneration.getGenMode() == TexCoordGeneration.EYE_LINEAR)) {
+					shaderProgram
+							.setShaderAttrNames(new String[] {"BaseMap", "texCoordGenPlaneS", "texCoordGenPlaneT"});
+				} else {
 					shaderProgram.setShaderAttrNames(new String[] { "BaseMap" });
 				}
 			}
@@ -974,25 +897,27 @@ public class SimpleShaderAppearance extends ShaderAppearance
 
 		// if live, clear the program before updating shaderattributeset for the new program
 		// otherwise you get mismatches and exceptions thrown
-		if (this.isLive())
-		{
+		if (this.isLive()) {
 			setShaderProgram(null);
 		}
+		
+		setShaderProgram(shaderProgram);
+		vertexShaderSource = vertexShaderSources.get(shaderProgram);
+		fragmentShaderSource = fragmentShaderSources.get(shaderProgram);
 
 		//It is REALLY important for render performance to try to have the same shader program object 
 		// and the exact same shader attribute set object
-		if (hasTexture)
-		{
-			if (texCoordGenModeObjLinear)
-			{
+		if (hasTexture) {
+			if (texCoordGeneration != null &&
+					(texCoordGeneration.getGenMode() == TexCoordGeneration.OBJECT_LINEAR
+						|| texCoordGeneration.getGenMode() == TexCoordGeneration.EYE_LINEAR)) {
 				Vector4f planeS = new Vector4f();
 				texCoordGeneration.getPlaneS(planeS);
 				Vector4f planeT = new Vector4f();
 				texCoordGeneration.getPlaneT(planeT);
 				String key = "planeS " + planeS + " planeT " + planeT;
 				ShaderAttributeSet shaderAttributeSet = shaderAttributeSetCache.get(key);
-				if (shaderAttributeSet == null)
-				{
+				if (shaderAttributeSet == null) {
 					shaderAttributeSet = new ShaderAttributeSet();
 					shaderAttributeSet.put(new ShaderAttributeValue("BaseMap", new Integer(0)));
 					shaderAttributeSet.put(new ShaderAttributeValue("texCoordGenPlaneS", planeS));
@@ -1001,82 +926,65 @@ public class SimpleShaderAppearance extends ShaderAppearance
 				}
 				setShaderAttributeSet(shaderAttributeSet);
 
-			}
-			else
-			{
-				if (baseMapShaderAttributeSet == null)
-				{
+			} else {
+				if (baseMapShaderAttributeSet == null) {
 					baseMapShaderAttributeSet = new ShaderAttributeSet();
 					baseMapShaderAttributeSet.put(new ShaderAttributeValue("BaseMap", new Integer(0)));
 				}
 
 				setShaderAttributeSet(baseMapShaderAttributeSet);
 			}
-		}
-		else
-		{
+		} else {
 			// in case we had one set before from having a textured shader program
 			setShaderAttributeSet(null);
 		}
 
-		setShaderProgram(shaderProgram);
-		vertexShaderSource = vertexShaderSources.get(shaderProgram);
-		fragmentShaderSource = fragmentShaderSources.get(shaderProgram);
-
 	}
 
 	@Override
-	public void setMaterial(Material material)
-	{
+	public void setMaterial(Material material) {
 		super.setMaterial(material);
 		rebuildShaders();
 	}
 
 	@Override
-	public void setColoringAttributes(ColoringAttributes coloringAttributes)
-	{
+	public void setColoringAttributes(ColoringAttributes coloringAttributes) {
 		super.setColoringAttributes(coloringAttributes);
 		rebuildShaders();
 	}
 
 	@Override
-	public void setTransparencyAttributes(TransparencyAttributes transparencyAttributes)
-	{
+	public void setTransparencyAttributes(TransparencyAttributes transparencyAttributes) {
 		super.setTransparencyAttributes(transparencyAttributes);
 		rebuildShaders();
 	}
 
 	@Override
-	public void setRenderingAttributes(RenderingAttributes renderingAttributes)
-	{
+	public void setRenderingAttributes(RenderingAttributes renderingAttributes) {
 		super.setRenderingAttributes(renderingAttributes);
 		rebuildShaders();
 	}
 
 	@Override
-	public void setPolygonAttributes(PolygonAttributes polygonAttributes)
-	{
+	public void setPolygonAttributes(PolygonAttributes polygonAttributes) {
 		super.setPolygonAttributes(polygonAttributes);
 		rebuildShaders();
 	}
 
 	@Override
-	public void setLineAttributes(LineAttributes lineAttributes)
-	{
+	public void setLineAttributes(LineAttributes lineAttributes) {
 		super.setLineAttributes(lineAttributes);
 		rebuildShaders();
 	}
 
 	@Override
-	public void setPointAttributes(PointAttributes pointAttributes)
-	{
+	public void setPointAttributes(PointAttributes pointAttributes) {
 		super.setPointAttributes(pointAttributes);
 		rebuildShaders();
 	}
 
 	@Override
-	public void setTexture(Texture texture)
-	{
+	public void setTexture(Texture texture) {
 		super.setTexture(texture);
 		rebuildShaders();
 	}
@@ -1086,15 +994,13 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	 * rebuild will need to be called on this Appearance
 	 */
 	@Override
-	public void setTextureAttributes(TextureAttributes textureAttributes)
-	{
+	public void setTextureAttributes(TextureAttributes textureAttributes) {
 		super.setTextureAttributes(textureAttributes);
 		rebuildShaders();
 	}
 
 	@Override
-	public void setTexCoordGeneration(TexCoordGeneration texCoordGeneration)
-	{
+	public void setTexCoordGeneration(TexCoordGeneration texCoordGeneration) {
 		// can't use the super version as it's not supported	
 		//super.setTexCoordGeneration(texCoordGeneration);
 		this.texCoordGeneration = texCoordGeneration;
@@ -1102,8 +1008,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	}
 
 	@Override
-	public void setTextureUnitState(TextureUnitState[] stateArray)
-	{
+	public void setTextureUnitState(TextureUnitState[] stateArray){
 		//TODO: need to address the texture coord generator that might be hidden in here?
 		System.out.println("SimpleShaderAppearance with textureunitstates in use");
 		super.setTextureUnitState(stateArray);
@@ -1111,8 +1016,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	}
 
 	@Override
-	public void setTextureUnitState(int index, TextureUnitState state)
-	{
+	public void setTextureUnitState(int index, TextureUnitState state) {
 		System.out.println("SimpleShaderAppearance with textureunitstates in use");
 		super.setTextureUnitState(index, state);
 		rebuildShaders();
@@ -1123,8 +1027,7 @@ public class SimpleShaderAppearance extends ShaderAppearance
 	*/
 	@SuppressWarnings("deprecation")
 	@Override
-	public NodeComponent cloneNodeComponent()
-	{
+	public NodeComponent cloneNodeComponent() {
 		SimpleShaderAppearance a = new SimpleShaderAppearance();
 		a.duplicateNodeComponent(this);
 		return a;

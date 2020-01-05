@@ -39,6 +39,12 @@
 
 package org.jogamp.java3d.utils.image;
 
+
+import java.io.IOException;
+import java.net.URL;
+
+import javaawt.imageio.ImageIO;
+
 import org.jogamp.java3d.ImageComponent;
 import org.jogamp.java3d.ImageComponent2D;
 import org.jogamp.java3d.Texture;
@@ -66,13 +72,14 @@ public class TextureLoader extends Object {
 
 	private Texture2D tex = null;
 	private BufferedImage bufferedImage = null;
+	private ImageComponent2D imageComponent = null;
 	private int textureFormat = Texture.RGBA;
 	private int imageComponentFormat = ImageComponent.FORMAT_RGBA;
 	private boolean byRef = false;
 	private boolean yUp = false;
 
 	/**
-	 * Contructs a TextureLoader object using the specified BufferedImage,
+	 * Constructs a TextureLoader object using the specified BufferedImage,
 	 * format and option flags
 	 * @param bImage The BufferedImage used for loading the texture
 	 *
@@ -84,7 +91,7 @@ public class TextureLoader extends Object {
 	}
 	
 	/**
-	 * Contructs a TextureLoader object using the specified BufferedImage,
+	 * Constructs a TextureLoader object using the specified BufferedImage,
 	 * format and option flags
 	 * @param bImage The BufferedImage used for loading the texture
 	 * @param yUp Is the image y up (true results in more performance)	 
@@ -162,5 +169,64 @@ public class TextureLoader extends Object {
 			break;
 		}
 	}
+	
+	
+	public TextureLoader(final URL url,  boolean yUp) {
+		this(url);
+		this.yUp = yUp;
+	}
+	
+	  public TextureLoader(final URL url, Object observer) {   
+		  this(url);
+	  }
+	 /**
+     * Constructs a TextureLoader object using the specified URL
+     * and default format RGBA
+     * @param url The URL that specifies an Image to load the texture with
+     * @param observer The associated image observer
+     *
+     * @exception ImageException if there is a problem reading the image
+     */
+    public TextureLoader(final URL url) {                
 
+        bufferedImage = (BufferedImage)
+            java.security.AccessController.doPrivileged(
+ 	        new java.security.PrivilegedAction() {
+                    @Override
+                    public Object run() {
+                        try {
+                            return ImageIO.read(url);
+                        } catch (IOException e) {
+			    throw new ImageException(e);
+                        }
+                    }
+                }
+            );
+
+        if (bufferedImage==null) {
+            throw new ImageException("Error loading image: " + url.toString());
+        }
+
+        imageComponentFormat = ImageComponent.FORMAT_RGBA;
+        textureFormat = Texture.RGBA;
+               
+        chooseFormat(bufferedImage);
+	
+	    byRef = true;
+	
+	    yUp = true;
+		
+    }
+    
+    /**
+     * Returns the associated ImageComponent2D object
+     *
+     * @return The associated ImageComponent2D object
+     */
+    public ImageComponent2D getImage() {
+	if (imageComponent == null)
+            imageComponent = new ImageComponent2D(imageComponentFormat,
+						  bufferedImage, byRef, yUp);
+        return imageComponent;
+    }
 }
