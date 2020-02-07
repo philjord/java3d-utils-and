@@ -4,7 +4,7 @@
   
   <groupId>org.jogamp.java3d</groupId>
   <artifactId>java3d-utils-and</artifactId>
-  <version>1.7.0</version>
+  <version>1.7.1</version>
   
   <name>Java 3D Utils 4 Android</name>
   <description>Extension of the Utility functions for the Java 3D Graphics API</description>
@@ -64,7 +64,7 @@
 			<groupId>org.jogamp.joal</groupId>
 			<artifactId>joal-android</artifactId>
 			<version>${jogamp.version}</version>
-		</dependency>	
+		</dependency>
 	</dependencies>
 	
   <build>
