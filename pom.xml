@@ -64,8 +64,7 @@
 	    <dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>java3d-core-and</artifactId>
-			<version>${project.version}</version>	
-			<optional>true</optional> <!-- otherwise dependent projects will pull this in, but we don't want the transitive dependencies -->					
+			<version>${project.version}</version>				
 		</dependency>	
 		<dependency>
 			<groupId>${project.groupId}</groupId>
