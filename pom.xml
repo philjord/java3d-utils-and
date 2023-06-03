@@ -76,6 +76,7 @@
 			<groupId>org.jogamp.joal</groupId>
 			<artifactId>joal-android</artifactId>
 			<version>${jogamp.version}</version>
+			<optional>true</optional> <!-- otherwise dependent project will pull this in, but we actually merge it into the output -->			
 		</dependency>
 	</dependencies>
 	
@@ -115,7 +116,8 @@
 		        <artifactSet>
                 	<includes>
                			<include>${project.groupId}:java3d-utils-and:jar:</include>
-          				<include>${project.groupId}:java3d-utils:jar:</include>            	
+          				<include>${project.groupId}:java3d-utils:jar:</include>  
+          				<include>org.jogamp.joal:joal-android:jar:</include>            	
                 	</includes>
             	</artifactSet>   
             	<createDependencyReducedPom>false</createDependencyReducedPom>                      
