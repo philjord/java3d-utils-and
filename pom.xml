@@ -102,6 +102,29 @@
           <target>1.6</target>
         </configuration>
       </plugin>
+      <!-- This project overrides a few of the classes in it's parent, for now swap javadoc back to parent, this is not a merge -->
+	  <plugin>
+	    <groupId>org.codehaus.mojo</groupId>
+	    <artifactId>build-helper-maven-plugin</artifactId>
+	    <executions>
+	        <execution>
+	            <id>attach</id>
+	            <phase>package</phase>
+	            <goals>
+	                <goal>attach-artifact</goal>
+	            </goals>
+	            <configuration>
+	               <artifacts>
+	                  <artifact>
+	                      <file>../java3d-utils/target/java3d-utils-${project.version}-javadoc.jar</file>
+	                      <type>jar</type>
+	                      <classifier>javadoc</classifier>
+	                  </artifact>
+	               </artifacts>
+	            </configuration>
+	        </execution>
+	    </executions>
+	 </plugin>
       <!-- This project overrides a few of the classes in it's parent, but must publish the merged jar as an artifact -->      
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
