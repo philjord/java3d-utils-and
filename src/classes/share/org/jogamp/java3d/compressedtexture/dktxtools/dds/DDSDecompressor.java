@@ -440,9 +440,7 @@ public class DDSDecompressor {
 			}
 		}
 		//NOTE disagrees with fixed getType below
-		NioImageBuffer delegate = new NioImageBuffer(width, height, ImageType.TYPE_INT_RGB);
-		delegate.setDataBuffer(pixels);
-		return delegate;
+		return new NioImageBuffer(width, height, ImageType.TYPE_INT_RGB, pixels);
 	}
 
 	private NioImageBuffer decodeA8R8G8B8Nio() {
@@ -455,10 +453,7 @@ public class DDSDecompressor {
 				pixels.put((y * width) + x,buffer.getInt());
 			}
 		}
-		NioImageBuffer delegate = new NioImageBuffer(width, height, ImageType.TYPE_4BYTE_RGBA);
-		delegate.setDataBuffer(directBuffer);
-		return delegate;
-
+		return new NioImageBuffer(width, height, ImageType.TYPE_4BYTE_RGBA, directBuffer);
 	}
 
 	private NioImageBuffer decodeA16R16G16B16Nio() {
@@ -499,9 +494,7 @@ public class DDSDecompressor {
 			}
 		}		
 		
-		NioImageBuffer delegate = new NioImageBuffer(width, height, ImageType.TYPE_4BYTE_RGBA);
-		delegate.setDataBuffer(directBuffer);
-		return delegate;
+		return new NioImageBuffer(width, height, ImageType.TYPE_4BYTE_RGBA, directBuffer);
 	}
 
 	private NioImageBuffer decodeDxt1BufferNio() {
@@ -572,9 +565,7 @@ public class DDSDecompressor {
 				}
 			}
 		}
-		NioImageBuffer delegate = new NioImageBuffer(width, height, ImageType.TYPE_4BYTE_RGBA);
-		delegate.setDataBuffer(directBuffer);
-		return delegate;
+		return new NioImageBuffer(width, height, ImageType.TYPE_4BYTE_RGBA, directBuffer);
 	}
 
 	private NioImageBuffer decodeDxt3BufferNio() {
@@ -635,9 +626,7 @@ public class DDSDecompressor {
 
 		}
 		
-		NioImageBuffer delegate = new NioImageBuffer(width, height, ImageType.TYPE_4BYTE_RGBA);
-		delegate.setDataBuffer(directBuffer);
-		return delegate;
+		return new NioImageBuffer(width, height, ImageType.TYPE_4BYTE_RGBA, directBuffer);
 	}
 
 	private NioImageBuffer decompressRGBA_S3TC_DXT5_EXTNio() {
@@ -719,9 +708,7 @@ public class DDSDecompressor {
 			}
 
 		}
-		NioImageBuffer delegate = new NioImageBuffer(width, height, ImageType.TYPE_4BYTE_RGBA);
-		delegate.setDataBuffer(directBuffer);
-		return delegate;
+		return new NioImageBuffer(width, height, ImageType.TYPE_4BYTE_RGBA, directBuffer);
 	}
 
 	
