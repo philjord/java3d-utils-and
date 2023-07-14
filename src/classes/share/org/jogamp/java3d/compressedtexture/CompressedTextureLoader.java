@@ -9,9 +9,12 @@ import java.nio.ByteBuffer;
 
 import org.jogamp.java3d.CompressedImageComponent2D;
 import org.jogamp.java3d.ImageComponent;
+import org.jogamp.java3d.ImageComponent2D;
+import org.jogamp.java3d.NioImageBuffer;
 import org.jogamp.java3d.Texture;
 import org.jogamp.java3d.Texture2D;
 import org.jogamp.java3d.TextureUnitState;
+import org.jogamp.java3d.compressedtexture.dktxtools.dds.DDSDecompressor;
 
 import compressedtexture.ASTCImage;
 import compressedtexture.CompressedBufferedImage;
@@ -36,6 +39,9 @@ import javaawt.image.BufferedImage;
  */
 public abstract class CompressedTextureLoader
 {
+	//Set this to true where S3TC support not available, this is big and slow
+	public static boolean RETURN_DECOMPRESSED_DDS = false;
+	
 	protected static int anisotropicFilterDegree = 0;
 
 	public static void setAnisotropicFilterDegree(int d)
@@ -147,6 +153,7 @@ public abstract class CompressedTextureLoader
 		}
 	}
 
+	//ASTC = https://en.wikipedia.org/wiki/Adaptive_scalable_texture_compression can be found in a ktx container
 	public static class ASTC extends CompressedTextureLoader
 	{
 		public static TextureUnitState getTextureUnitState(File file)
@@ -303,6 +310,7 @@ public abstract class CompressedTextureLoader
 		}
 	}
 
+	//DDS is https://en.wikipedia.org/wiki/DirectDraw_Surface but the compression is S3 so S3TC
 	public static class DDS extends CompressedTextureLoader
 	{
 
@@ -355,6 +363,7 @@ public abstract class CompressedTextureLoader
 			}
 			return ret_val;
 		}
+		
 
 		/**
 		 * Returns the associated Texture object or null if the image failed to load
@@ -404,7 +413,7 @@ public abstract class CompressedTextureLoader
 			}
 			return ret_val;
 		}
-
+		
 		/**
 		 * Note avoid mappedbytebufffers as that will push texture loading (disk activity) onto the j3d thread
 		 * which is bad, pull everything into byte arrays on the current thread
@@ -414,7 +423,7 @@ public abstract class CompressedTextureLoader
 		 */
 
 		public static Texture getTexture(String filename, ByteBuffer inputBuffer)
-		{
+		{			
 			// Check the cache for an instance first
 			Texture ret_val = checkCachedTexture(filename);
 
@@ -438,7 +447,7 @@ public abstract class CompressedTextureLoader
 		private static Texture2D createTexture(String filename, DDSImage ddsImage)
 		{
 
-			// return null for unsupproted types
+			// return null for unsupported types
 			if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_DXT2 //
 					|| ddsImage.getPixelFormat() == DDSImage.D3DFMT_DXT4 //
 					|| ddsImage.getPixelFormat() == DDSImage.D3DFMT_UNKNOWN)
@@ -481,8 +490,21 @@ public abstract class CompressedTextureLoader
 
 			for (int i = 0; i < levels; i++)
 			{
-				BufferedImage image = new CompressedBufferedImage.DDS(ddsImage, i, filename);
-				tex.setImage(i, new CompressedImageComponent2D(ImageComponent.FORMAT_RGBA, image));
+				if(!RETURN_DECOMPRESSED_DDS) {
+					BufferedImage image = new CompressedBufferedImage.DDS(ddsImage, i, filename);
+					tex.setImage(i, new CompressedImageComponent2D(ImageComponent.FORMAT_RGBA, image));
+				} else {
+					
+					//this would be the BufferedImage version, but Nio is faster
+				//	BufferedImage decompressedImage = new DDSDecompressor(ddsImage, i, filename).convertImage();
+				//	int format = decompressedImage
+				//			.getType() == BufferedImage.TYPE_INT_RGB ? ImageComponent.FORMAT_RGB : ImageComponent.FORMAT_RGBA;
+				//	tex.setImage(i, new ImageComponent2D(format, decompressedImage));
+					
+					NioImageBuffer decompressedImage = new DDSDecompressor(ddsImage, i, filename).convertImageNio();
+					int format = decompressedImage.getImageType() == NioImageBuffer.ImageType.TYPE_INT_RGB ? ImageComponent.FORMAT_RGB : ImageComponent.FORMAT_RGBA;
+					tex.setImage(i, new ImageComponent2D(format, decompressedImage, true, true));
+				}
 			}
 
 			cacheTexture(filename, tex);
@@ -492,9 +514,9 @@ public abstract class CompressedTextureLoader
 			return tex;
 
 		}
-
 	}
 
+	//KTX is a continer for an image, the implied compress here is ETC2 https://en.wikipedia.org/wiki/Ericsson_Texture_Compression
 	public static class KTX extends CompressedTextureLoader
 	{
 		public static TextureUnitState getTextureUnitState(File file)
