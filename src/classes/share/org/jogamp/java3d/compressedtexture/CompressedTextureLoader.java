@@ -411,28 +411,32 @@ public abstract class CompressedTextureLoader {
 			levels = levels == 0 ? 1 : levels;
 
 			int mipMapMode = ddsImage.getNumMipMaps() <= 1 ? Texture.BASE_LEVEL : Texture.MULTI_LEVEL_MIPMAP;
-			//note Texture.RGBA is not used on the pipeline for compressed image, the buffered image holds that info
-			Texture2D tex = new Texture2D(mipMapMode, Texture.RGBA, ddsImage.getWidth(), ddsImage.getHeight());
+			
+			Texture2D tex;
+			
+			if (!DROP_0_MIP || levels == 1) {
 
-			tex.setName(filename);
+				//note Texture.RGBA is not used on the pipeline for compressed image, the buffered image holds that info
+				tex = new Texture2D(mipMapMode, Texture.RGBA, ddsImage.getWidth(), ddsImage.getHeight());
 
-			tex.setBaseLevel(0);
-			tex.setMaximumLevel(levels - 1);
+				tex.setName(filename);
 
-			tex.setBoundaryModeS(Texture.WRAP);
-			tex.setBoundaryModeT(Texture.WRAP);
+				tex.setBaseLevel(0);
+				tex.setMaximumLevel(levels - 1);
 
-			// better to let machine decide
-			tex.setMinFilter(Texture.NICEST);
-			tex.setMagFilter(Texture.NICEST);
+				tex.setBoundaryModeS(Texture.WRAP);
+				tex.setBoundaryModeT(Texture.WRAP);
 
-			//defaults to Texture.ANISOTROPIC_NONE
-			if (anisotropicFilterDegree > 0) {
-				tex.setAnisotropicFilterMode(Texture.ANISOTROPIC_SINGLE_VALUE);
-				tex.setAnisotropicFilterDegree(anisotropicFilterDegree);
-			}
+				// better to let machine decide
+				tex.setMinFilter(Texture.NICEST);
+				tex.setMagFilter(Texture.NICEST);
 
-			if (!DROP_0_MIP) {
+				//defaults to Texture.ANISOTROPIC_NONE
+				if (anisotropicFilterDegree > 0) {
+					tex.setAnisotropicFilterMode(Texture.ANISOTROPIC_SINGLE_VALUE);
+					tex.setAnisotropicFilterDegree(anisotropicFilterDegree);
+				}
+
 				for (int i = 0; i < levels; i++) {
 					if (!RETURN_DECOMPRESSED_DDS) {
 						BufferedImage image = new CompressedBufferedImage.DDS(ddsImage, i, filename);
@@ -452,10 +456,10 @@ public abstract class CompressedTextureLoader {
 					}
 				}
 			} else {
-				
-				
+
 				//RUBBISH CODE TO THROW AWAY LEVEL 0, MAKES EVERYHTING LOOKS GOD AWFUL
-				tex = new Texture2D(mipMapMode, Texture.RGBA, ddsImage.getMipMap(1).getWidth(), ddsImage.getMipMap(1).getHeight());
+				tex = new Texture2D(mipMapMode, Texture.RGBA, ddsImage.getMipMap(1).getWidth(),
+						ddsImage.getMipMap(1).getHeight());
 
 				tex.setName(filename);
 
@@ -474,14 +478,13 @@ public abstract class CompressedTextureLoader {
 					tex.setAnisotropicFilterMode(Texture.ANISOTROPIC_SINGLE_VALUE);
 					tex.setAnisotropicFilterDegree(anisotropicFilterDegree);
 				}
-				
-				 
+
 				// pull one higher and generally ruin the look of everything
-				for (int i = 0; i < levels-1 ; i++) {
+				for (int i = 0; i < levels - 1; i++) {
 					NioImageBuffer decompressedImage = new DDSDecompressor(ddsImage, i + 1, filename).convertImageNio();
 					int format = decompressedImage
 							.getImageType() == NioImageBuffer.ImageType.TYPE_INT_RGB ? ImageComponent.FORMAT_RGB : ImageComponent.FORMAT_RGBA;
-					
+
 					tex.setImage(i, new ImageComponent2D(format, decompressedImage, true, true));
 				}
 			}
