@@ -245,7 +245,7 @@ public abstract class CompressedTextureLoader {
 			return ret_val;
 		}
 
-		private static Texture2D createTexture(String filename, ASTCImage astcImage) {
+		protected static Texture2D createTexture(String filename, ASTCImage astcImage) {
 			Texture2D tex = new Texture2D(
 					astcImage.getNumMipMaps() <= 1 ? Texture.BASE_LEVEL : Texture.MULTI_LEVEL_MIPMAP, Texture.RGBA,
 					astcImage.getWidth(), astcImage.getHeight());
@@ -391,7 +391,7 @@ public abstract class CompressedTextureLoader {
 			return ret_val;
 		}
 
-		private static Texture2D createTexture(String filename, DDSImage ddsImage) {
+		protected static Texture2D createTexture(String filename, DDSImage ddsImage) {
 
 			// return null for unsupported types
 			if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_DXT2 //
@@ -610,7 +610,7 @@ public abstract class CompressedTextureLoader {
 
 		}
 
-		private static Texture2D createTexture(String filename, KTXImage ktxImage) {
+		protected static Texture2D createTexture(String filename, KTXImage ktxImage) {
 
 			// unsupported type will have failed already		
 
