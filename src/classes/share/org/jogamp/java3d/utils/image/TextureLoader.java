@@ -40,17 +40,32 @@
 package org.jogamp.java3d.utils.image;
 
 
+import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.URL;
+import java.nio.Buffer;
+import java.nio.BufferOverflowException;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.nio.channels.FileChannel;
 
-import javaawt.imageio.ImageIO;
-
+import org.jogamp.java3d.CompressedImageComponent2D;
 import org.jogamp.java3d.ImageComponent;
 import org.jogamp.java3d.ImageComponent2D;
 import org.jogamp.java3d.Texture;
 import org.jogamp.java3d.Texture2D;
 
+import compressedtexture.CompressedBufferedImage;
+import compressedtexture.KTXImage;
+import compressedtexture.dktxtools.ktx.KTXFormatException;
+import etcpack.ETCPack;
+import etcpack.ETCPack.FORMAT;
 import javaawt.image.BufferedImage;
+import javaawt.image.DataBuffer;
+import javaawt.image.DataBufferByte;
+import javaawt.image.DataBufferInt;
+import javaawt.imageio.ImageIO;
 
 /**
  * This class is used for loading a texture from an Image or BufferedImage.
@@ -86,7 +101,7 @@ public class TextureLoader extends Object {
 	 * @exception NullPointerException if bImage is null
 	 */
 	public TextureLoader(BufferedImage bImage) {
-		//TODO: surely y up is much better less copying involved? but images  are definately upside down		
+		//TODO: surely y up is much better less copying involved? but images are definitely upside down		
 		this(bImage, false);
 	}
 	
@@ -118,7 +133,7 @@ public class TextureLoader extends Object {
 		ImageComponent2D[] scaledImageComponents = null;
 		BufferedImage[] scaledBufferedImages = null;
 		if (tex == null) {
-
+			
 			int width;
 			int height;
 
@@ -127,14 +142,23 @@ public class TextureLoader extends Object {
 
 			scaledImageComponents = new ImageComponent2D[1];
 			scaledBufferedImages = new BufferedImage[1];
+			
+			// for phone to compress memory use down to 1/4
+			if(CONVERT_TO_ETC2 && (width*height) > (16*16)) {
+				tex = compressedToETC2(bufferedImage);
+			} 
 
-			// Create texture from image
-			scaledBufferedImages[0] = bufferedImage;
-			scaledImageComponents[0] = new ImageComponent2D(imageComponentFormat, scaledBufferedImages[0], byRef, yUp);
+			// if no compression or compression failed load normally
+			if(tex == null) {
 
-			tex = new Texture2D(Texture.BASE_LEVEL, textureFormat, width, height);
-
-			tex.setImage(0, scaledImageComponents[0]);
+				// Create texture from image
+				scaledBufferedImages[0] = bufferedImage;
+				scaledImageComponents[0] = new ImageComponent2D(imageComponentFormat, scaledBufferedImages[0], byRef, yUp);
+	
+				tex = new Texture2D(Texture.BASE_LEVEL, textureFormat, width, height);
+	
+				tex.setImage(0, scaledImageComponents[0]);
+			}
 		}
 		tex.setMinFilter(Texture.NICEST);// will cause mip maps to be used if auto generation enabled on device
 		tex.setMagFilter(Texture.NICEST);
@@ -189,19 +213,19 @@ public class TextureLoader extends Object {
      */
     public TextureLoader(final URL url) {                
 
-        bufferedImage = (BufferedImage)
-            java.security.AccessController.doPrivileged(
- 	        new java.security.PrivilegedAction() {
-                    @Override
-                    public Object run() {
-                        try {
-                            return ImageIO.read(url);
-                        } catch (IOException e) {
+	    bufferedImage = (BufferedImage)
+	        java.security.AccessController.doPrivileged(
+	        new java.security.PrivilegedAction() {
+	                @Override
+	                public Object run() {
+	                    try {
+	                        return ImageIO.read(url);
+	                    } catch (IOException e) {
 			    throw new ImageException(e);
-                        }
-                    }
-                }
-            );
+	                    }
+	                }
+	            }
+	        );
 
         if (bufferedImage==null) {
             throw new ImageException("Error loading image: " + url.toString());
@@ -215,18 +239,212 @@ public class TextureLoader extends Object {
 	    byRef = true;
 	
 	    yUp = true;
+	    
+	    id = url.toString();
 		
     }
+    
+    public String id = "UnknownETC2Image"+System.currentTimeMillis();
+    public static boolean CONVERT_TO_ETC2 = true; 
     
     /**
      * Returns the associated ImageComponent2D object
      *
      * @return The associated ImageComponent2D object
      */
-    public ImageComponent2D getImage() {
+    private ImageComponent2D getImage2() {
 	if (imageComponent == null)
             imageComponent = new ImageComponent2D(imageComponentFormat,
 						  bufferedImage, byRef, yUp);
         return imageComponent;
     }
+    
+ 
+    private Texture2D compressedToETC2(BufferedImage image) {
+    	
+    	
+ 
+    	
+    	
+		FORMAT format = FORMAT.ETC2PACKAGE_RGBA;
+    	
+    	switch (image.getType()) {
+    		case BufferedImage.TYPE_4BYTE_ABGR:
+    		case BufferedImage.TYPE_INT_ARGB:
+    			imageComponentFormat = ImageComponent.FORMAT_RGBA;
+    			textureFormat = Texture.RGBA;
+    			format = FORMAT.ETC2PACKAGE_RGBA;
+    			break;
+    		case BufferedImage.TYPE_3BYTE_BGR:
+    		case BufferedImage.TYPE_INT_BGR:
+    		case BufferedImage.TYPE_INT_RGB:
+    			imageComponentFormat = ImageComponent.FORMAT_RGB;
+    			textureFormat = Texture.RGB;
+    			format = FORMAT.ETC2PACKAGE_RGB;
+    			break;
+    		case BufferedImage.TYPE_CUSTOM:
+    			throw new UnsupportedOperationException("BufferedImage.TYPE_CUSTOM! " +id);
+
+    		default:
+    			// System.err.println("Unoptimized Image Type "+image.getType());
+    			imageComponentFormat = ImageComponent.FORMAT_RGBA;
+    			textureFormat = Texture.RGBA;
+    			format = FORMAT.ETC2PACKAGE_RGBA;
+    			break;
+    		}
+    	 
+		
+			Buffer b = null;
+			DataBuffer db = image.getRaster().getDataBuffer();
+
+			if (db instanceof DataBufferByte) {
+				byte[] srcByteBuffer = ((DataBufferByte)db).getData();
+				b = ByteBuffer.wrap(srcByteBuffer);
+			} else if (db instanceof DataBufferInt) {
+				int[] srcIntBuffer = ((DataBufferInt)db).getData();
+				b = IntBuffer.wrap(srcIntBuffer);
+			}
+         
+			byte[] img = null;
+			byte[] imgalpha = null;
+			
+			
+		if (b instanceof ByteBuffer) {
+			//ok so now find the RGB or RGBA byte buffers
+			ByteBuffer bb = (ByteBuffer)b;
+			
+			if (image.getType() == BufferedImage.TYPE_3BYTE_BGR) {
+				// just put the BGR data straight into the img byte array (RGB)
+				img = new byte[bb.capacity()];
+				for (int i = 0; i < bb.capacity()/3; i++) {
+					img [i * 3 + 2] = bb.get();	//B				
+					img [i * 3 + 1] = bb.get(); //G
+					img [i * 3 + 0] = bb.get();	//R			
+				}
+			} else if (image.getType() == BufferedImage.TYPE_4BYTE_ABGR) {	
+				// copy RGB 3 sets out then 1 sets of alpha 
+				img = new byte[(bb.capacity() / 4) * 3];
+				imgalpha = new byte[(bb.capacity() / 4)];
+				for (int i = 0; i < bb.capacity()/4; i++) {
+					imgalpha [i] = bb.get(); //A
+					img [i * 3 + 2] = bb.get();	//B				
+					img [i * 3 + 1] = bb.get(); //G
+					img [i * 3 + 0] = bb.get();	//R			
+				}
+			} else {
+				System.err.println("Bad Image Type " + id);
+				return null;
+			}
+		} else if (b instanceof IntBuffer) {
+			
+			IntBuffer ib = (IntBuffer)b;
+			int[] temp = new int[ib.capacity()];
+			ib.get(temp, 0, ib.capacity());
+			img = new byte[ib.capacity()*3];
+			
+			if (image.getType() == BufferedImage.TYPE_INT_RGB) {
+				// just put the RGB data straight into the img byte array 
+				for (int i = 0; i < img.length / 3; i++) {
+					img [i * 3 + 0] = (byte)(temp [i * 4 + 0] & 0x00ff0000);
+					img [i * 3 + 1] = (byte)(temp [i * 4 + 1] & 0x0000ff00);
+					img [i * 3 + 2] = (byte)(temp [i * 4 + 2] & 0x000000ff);
+				}				 
+			} else if (image.getType() == BufferedImage.TYPE_INT_ARGB) {				
+				// copy RGB 3 sets out then 1 sets of alpha 				
+				imgalpha = new byte[(ib.capacity())];
+				for (int i = 0; i < img.length / 3; i++) {
+					img [i * 3 + 0] = (byte)(temp [i * 4 + 0] & 0x00ff0000);
+					img [i * 3 + 1] = (byte)(temp [i * 4 + 1] & 0x0000ff00);
+					img [i * 3 + 2] = (byte)(temp [i * 4 + 2] & 0x000000ff);
+					imgalpha [i] = (byte)(temp [i * 4 + 3] & 0xff000000);
+				}
+			} else {
+				System.err.println("Bad Image Type " + id);
+				return null;
+			}
+		} else {
+			System.err.println("Not a ByteBuffer " + b);
+			return null;
+		}
+
+		KTXImage ktxImage = null;
+		ByteBuffer ktxBB = null;
+		try {
+			ETCPack ep = new ETCPack();
+			// notice renovations wats only base level it makes many assumptions
+			ktxBB = ep.compressImageToByteBuffer(img, imgalpha, image.getWidth(), image.getHeight(), format, false);
+
+			ktxImage = new KTXImage(ktxBB);
+		} catch (KTXFormatException e) {
+			System.out.println("KTX image " + id);
+			e.printStackTrace();
+			return null;
+		} catch (IOException e) {
+			System.out.println("KTX image" + id);
+			e.printStackTrace();
+			return null;
+		} catch (BufferOverflowException e) {
+			System.out.println("KTX image" + id);
+			e.printStackTrace();
+			return null;
+		} catch (IllegalArgumentException e) {
+			System.out.println("KTX image" + id);
+			e.printStackTrace();
+			return null;
+		}
+		
+
+		int levels = ktxImage.getNumMipMaps();
+		// now check how big it should be! sometime these things run out with 0 width or 0 height size images
+		int levels2 = Math.min(computeLog(ktxImage.getWidth()), computeLog(ktxImage.getHeight())) + 1;
+		// use the lower of the two, to avoid 0 sizes going to the driver
+		levels = levels > levels2 ? levels2 : levels;
+
+		// always 1 level
+		if (levels == 0) {
+			return null;
+		}
+
+		int mipMapMode = ktxImage.getNumMipMaps() <= 1 ? Texture.BASE_LEVEL : Texture.MULTI_LEVEL_MIPMAP;
+
+		//note Texture.RGBA is not used on the pipeline for compressed image, the buffered image holds that info
+		tex = new Texture2D(mipMapMode, Texture.RGBA, ktxImage.getWidth(), ktxImage.getHeight());
+
+		tex.setName(id);
+
+		tex.setBaseLevel(0);
+		tex.setMaximumLevel(levels - 1);
+
+		tex.setBoundaryModeS(Texture.WRAP);
+		tex.setBoundaryModeT(Texture.WRAP);
+
+		// better to let machine decide
+		tex.setMinFilter(Texture.NICEST);
+		tex.setMagFilter(Texture.NICEST);
+
+		/*for (int i = 0; i < levels; i++) {
+			BufferedImage cbi = new CompressedBufferedImage.KTX(ktxImage, i, id);
+			tex.setImage(i, new CompressedImageComponent2D(ImageComponent.FORMAT_RGBA, cbi));
+		}*/
+		
+		//cacheTexture(id, tex);
+		
+		bufferedImage = new CompressedBufferedImage.KTX(ktxImage, 0, id);
+		imageComponent = new CompressedImageComponent2D(ImageComponent.FORMAT_RGBA, bufferedImage);
+		tex.setImage(0, imageComponent);
+		
+		return tex;
+    }
+    protected static int computeLog(int value) {
+		int i = 0;
+
+		if (value == 0)
+			return -1;
+		for (;;) {
+			if (value == 1)
+				return i;
+			value >>= 1;
+			i++;
+		}
+	}
 }
