@@ -4,7 +4,7 @@
   
   <groupId>org.jogamp.java3d</groupId>
   <artifactId>java3d-utils-and</artifactId>
-  <version>1.7.1</version>
+  <version>1.7.2</version>
   
   <name>Java 3D Utils for Android</name>
   <description>Extension of the Utility functions for the Java 3D Graphics API</description>
@@ -39,7 +39,7 @@
 	</scm>
 	
 	<properties>
-		<jogamp.version>2.4.0</jogamp.version>
+		<jogamp.version>2.5.0</jogamp.version>
 
 		<!-- NB: Avoid platform encoding warning when copying resources. -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
