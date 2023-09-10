@@ -421,7 +421,7 @@ public class SimpleShaderAppearance extends ShaderAppearance {
 		if(!this.getCapability(ALLOW_MATERIAL_READ))
 			this.setCapability(ALLOW_MATERIAL_READ);
 		if(!this.getCapability(ALLOW_TEXTURE_UNIT_STATE_READ))
-			this.setCapability(ALLOW_TEXTURE_UNIT_STATE_READ);// TODO: do I need to mod the tus as well?
+			this.setCapability(ALLOW_TEXTURE_UNIT_STATE_READ);
 		if(!this.getCapability(ALLOW_TEXTURE_READ))
 			this.setCapability(ALLOW_TEXTURE_READ);
 		if(!this.getCapability(ALLOW_POLYGON_ATTRIBUTES_READ))
@@ -463,9 +463,13 @@ public class SimpleShaderAppearance extends ShaderAppearance {
 							|| (this.getCapability(ALLOW_SHADER_PROGRAM_WRITE) && this.getCapability(ALLOW_SHADER_ATTRIBUTE_SET_WRITE))))
 			{
 				boolean hasTexture = this.getTexture() != null || this.getTextureUnitCount() > 0;
-				if (this.getTextureUnitCount() > 0)
-					System.out.println("this.getTextureUnitCount() " + this.getTextureUnitCount());
-				boolean lit = this.getMaterial() != null; // having material== lit geometry
+				
+				if (this.getTextureUnitCount() > 1)
+					System.out.println("Multiple texture unit states aren't supported by SimpleShaderAppearance this.getTextureUnitCount() = " + this.getTextureUnitCount());
+				
+				boolean lit = false;
+				if(this.getMaterial() != null)
+					lit = this.getMaterial().getLightingEnable();
 
 				//POLYGON_LINE and POLYGON_POINT are not lit
 				lit = lit && (this.getPolygonAttributes() == null
@@ -479,10 +483,18 @@ public class SimpleShaderAppearance extends ShaderAppearance {
 					this.getTextureAttributes().getTextureTransform(t);
 					hasTextureAttributeTransform = t.getBestType() != Transform3D.IDENTITY;
 				} else if (this.getTextureUnitCount() > 0) {
-					//only the first is dealt with?
-					Transform3D t = new Transform3D();
-					this.getTextureUnitState(0).getTextureAttributes().getTextureTransform(t);
-					hasTextureAttributeTransform = t.getBestType() != Transform3D.IDENTITY;
+					if (getTextureUnitState(0) == null) {
+						System.out.println(
+								"SimpleShaderAppearance getTextureUnitState(0) == null but getTextureUnitCount() = "
+											+ this.getTextureUnitCount());
+					} else {
+						//only the first is dealt with
+						Transform3D t = new Transform3D();
+						if (this.getTextureUnitState(0).getTextureAttributes() != null) {
+							this.getTextureUnitState(0).getTextureAttributes().getTextureTransform(t);
+							hasTextureAttributeTransform = t.getBestType() != Transform3D.IDENTITY;
+						} 
+					}
 				}
 				build(hasTexture, lit, hasTextureCoordGen, hasTextureAttributeTransform);
 			} else {
@@ -764,9 +776,16 @@ public class SimpleShaderAppearance extends ShaderAppearance {
 					vertexProgram += vertexAttributeInString + " vec4 glVertex;\n";
 					if (!hasTextureCoordGen) {
 						vertexProgram += vertexAttributeInString + " vec2 glMultiTexCoord0;\n";
-					} else {
-						vertexProgram += "uniform vec4 texCoordGenPlaneS;\n";
-						vertexProgram += "uniform vec4 texCoordGenPlaneT;\n";
+					} else {						
+						if (texCoordGeneration.getGenMode() == TexCoordGeneration.OBJECT_LINEAR
+									|| texCoordGeneration.getGenMode() == TexCoordGeneration.EYE_LINEAR) {
+							vertexProgram += "uniform vec4 texCoordGenPlaneS;\n";
+							vertexProgram += "uniform vec4 texCoordGenPlaneT;\n";
+						} else if ( texCoordGeneration.getGenMode() == TexCoordGeneration.SPHERE_MAP) {
+							vertexProgram += vertexAttributeInString + " vec3 glNormal; \n";
+							vertexProgram += "uniform mat4 glModelViewMatrix;\n";
+							vertexProgram += "uniform mat3 glNormalMatrix;\n";
+						}
 					}
 					if(hasTextureAttributeTransform) {
 						vertexProgram += "uniform mat4 textureTransform;\n";
@@ -1002,16 +1021,29 @@ public class SimpleShaderAppearance extends ShaderAppearance {
 
 	@Override
 	public void setTextureUnitState(TextureUnitState[] stateArray){
-		//TODO: need to address the texture coord generator that might be hidden in here?
-		System.out.println("SimpleShaderAppearance with textureunitstates in use");
+		if(stateArray.length > 1)
+			System.out.println("SimpleShaderAppearance with muliple textureunitstates in use");
+		
 		super.setTextureUnitState(stateArray);
+		
+		if( stateArray[0] != null && stateArray[0].getTexCoordGeneration() != null) {
+			this.texCoordGeneration = stateArray[0].getTexCoordGeneration();
+			stateArray[0].setTexCoordGeneration(null);//blank it so it doesn't get to the pipeline
+		}
 		rebuildShaders();
 	}
 
 	@Override
 	public void setTextureUnitState(int index, TextureUnitState state) {
-		System.out.println("SimpleShaderAppearance with textureunitstates in use");
+		if( index > 0 )
+			System.out.println("SimpleShaderAppearance with muliple textureunitstates in use");
+		
 		super.setTextureUnitState(index, state);
+		
+		if( index == 0 && state.getTexCoordGeneration() != null) {
+			this.texCoordGeneration = state.getTexCoordGeneration();
+			state.setTexCoordGeneration(null);//blank it so it doesn't get to the pipeline
+		}
 		rebuildShaders();
 	}
 
