@@ -488,12 +488,15 @@ public class SimpleShaderAppearance extends ShaderAppearance {
 								"SimpleShaderAppearance getTextureUnitState(0) == null but getTextureUnitCount() = "
 											+ this.getTextureUnitCount());
 					} else {
-						//only the first is dealt with
-						Transform3D t = new Transform3D();
-						if (this.getTextureUnitState(0).getTextureAttributes() != null) {
-							this.getTextureUnitState(0).getTextureAttributes().getTextureTransform(t);
-							hasTextureAttributeTransform = t.getBestType() != Transform3D.IDENTITY;
-						} 
+						TextureUnitState tus0 = this.getTextureUnitState(0);
+						if(tus0 != null && tus0.getCapability(TextureUnitState.ALLOW_STATE_READ)) {
+							//only the first is dealt with
+							Transform3D t = new Transform3D();
+							if (this.getTextureUnitState(0).getTextureAttributes() != null) {
+								this.getTextureUnitState(0).getTextureAttributes().getTextureTransform(t);
+								hasTextureAttributeTransform = t.getBestType() != Transform3D.IDENTITY;
+							} 
+						}
 					}
 				}
 				build(hasTexture, lit, hasTextureCoordGen, hasTextureAttributeTransform);
@@ -1026,7 +1029,7 @@ public class SimpleShaderAppearance extends ShaderAppearance {
 		
 		super.setTextureUnitState(stateArray);
 		
-		if( stateArray[0] != null && stateArray[0].getTexCoordGeneration() != null) {
+		if( stateArray[0] != null && stateArray[0].getCapability(TextureUnitState.ALLOW_STATE_READ) &&  stateArray[0].getTexCoordGeneration() != null) {
 			this.texCoordGeneration = stateArray[0].getTexCoordGeneration();
 			stateArray[0].setTexCoordGeneration(null);//blank it so it doesn't get to the pipeline
 		}
