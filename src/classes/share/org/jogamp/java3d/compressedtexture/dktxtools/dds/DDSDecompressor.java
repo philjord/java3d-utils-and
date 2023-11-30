@@ -277,7 +277,9 @@ public class DDSDecompressor {
 					for (int bc = 0; bc < blockWidth; bc++) {
 						int k = (br * blockWidth) + bc;
 						int alpha = (int)(alphaData >>> (k * 4)) & 0xF; // Alphas are just 4 bits per pixel
-						alpha <<= 4;
+						// the original code is like *16 =>   alpha <<= 4;
+						// but 0-15 needs *17 for 15==255
+						alpha *= 17;
 
 						int colorIndex = (colorIndexMask >>> k * 2) & 0x03;
 
@@ -602,7 +604,12 @@ public class DDSDecompressor {
 					for (int bc = 0; bc < blockWidth; bc++) {
 						int k = (br * blockWidth) + bc;
 						int alpha = (int)(alphaData >>> (k * 4)) & 0xF; // Alphas are just 4 bits per pixel
-						alpha <<= 4;
+						// the original code is like *16 =>   alpha <<= 4;
+						// but 0-15 needs *17 for 15==255
+						// Here, we should really multiply by 17 instead of 16. This can
+						// be done by just copying the four lower bits to the upper ones
+						// while keeping the lower bits.
+						alpha = (byte)(alpha | (alpha <<4));
 
 						int colorIndex = (colorIndexMask >>> k * 2) & 0x03;
 
