@@ -34,6 +34,8 @@ public class DDSDecompressor {
 	private int					height;
 
 	private String				imageName	= "";
+	
+	private boolean 			opaque = true;
 
 	/**
 	 * 
@@ -49,6 +51,7 @@ public class DDSDecompressor {
 		this.width = imageInfo.getWidth();
 		this.height = imageInfo.getHeight();
 		this.buffer = imageInfo.getData();
+		this.opaque = true;
 	}
 
 	public String getImageName() {
@@ -65,6 +68,14 @@ public class DDSDecompressor {
 
 	public int getType() {
 		return BufferedImage.TYPE_INT_ARGB;
+	}
+	
+	/**
+	 * Can only be queried after decompression
+	 * @return
+	 */
+	public boolean decompressedIsOpaque() {
+		return opaque;
 	}
 
 	/**
@@ -228,6 +239,10 @@ public class DDSDecompressor {
 							int k = (br * blockWidth) + bc;
 							int colorIndex = (colorIndexMask >>> k * 2) & 0x03;
 							int alpha = (colorIndex == 3) ? 0x00 : 0xFF;
+														
+							if( alpha != 255)
+								opaque = false;
+							
 							// for yUp must flip it , so NOT pixels[br  * blockWidth + bc] = (alpha << 24) | lookupTable[colorIndex].pix888;
 							pixels [((blockHeight - 1) - br) * blockWidth + bc] = (alpha << 24)
 																					| lookupTable [colorIndex].pix888;
@@ -270,6 +285,10 @@ public class DDSDecompressor {
 				short minColor = buffer.getShort();
 				short maxColor = buffer.getShort();
 				int colorIndexMask = buffer.getInt();
+				
+				//-1 is all bits on which is 255 for all pixels or opaque
+				if( alphaData != -1)
+					opaque = false;
 
 				Color24[] lookupTable = Color24.expandLookupTable(table, minColor, maxColor);
 
@@ -361,8 +380,11 @@ public class DDSDecompressor {
 								alpha = 255;
 							else
 								alpha = ((6 - alphaCode) * alpha0 + (alphaCode - 1) * alpha1) / 5;
-
 						}
+						
+						//255 pixel is opaque
+						if( alpha != 255)
+							opaque = false;
 
 						int colorIndex = (colorIndexMask >>> k * 2) & 0x03;
 
@@ -553,6 +575,10 @@ public class DDSDecompressor {
 							int k = (br * blockWidth) + bc;
 							int colorIndex = (colorIndexMask >>> k * 2) & 0x03;
 							int alpha = (colorIndex == 3) ? 0x00 : 0xFF;
+							
+							//255 pixel is opaque
+							if( alpha != 255)
+								opaque = false;
 
 							Color24 color = lookupTable [colorIndex];	
 							int pixel8888 = (alpha << 24) | (color.b << 16) | (color.g << 8) | (color.r << 0);
@@ -590,13 +616,17 @@ public class DDSDecompressor {
 		table [1] = new Color24();
 		table [2] = new Color24();
 		table [3] = new Color24();
-
+		
 		for (int row = 0; row < numBlocksHigh; row++) {
 			for (int col = 0; col < numBlocksWide; col++) {
 				long alphaData = buffer.getLong();
 				short minColor = buffer.getShort();
 				short maxColor = buffer.getShort();
 				int colorIndexMask = buffer.getInt();
+				
+				//-1 is all bits on which is 255 for all pixels or opaque
+				if( alphaData != -1)
+					opaque = false;
 
 				Color24[] lookupTable = Color24.expandLookupTable(table, minColor, maxColor);
 
@@ -656,7 +686,7 @@ public class DDSDecompressor {
 		table [1] = new Color24();
 		table [2] = new Color24();
 		table [3] = new Color24();
-
+		
 		for (int row = 0; row < numBlocksHigh; row++) {
 			for (int col = 0; col < numBlocksWide; col++) {
 				int alpha0 = buffer.get() & 0xff; //unsigned byte
@@ -673,6 +703,8 @@ public class DDSDecompressor {
 				short minColor = buffer.getShort();
 				short maxColor = buffer.getShort();
 				int colorIndexMask = buffer.getInt();
+				
+				
 
 				Color24[] lookupTable = Color24.expandLookupTable(table, minColor, maxColor);
 
@@ -699,7 +731,11 @@ public class DDSDecompressor {
 								alpha = ((6 - alphaCode) * alpha0 + (alphaCode - 1) * alpha1) / 5;
 
 						}
-
+						
+						//255 pixel is opaque
+						if( alpha != 255)
+							opaque = false;
+						
 						int colorIndex = (colorIndexMask >>> k * 2) & 0x03;
 
 						Color24 color = lookupTable [colorIndex];
