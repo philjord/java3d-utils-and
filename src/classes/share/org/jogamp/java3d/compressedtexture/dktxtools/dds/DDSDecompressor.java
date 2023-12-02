@@ -442,6 +442,8 @@ public class DDSDecompressor {
 			return decompressRGBA_S3TC_DXT5_EXTNio();
 		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_R8G8B8) {
 			return decodeR8G8B8Nio();
+		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_L8) {
+			return decodeL8Nio();
 		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_A8R8G8B8) {
 			return decodeA8R8G8B8Nio();
 		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_X8R8G8B8) {
@@ -449,6 +451,18 @@ public class DDSDecompressor {
 		} else if (ddsImage.getPixelFormat() == DDSImage.DDS_A16B16G16R16F) {
 			return decodeA16R16G16B16Nio();
 		}
+		
+		//Possibly we have got an L8 format, 
+		//D:\game_media\Oblivion\Oblivion - Textures - Compressed\textures\architecture\anvil\arcanesymbol01_g.dds
+		
+		//L8 seems to have a single channel that's repeat across RGB to show are a grey scale results
+		//_g.dds must be glow
+		
+		
+		//https://www.gamedev.net/forums/topic/575505-d3dfmt_l8-to-argb-color/575505/
+		//https://learn.microsoft.com/en-us/windows/win32/direct3d9/d3dformat
+		
+		
 		System.err.println("BAD DXT format!! " + ddsImage.getPixelFormat());
 		return null;
 	}
@@ -465,6 +479,18 @@ public class DDSDecompressor {
 		}
 		//NOTE disagrees with fixed getType below
 		return new NioImageBuffer(width, height, ImageType.TYPE_INT_RGB, pixels);
+	}
+	
+	private NioImageBuffer decodeL8Nio() {
+		ByteBuffer pixels = ByteBuffer.allocateDirect(width * height * 1).order(ByteOrder.nativeOrder());
+ 
+		// reverse to flip Y
+		for (int y = height - 1; y >= 0; y--) {
+			for (int x = 0; x < width; x++) {
+				pixels.put(buffer.get());
+			}
+		}
+		return new NioImageBuffer(width, height, ImageType.TYPE_BYTE_GRAY, pixels);
 	}
 
 	private NioImageBuffer decodeA8R8G8B8Nio() {
