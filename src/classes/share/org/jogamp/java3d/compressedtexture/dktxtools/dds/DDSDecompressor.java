@@ -422,33 +422,29 @@ public class DDSDecompressor {
 		buffer.rewind();
 		buffer.order(ByteOrder.LITTLE_ENDIAN);
 
-		if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_DXT1) {
-			//System.out.println("DXT1");
-			if (!ddsImage.isPixelFormatFlagSet(DDSImage.DDPF_ALPHAPIXELS)) {
-				//TODO: how do I discover no alpha flag? 
-				//C:\game media\Black Prophecy\Textures\avatar_ai_pilot_f3_05.dds wants no alpha flag
-				//possibly no mips maps indicates this?
-				return decodeDxt1BufferNio();
-			} else {
-				System.out.println("Alpha present in DXT1!; mip num = " + mipNumber);
-				//return decompressRGBA_S3TC_DXT1_EXT(ddsImage.getMipMap(mipNumber));
-			}
-		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_DXT3) {
+		int fmt = ddsImage.getPixelFormat();
+		if (fmt == DDSImage.D3DFMT_DXT1) {
+			return decodeDxt1BufferNio();
+		} else if (fmt == DDSImage.D3DFMT_DXT3) {
 			return decodeDxt3BufferNio();
-		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_DXT5) {
+		} else if (fmt == DDSImage.D3DFMT_DXT5) {
 			return decompressRGBA_S3TC_DXT5_EXTNio();
-		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_ATI2) {
+		} else if (fmt == DDSImage.D3DFMT_ATI2) {
 			// NOT correct but it gives you the idea a bit
 			return decompressRGBA_S3TC_DXT5_EXTNio();
-		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_R8G8B8) {
+		} else if (fmt == DDSImage.D3DFMT_R8G8B8) {
 			return decodeR8G8B8Nio();
-		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_L8) {
+		} else if (fmt == DDSImage.D3DFMT_L8) {
 			return decodeL8Nio();
-		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_A8R8G8B8) {
+		}  else if (fmt == DDSImage.D3DFMT_A8L8) {
+			return decodeA8L8Nio();
+		}  else if (fmt == DDSImage.D3DFMT_A4R4G4B4) {
+			return decodeA4R4G4B4Nio();
+		} else if (fmt == DDSImage.D3DFMT_A8R8G8B8) {
 			return decodeA8R8G8B8Nio();
-		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_X8R8G8B8) {
+		} else if (fmt == DDSImage.D3DFMT_X8R8G8B8) {
 			return decodeA8R8G8B8Nio();
-		} else if (ddsImage.getPixelFormat() == DDSImage.DDS_A16B16G16R16F) {
+		} else if (fmt == DDSImage.DDS_A16B16G16R16F) {
 			return decodeA16R16G16B16Nio();
 		}
 		
@@ -461,20 +457,20 @@ public class DDSDecompressor {
 		
 		//https://www.gamedev.net/forums/topic/575505-d3dfmt_l8-to-argb-color/575505/
 		//https://learn.microsoft.com/en-us/windows/win32/direct3d9/d3dformat
-		
-		
 		System.err.println("BAD DXT format!! " + ddsImage.getPixelFormat());
+		ddsImage.debugPrint();
+		
 		return null;
 	}
 
 	private NioImageBuffer decodeR8G8B8Nio() {
-		ByteBuffer directBuffer = ByteBuffer.allocateDirect(width * height * 4).order(ByteOrder.nativeOrder());
+		ByteBuffer directBuffer = ByteBuffer.allocateDirect(width * height * 3).order(ByteOrder.nativeOrder());
 		IntBuffer pixels = directBuffer.asIntBuffer();
-		// reverse to flip Y
+		// reverse to flip Y - noting I'm undoing the reverse just below?? odd?
 		for (int y = height - 1; y >= 0; y--) {
 			for (int x = 0; x < width; x++) {
-				pixels.put((y * width) + x,(buffer.get() & 0xff) << 24 | (buffer.get() & 0xff) << 16
-											| (buffer.get() & 0xff) << 8);
+				pixels.put((y * width) + x,(buffer.get() & 0xff) << 16 | (buffer.get() & 0xff) << 8
+											| (buffer.get() & 0xff) << 0);
 			}
 		}
 		//NOTE disagrees with fixed getType below
@@ -491,6 +487,49 @@ public class DDSDecompressor {
 			}
 		}
 		return new NioImageBuffer(width, height, ImageType.TYPE_BYTE_GRAY, pixels);
+	}
+		
+	private NioImageBuffer decodeA8L8Nio() {
+		ByteBuffer directBuffer = ByteBuffer.allocateDirect(width * height * 4).order(ByteOrder.nativeOrder());
+		IntBuffer pixels = directBuffer.asIntBuffer();
+ 
+		// reverse to flip Y - noting I'm undoing the reverse just below?? odd?
+		for (int y = height - 1; y >= 0; y--) {
+			for (int x = 0; x < width; x++) {
+				byte A = buffer.get();
+				byte L = buffer.get();
+				
+				pixels.put((y * width) + x, (L & 0xff) << 24
+						| (L & 0xff) << 16 | (L & 0xff) << 8 | (A & 0xff) << 0);
+			}
+		}
+		
+		//wastefully repeat L8 into the RGB slots
+		return new NioImageBuffer(width, height, ImageType.TYPE_4BYTE_RGBA, pixels);
+	}
+	
+	
+	private NioImageBuffer decodeA4R4G4B4Nio() {
+		ByteBuffer directBuffer = ByteBuffer.allocateDirect(width * height * 4).order(ByteOrder.nativeOrder());
+		IntBuffer pixels = directBuffer.asIntBuffer();
+ 
+		// reverse to flip Y - noting I'm undoing the reverse just below?? odd?
+		for (int y = height - 1; y >= 0; y--) {
+			for (int x = 0; x < width; x++) {
+				
+				byte bg = buffer.get();
+				int b = ((bg & 0xF0) >> 4) * 17;
+				int g = (bg & 0x0F) * 17;
+				byte ra = buffer.get();
+				int r = ((ra & 0xF0) >> 4) * 17;
+				int a  = (ra & 0x0F) * 17;
+				
+				pixels.put((r & 0xff) << 24
+						| (g & 0xff) << 16 | (b & 0xff) << 8 | (a & 0xff) << 0);
+			}
+		}
+		
+		return new NioImageBuffer(width, height, ImageType.TYPE_4BYTE_RGBA, directBuffer);
 	}
 
 	private NioImageBuffer decodeA8R8G8B8Nio() {
