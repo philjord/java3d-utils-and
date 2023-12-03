@@ -446,6 +446,8 @@ public class DDSDecompressor {
 			return decodeA8R8G8B8Nio();
 		} else if (fmt == DDSImage.DDS_A16B16G16R16F) {
 			return decodeA16R16G16B16Nio();
+		} else if (fmt == DDSImage.D3DFMT_R5G6B5) {
+			return decodeR5G6B5Nio();
 		}
 		
 		//Possibly we have got an L8 format, 
@@ -462,19 +464,41 @@ public class DDSDecompressor {
 		
 		return null;
 	}
-
+	
+	
+	private NioImageBuffer decodeR5G6B5Nio() {
+		ByteBuffer directBuffer = ByteBuffer.allocateDirect(width * height * 3).order(ByteOrder.nativeOrder());
+		 
+ 
+		Color24 c = new Color24();
+		
+		// reverse to flip Y 
+		for (int y = height - 1; y >= 0; y--) {
+			for (int x = 0; x < width; x++) {				
+				//header.pfRBitMask == 0xF800 && header.pfGBitMask == 0x07E0&& header.pfBBitMask == 0x001F)
+				Color24.fromShort565(c, buffer.getShort());					
+				directBuffer.put((byte)c.r);
+				directBuffer.put((byte)c.g);
+				directBuffer.put((byte)c.b);
+			}
+		}
+		
+		return new NioImageBuffer(width, height, ImageType.TYPE_3BYTE_RGB, directBuffer);
+	}
+	
 	private NioImageBuffer decodeR8G8B8Nio() {
 		ByteBuffer directBuffer = ByteBuffer.allocateDirect(width * height * 3).order(ByteOrder.nativeOrder());
-		IntBuffer pixels = directBuffer.asIntBuffer();
-		// reverse to flip Y - noting I'm undoing the reverse just below?? odd?
+		 
+		// reverse to flip Y
 		for (int y = height - 1; y >= 0; y--) {
 			for (int x = 0; x < width; x++) {
-				pixels.put((y * width) + x,(buffer.get() & 0xff) << 16 | (buffer.get() & 0xff) << 8
-											| (buffer.get() & 0xff) << 0);
+				directBuffer.put(buffer.get());
+				directBuffer.put(buffer.get());
+				directBuffer.put(buffer.get());
 			}
 		}
 		//NOTE disagrees with fixed getType below
-		return new NioImageBuffer(width, height, ImageType.TYPE_INT_RGB, pixels);
+		return new NioImageBuffer(width, height, ImageType.TYPE_3BYTE_RGB, directBuffer);
 	}
 	
 	private NioImageBuffer decodeL8Nio() {
@@ -513,7 +537,7 @@ public class DDSDecompressor {
 		ByteBuffer directBuffer = ByteBuffer.allocateDirect(width * height * 4).order(ByteOrder.nativeOrder());
 		IntBuffer pixels = directBuffer.asIntBuffer();
  
-		// reverse to flip Y - noting I'm undoing the reverse just below?? odd?
+		// reverse to flip Y
 		for (int y = height - 1; y >= 0; y--) {
 			for (int x = 0; x < width; x++) {
 				
@@ -535,11 +559,14 @@ public class DDSDecompressor {
 	private NioImageBuffer decodeA8R8G8B8Nio() {
 
 		ByteBuffer directBuffer = ByteBuffer.allocateDirect(width * height * 4).order(ByteOrder.nativeOrder());
-		IntBuffer pixels = directBuffer.asIntBuffer();
 		// reverse to flip Y
 		for (int y = height - 1; y >= 0; y--) {
 			for (int x = 0; x < width; x++) {
-				pixels.put((y * width) + x,buffer.getInt());
+				byte a = buffer.get();	// swapped to end			
+				directBuffer.put(buffer.get());
+				directBuffer.put(buffer.get());
+				directBuffer.put(buffer.get());
+				directBuffer.put(a);
 			}
 		}
 		return new NioImageBuffer(width, height, ImageType.TYPE_4BYTE_RGBA, directBuffer);
