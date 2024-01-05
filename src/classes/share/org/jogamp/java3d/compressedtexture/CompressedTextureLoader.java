@@ -137,6 +137,43 @@ public abstract class CompressedTextureLoader {
 			return ByteBuffer.wrap(out.toByteArray());
 		}
 	}
+	
+	public static class UNKNOWN extends CompressedTextureLoader {
+		public static Texture getTexture(String filename, InputStream inputStream) {
+			try {
+				return getTexture(filename, toByteBuffer(inputStream));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			return null;
+		}
+		public static Texture getTexture(String filename, ByteBuffer inputBuffer) {
+			// KTX most likely then DDS then ASTC, each will just fail with exception
+			inputBuffer.mark();
+			try {
+				new KTXImage(inputBuffer);
+				inputBuffer.reset();
+				return KTX.getTexture(filename, inputBuffer);
+			} catch (IOException e1) {
+				try {
+					inputBuffer.reset();
+					DDSImage.read(inputBuffer);
+					inputBuffer.reset();
+					return DDS.getTexture(filename, inputBuffer);
+				} catch (IOException e2) {
+					try {
+						inputBuffer.reset();
+						new ASTCImage(inputBuffer);
+						inputBuffer.reset();
+						return ASTC.getTexture(filename, inputBuffer);
+					} catch (IOException e) {
+						System.out.println("IO problem with " + filename + " : it is not KTX, DDS, nor ASTC");
+						return null;
+					}
+				}
+			}
+		}
+	}
 
 	//ASTC = https://en.wikipedia.org/wiki/Adaptive_scalable_texture_compression can be found in a ktx container
 	public static class ASTC extends CompressedTextureLoader {
@@ -214,7 +251,6 @@ public abstract class CompressedTextureLoader {
 			if (ret_val == null) {
 				try {
 					ASTCImage astcImage = new ASTCImage(toByteBuffer(inputStream));
-
 					Texture2D tex = createTexture(filename, astcImage);
 					ret_val = tex;
 				} catch (IOException e) {
@@ -238,9 +274,15 @@ public abstract class CompressedTextureLoader {
 			Texture ret_val = checkCachedTexture(filename);
 
 			if (ret_val == null) {
-				ASTCImage astcImage = new ASTCImage(inputBuffer);
-				Texture2D tex = createTexture(filename, astcImage);
-				ret_val = tex;
+				try {
+					ASTCImage astcImage = new ASTCImage(inputBuffer);
+					Texture2D tex = createTexture(filename, astcImage);
+					ret_val = tex;
+				} catch (IOException e) {
+					System.out.println(""	+ ASTC.class + " had a  IO problem with " + filename + " : " + e + " "
+										+ e.getStackTrace() [0]);
+					return null;
+				}
 			}
 			return ret_val;
 		}
