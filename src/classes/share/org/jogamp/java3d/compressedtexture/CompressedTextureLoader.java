@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 
 import org.jogamp.java3d.CompressedImageComponent2D;
 import org.jogamp.java3d.ImageComponent;
@@ -15,11 +16,14 @@ import org.jogamp.java3d.Texture;
 import org.jogamp.java3d.Texture2D;
 import org.jogamp.java3d.TextureUnitState;
 import org.jogamp.java3d.compressedtexture.dktxtools.dds.DDSDecompressor;
+import org.jogamp.java3d.compressedtexture.etcpack.ETCPack.FORMAT;
+import org.jogamp.java3d.compressedtexture.etcpack.QuickETC;
 
 import compressedtexture.ASTCImage;
 import compressedtexture.CompressedBufferedImage;
 import compressedtexture.DDSImage;
 import compressedtexture.KTXImage;
+import javaawt.Graphics2D;
 import javaawt.image.BufferedImage;
 
 /**
@@ -698,6 +702,59 @@ public abstract class CompressedTextureLoader {
 			return tex;
 
 		}
+		
+		public static Texture getTexture(String filename, BufferedImage image) {
 
+			// grab the raw bits and convert to ktx
+			if (image.getType() != BufferedImage.TYPE_INT_RGB && image.getType() != BufferedImage.TYPE_INT_ARGB) {
+				// Transform as TYPE_INT_ARGB or TYPE_INT_RGB (much faster than calling image.getRGB())
+				BufferedImage tmp = new BufferedImage(image.getWidth(), image.getHeight(), image
+						.getType() == BufferedImage.TYPE_4BYTE_ABGR || image.getType() == BufferedImage.TYPE_4BYTE_ABGR_PRE ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
+				Graphics2D g = (Graphics2D)tmp.getGraphics();
+				g.drawImage(image, null, 0, 0);
+				g.dispose();
+				image = tmp;
+			}
+			int[] imageBits = image.getRaster().getDataElements(0, 0, image.getWidth(), image.getHeight(), null);
+
+			// muck about to get ints to bytes
+			IntBuffer ib = IntBuffer.wrap(imageBits);
+			ByteBuffer bb = ByteBuffer.allocateDirect(imageBits.length * 4);
+			bb.asIntBuffer().put(ib);
+			bb.rewind();
+
+			//ok so now find the RGB or RGBA byte buffers
+			//FIXME: ETCPAck needs a single 4 channel method for compression
+			byte[] img = null;
+			byte[] imgalpha = null;
+			if (image.getType() == BufferedImage.TYPE_INT_RGB) {
+				img = new byte[(bb.capacity() / 4) * 3];
+				for (int i = 0; i < img.length / 3; i++) {
+					bb.get();// discard alpha (it's from a 4 byte int buffer)
+					img [i * 3 + 0] = bb.get();
+					img [i * 3 + 1] = bb.get();
+					img [i * 3 + 2] = bb.get();
+				}
+			} else if (image.getType() == BufferedImage.TYPE_INT_ARGB) {
+				// copy RGB 3 sets out then 1 sets of alpha 
+				img = new byte[(bb.capacity() / 4) * 3];
+				imgalpha = new byte[(bb.capacity() / 4)];
+				for (int i = 0; i < img.length / 3; i++) {
+					imgalpha [i] = bb.get();
+					img [i * 3 + 0] = bb.get();
+					img [i * 3 + 1] = bb.get();
+					img [i * 3 + 2] = bb.get();
+				}
+			}
+
+			FORMAT format = image
+					.getType() == BufferedImage.TYPE_INT_RGB ? FORMAT.ETC2PACKAGE_RGB : FORMAT.ETC2PACKAGE_RGBA;
+			QuickETC ep = new QuickETC();
+			ByteBuffer ktxBB = ep.compressImageToByteBuffer(img, imgalpha, image.getWidth(), image.getHeight(), format,
+					true);
+
+			Texture texture = CompressedTextureLoader.KTX.getTexture(filename, ktxBB);
+			return texture;
+		}
 	}
 }
