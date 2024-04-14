@@ -44,6 +44,8 @@ public abstract class CompressedTextureLoader {
 	//Set this to true where S3TC support not available, this is big and slow
 	public static boolean	RETURN_DECOMPRESSED_DDS	= false;
 	public static boolean	DROP_0_MIP				= false;
+	
+	public static String 	DROPPED_MIP_0_PREFIX = "NoMip0";
 
 	protected static int	anisotropicFilterDegree	= 0;
 
@@ -68,9 +70,12 @@ public abstract class CompressedTextureLoader {
 	 * @return Possibly a pre-loaded Texture, does not load if not found
 	 */
 	public static Texture checkCachedTexture(String filename) {
+		return checkCachedTexture(filename, false);
+	}
+	public static Texture checkCachedTexture(String filename, boolean dropMip0) {
 		//enable to test is caching is good
 		//requestStats.request(filename);
-
+		filename = dropMip0 ? filename + DROPPED_MIP_0_PREFIX : filename;
 		return loadedTextures.get(filename);
 	}
 
@@ -80,17 +85,29 @@ public abstract class CompressedTextureLoader {
 	 * @return
 	 */
 	public static TextureUnitState checkCachedTextureUnitState(String filename) {
+		return checkCachedTextureUnitState(filename, false);
+	}
+	public static TextureUnitState checkCachedTextureUnitState(String filename, boolean dropMip0) {
 		//enable to test is caching is good
 		//requestStats.request(filename);
+		filename = dropMip0 ? filename + DROPPED_MIP_0_PREFIX : filename;
 
 		return loadedTextureUnitStates.get(filename.replace(".dss", "").replace(".ktx", "").replace(".atc", ""));
 	}
 
 	public static void cacheTexture(String filename, Texture2D tex) {
+		cacheTexture(filename, tex, false);
+	}
+	public static void cacheTexture(String filename, Texture2D tex, boolean dropMip0) {
+		filename = dropMip0 ? filename + DROPPED_MIP_0_PREFIX : filename;
 		loadedTextures.put(filename.replace(".dss", "").replace(".ktx", "").replace(".atc", ""), tex);
 	}
 
 	public static void cacheTextureUnitState(String filename, TextureUnitState tus) {
+		cacheTextureUnitState(filename, tus, false);
+	}
+	public static void cacheTextureUnitState(String filename, TextureUnitState tus, boolean dropMip0) {
+		filename = dropMip0 ? filename + DROPPED_MIP_0_PREFIX : filename;
 		loadedTextureUnitStates.put(filename.replace(".dss", "").replace(".ktx", "").replace(".atc", ""), tus);
 	}
 
@@ -193,10 +210,13 @@ public abstract class CompressedTextureLoader {
 		}
 
 		public static TextureUnitState getTextureUnitState(String filename, InputStream inputStream) {
-			TextureUnitState ret_val = checkCachedTextureUnitState(filename);
+			return getTextureUnitState(filename, inputStream, false);
+		}
+		public static TextureUnitState getTextureUnitState(String filename, InputStream inputStream, boolean dropMip0) {
+			TextureUnitState ret_val = checkCachedTextureUnitState(filename, dropMip0);
 
 			if (ret_val == null) {
-				Texture tex = getTexture(filename, inputStream);
+				Texture tex = getTexture(filename, inputStream, dropMip0);
 				//notice nulls are fine
 
 				TextureUnitState tus = new TextureUnitState();
@@ -209,10 +229,13 @@ public abstract class CompressedTextureLoader {
 		}
 
 		public static TextureUnitState getTextureUnitState(String filename, ByteBuffer inputBuffer) {
-			TextureUnitState ret_val = checkCachedTextureUnitState(filename);
+			return getTextureUnitState(filename, inputBuffer, false);
+		}
+		public static TextureUnitState getTextureUnitState(String filename, ByteBuffer inputBuffer, boolean dropMip0) {
+			TextureUnitState ret_val = checkCachedTextureUnitState(filename, dropMip0);
 
 			if (ret_val == null) {
-				Texture tex = getTexture(filename, inputBuffer);
+				Texture tex = getTexture(filename, inputBuffer, dropMip0);
 				//notice nulls are fine
 
 				TextureUnitState tus = new TextureUnitState();
@@ -231,9 +254,12 @@ public abstract class CompressedTextureLoader {
 		 * @return A {@code Texture} with the associated DDS image or null if the image failed to load
 		 */
 		public static Texture getTexture(File file) {
+			return getTexture(file, false);		
+		}
+		public static Texture getTexture(File file, boolean dropMip0) {
 			String filename = file.getAbsolutePath();
 			try {
-				return getTexture(filename, new FileInputStream(file));
+				return getTexture(filename, new FileInputStream(file), dropMip0);
 			} catch (IOException e) {
 				System.out.println(""	+ ASTC.class + " had a  IO problem with " + filename + " : " + e + " "
 									+ e.getStackTrace() [0]);
@@ -249,13 +275,16 @@ public abstract class CompressedTextureLoader {
 		 * @return A {@code Texture} with the associated DDS image
 		 */
 		public static Texture getTexture(String filename, InputStream inputStream) {
+			return getTexture(filename, inputStream, false);
+		}
+		public static Texture getTexture(String filename, InputStream inputStream, boolean dropMip0) {
 			// Check the cache for an instance first
-			Texture ret_val = checkCachedTexture(filename);
+			Texture ret_val = checkCachedTexture(filename, dropMip0);
 
 			if (ret_val == null) {
 				try {
 					ASTCImage astcImage = new ASTCImage(toByteBuffer(inputStream));
-					Texture2D tex = createTexture(filename, astcImage);
+					Texture2D tex = createTexture(filename, astcImage, dropMip0);
 					ret_val = tex;
 				} catch (IOException e) {
 					System.out.println(""	+ ASTC.class + " had a  IO problem with " + filename + " : " + e + " "
@@ -274,13 +303,16 @@ public abstract class CompressedTextureLoader {
 		 * @return
 		 */
 		public static Texture getTexture(String filename, ByteBuffer inputBuffer) {
+			return getTexture(filename, inputBuffer, false);
+		}
+		public static Texture getTexture(String filename, ByteBuffer inputBuffer, boolean dropMip0) {
 			// Check the cache for an instance first
-			Texture ret_val = checkCachedTexture(filename);
+			Texture ret_val = checkCachedTexture(filename, dropMip0);
 
 			if (ret_val == null) {
 				try {
 					ASTCImage astcImage = new ASTCImage(inputBuffer);
-					Texture2D tex = createTexture(filename, astcImage);
+					Texture2D tex = createTexture(filename, astcImage, dropMip0);
 					ret_val = tex;
 				} catch (IOException e) {
 					System.out.println(""	+ ASTC.class + " had a  IO problem with " + filename + " : " + e + " "
@@ -290,8 +322,17 @@ public abstract class CompressedTextureLoader {
 			}
 			return ret_val;
 		}
-
 		protected static Texture2D createTexture(String filename, ASTCImage astcImage) {
+			return createTexture(filename, astcImage, false);
+		}
+		/**
+		 * Note dropMip0 ignored for now for ASTC
+		 * @param filename
+		 * @param astcImage
+		 * @param dropMip0
+		 * @return
+		 */
+		protected static Texture2D createTexture(String filename, ASTCImage astcImage, boolean dropMip0) {
 			Texture2D tex = new Texture2D(
 					astcImage.getNumMipMaps() <= 1 ? Texture.BASE_LEVEL : Texture.MULTI_LEVEL_MIPMAP, Texture.RGBA,
 					astcImage.getWidth(), astcImage.getHeight());
@@ -327,21 +368,26 @@ public abstract class CompressedTextureLoader {
 	public static class DDS extends CompressedTextureLoader {
 
 		public static TextureUnitState getTextureUnitState(File file) {
+			return getTextureUnitState(file, false);
+		}
+		public static TextureUnitState getTextureUnitState(File file, boolean dropMip0) {
 			String filename = file.getAbsolutePath();
 			try {
-				return getTextureUnitState(filename, new FileInputStream(file));
+				return getTextureUnitState(filename, new FileInputStream(file), dropMip0);
 			} catch (IOException e) {
 				System.out.println(""	+ DDS.class + " had a  IO problem with " + filename + " : " + e + " "
 									+ e.getStackTrace() [0]);
 				return null;
 			}
 		}
-
 		public static TextureUnitState getTextureUnitState(String filename, InputStream inputStream) {
-			TextureUnitState ret_val = checkCachedTextureUnitState(filename);
+			return getTextureUnitState(filename, inputStream, false);
+		}
+		public static TextureUnitState getTextureUnitState(String filename, InputStream inputStream, boolean dropMip0) {
+			TextureUnitState ret_val = checkCachedTextureUnitState(filename, dropMip0);
 
 			if (ret_val == null) {
-				Texture tex = getTexture(filename, inputStream);
+				Texture tex = getTexture(filename, inputStream, dropMip0);
 				//notice nulls are fine
 
 				TextureUnitState tus = new TextureUnitState();
@@ -352,12 +398,16 @@ public abstract class CompressedTextureLoader {
 			}
 			return ret_val;
 		}
-
+		
 		public static TextureUnitState getTextureUnitState(String filename, ByteBuffer inputBuffer) {
-			TextureUnitState ret_val = checkCachedTextureUnitState(filename);
+			return getTextureUnitState(filename, inputBuffer, false);
+		}
+
+		public static TextureUnitState getTextureUnitState(String filename, ByteBuffer inputBuffer, boolean dropMip0) {
+			TextureUnitState ret_val = checkCachedTextureUnitState(filename, dropMip0);
 
 			if (ret_val == null) {
-				Texture tex = getTexture(filename, inputBuffer);
+				Texture tex = getTexture(filename, inputBuffer, dropMip0);
 				//notice nulls are fine
 
 				TextureUnitState tus = new TextureUnitState();
@@ -376,9 +426,12 @@ public abstract class CompressedTextureLoader {
 		 * @return A {@code Texture} with the associated DDS image or null if the image failed to load
 		 */
 		public static Texture getTexture(File file) {
+			return getTexture(file, false);
+		}
+		public static Texture getTexture(File file, boolean dropMip0) {
 			String filename = file.getAbsolutePath();
 			try {
-				return getTexture(filename, new FileInputStream(file));
+				return getTexture(filename, new FileInputStream(file), dropMip0);
 			} catch (IOException e) {
 				System.out.println(""	+ DDS.class + " had a  IO problem with " + filename + " : " + e + " "
 									+ e.getStackTrace() [0]);
@@ -394,13 +447,16 @@ public abstract class CompressedTextureLoader {
 		 * @return A {@code Texture} with the associated DDS image
 		 */
 		public static Texture getTexture(String filename, InputStream inputStream) {
+			return getTexture(filename, inputStream, false);
+		}
+		public static Texture getTexture(String filename, InputStream inputStream, boolean dropMip0) {
 			// Check the cache for an instance first
-			Texture ret_val = checkCachedTexture(filename);
+			Texture ret_val = checkCachedTexture(filename, dropMip0);
 
 			if (ret_val == null) {
 				try {
 					DDSImage ddsImage = DDSImage.read(toByteBuffer(inputStream));
-					Texture2D tex = createTexture(filename, ddsImage);
+					Texture2D tex = createTexture(filename, ddsImage, dropMip0);
 					ret_val = tex;
 				} catch (IOException e) {
 					System.out.println(""	+ DDS.class + " had a  IO problem with " + filename + " : " + e + " "
@@ -418,15 +474,17 @@ public abstract class CompressedTextureLoader {
 		 * @param inputBuffer
 		 * @return
 		 */
-
 		public static Texture getTexture(String filename, ByteBuffer inputBuffer) {
+			return getTexture(filename, inputBuffer, false);
+		}
+		public static Texture getTexture(String filename, ByteBuffer inputBuffer, boolean dropMip0) {
 			// Check the cache for an instance first
-			Texture ret_val = checkCachedTexture(filename);
+			Texture ret_val = checkCachedTexture(filename, dropMip0);
 
 			if (ret_val == null) {
 				try {
 					DDSImage ddsImage = DDSImage.read(inputBuffer);
-					Texture2D tex = createTexture(filename, ddsImage);
+					Texture2D tex = createTexture(filename, ddsImage, dropMip0);
 					ret_val = tex;
 				} catch (IOException e) {
 					System.out.println(""	+ DDS.class + " had a  IO problem with " + filename + " : " + e + " "
@@ -438,6 +496,9 @@ public abstract class CompressedTextureLoader {
 		}
 
 		protected static Texture2D createTexture(String filename, DDSImage ddsImage) {
+			return createTexture(filename, ddsImage, false);
+		}
+		protected static Texture2D createTexture(String filename, DDSImage ddsImage, boolean dropMip0) {
 
 			// return null for unsupported types
 			if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_DXT2 //
@@ -460,7 +521,7 @@ public abstract class CompressedTextureLoader {
 			
 			Texture2D tex;
 			
-			if (!DROP_0_MIP || levels == 1) {
+			if (!(DROP_0_MIP || dropMip0)|| levels == 1) {
 
 				//note Texture.RGBA is not used on the pipeline for compressed image, the buffered image holds that info
 				tex = new Texture2D(mipMapMode, Texture.RGBA, ddsImage.getWidth(), ddsImage.getHeight());
@@ -501,9 +562,10 @@ public abstract class CompressedTextureLoader {
 						tex.setImage(i, new ImageComponent2D(format, decompressedImage, true, true));
 					}
 				}
+				 
 			} else {
 
-				//RUBBISH CODE TO THROW AWAY LEVEL 0, MAKES EVERYHTING LOOKS GOD AWFUL
+				//ONLY for far textures where they do't exist == only for TES3
 				tex = new Texture2D(mipMapMode, Texture.RGBA, ddsImage.getMipMap(1).getWidth(),
 						ddsImage.getMipMap(1).getHeight());
 
@@ -533,9 +595,10 @@ public abstract class CompressedTextureLoader {
 
 					tex.setImage(i, new ImageComponent2D(format, decompressedImage, true, true));
 				}
+				 
 			}
-
-			cacheTexture(filename, tex);
+			cacheTexture(filename, tex, dropMip0);		
+			
 
 			ddsImage.close();
 
@@ -546,10 +609,14 @@ public abstract class CompressedTextureLoader {
 
 	//KTX is a continer for an image, the implied compress here is ETC2 https://en.wikipedia.org/wiki/Ericsson_Texture_Compression
 	public static class KTX extends CompressedTextureLoader {
+		
 		public static TextureUnitState getTextureUnitState(File file) {
+			return getTextureUnitState(file, false);
+		}
+		public static TextureUnitState getTextureUnitState(File file, boolean dropMip0) {
 			String filename = file.getAbsolutePath();
 			try {
-				return getTextureUnitState(filename, new FileInputStream(file));
+				return getTextureUnitState(filename, new FileInputStream(file), dropMip0);
 			} catch (IOException e) {
 				System.out.println(""	+ KTX.class + " had a  IO problem with " + filename + " : " + e + " "
 									+ e.getStackTrace() [0]);
@@ -558,10 +625,13 @@ public abstract class CompressedTextureLoader {
 		}
 
 		public static TextureUnitState getTextureUnitState(String filename, InputStream inputStream) {
-			TextureUnitState ret_val = checkCachedTextureUnitState(filename);
+			return getTextureUnitState(filename, inputStream, false);
+		}
+		public static TextureUnitState getTextureUnitState(String filename, InputStream inputStream, boolean dropMip0) {
+			TextureUnitState ret_val = checkCachedTextureUnitState(filename, dropMip0);
 
 			if (ret_val == null) {
-				Texture tex = getTexture(filename, inputStream);
+				Texture tex = getTexture(filename, inputStream, dropMip0);
 				//notice nulls are fine
 
 				TextureUnitState tus = new TextureUnitState();
@@ -572,12 +642,14 @@ public abstract class CompressedTextureLoader {
 			}
 			return ret_val;
 		}
-
 		public static TextureUnitState getTextureUnitState(String filename, ByteBuffer inputBuffer) {
-			TextureUnitState ret_val = checkCachedTextureUnitState(filename);
+			return getTextureUnitState(filename, inputBuffer, false);
+		}
+		public static TextureUnitState getTextureUnitState(String filename, ByteBuffer inputBuffer, boolean dropMip0) {
+			TextureUnitState ret_val = checkCachedTextureUnitState(filename, dropMip0);
 
 			if (ret_val == null) {
-				Texture tex = getTexture(filename, inputBuffer);
+				Texture tex = getTexture(filename, inputBuffer, dropMip0);
 				//notice nulls are fine
 
 				TextureUnitState tus = new TextureUnitState();
@@ -596,9 +668,12 @@ public abstract class CompressedTextureLoader {
 		 * @return A {@code Texture} with the associated DDS image or null if the image failed to load
 		 */
 		public static Texture getTexture(File file) {
+			return getTexture(file, false);
+		}
+		public static Texture getTexture(File file, boolean dropMip0) {
 			String filename = file.getAbsolutePath();
 			try {
-				return getTexture(filename, new FileInputStream(file));
+				return getTexture(filename, new FileInputStream(file), dropMip0);
 			} catch (IOException e) {
 				System.out.println(""	+ KTX.class + " had a  IO problem with " + filename + " : " + e + " "
 									+ e.getStackTrace() [0]);
@@ -614,13 +689,16 @@ public abstract class CompressedTextureLoader {
 		 * @return A {@code Texture} with the associated DDS image
 		 */
 		public static Texture getTexture(String filename, InputStream inputStream) {
+			return getTexture(filename, inputStream, false);
+		}
+		public static Texture getTexture(String filename, InputStream inputStream, boolean dropMip0) {
 			// Check the cache for an instance first
-			Texture ret_val = checkCachedTexture(filename);
+			Texture ret_val = checkCachedTexture(filename, dropMip0);
 
 			if (ret_val == null) {
 				try {
 					KTXImage ktxImage = new KTXImage(toByteBuffer(inputStream));
-					ret_val = createTexture(filename, ktxImage);
+					ret_val = createTexture(filename, ktxImage, dropMip0);
 				} catch (IOException e) {
 					System.out.println(""	+ KTX.class + " had a  IO problem with " + filename + " : " + e + " "
 										+ e.getStackTrace() [0]);
@@ -637,15 +715,17 @@ public abstract class CompressedTextureLoader {
 		 * @param inputBuffer
 		 * @return
 		 */
-
 		public static Texture getTexture(String filename, ByteBuffer inputBuffer) {
+			return getTexture(filename, inputBuffer, false);
+		}
+		public static Texture getTexture(String filename, ByteBuffer inputBuffer, boolean dropMip0) {
 			// Check the cache for an instance first
-			Texture ret_val = checkCachedTexture(filename);
+			Texture ret_val = checkCachedTexture(filename, dropMip0);
 
 			if (ret_val == null) {
 				try {
 					KTXImage ktxImage = new KTXImage(inputBuffer);
-					ret_val = createTexture(filename, ktxImage);
+					ret_val = createTexture(filename, ktxImage, dropMip0);
 				} catch (IOException e) {
 					System.out.println(""	+ KTX.class + " had a  IO problem with " + filename + " : " + e + " "
 										+ e.getStackTrace() [0]);
@@ -655,9 +735,10 @@ public abstract class CompressedTextureLoader {
 			return ret_val;
 
 		}
-
 		protected static Texture2D createTexture(String filename, KTXImage ktxImage) {
-
+			return createTexture(filename, ktxImage, false);
+		}
+		protected static Texture2D createTexture(String filename, KTXImage ktxImage, boolean dropMip0) {
 			// unsupported type will have failed already		
 
 			int levels = ktxImage.getNumMipMaps();
@@ -670,37 +751,70 @@ public abstract class CompressedTextureLoader {
 			levels = levels == 0 ? 1 : levels;
 
 			int mipMapMode = ktxImage.getNumMipMaps() <= 1 ? Texture.BASE_LEVEL : Texture.MULTI_LEVEL_MIPMAP;
+			Texture2D tex;
+			
+			if (!(DROP_0_MIP || dropMip0)|| levels == 1) {
+	
+				//note Texture.RGBA is not used on the pipeline for compressed image, the buffered image holds that info
+				tex = new Texture2D(mipMapMode, Texture.RGBA, ktxImage.getWidth(), ktxImage.getHeight());
+	
+				tex.setName(filename);
+	
+				tex.setBaseLevel(0);
+				tex.setMaximumLevel(levels - 1);
+	
+				tex.setBoundaryModeS(Texture.WRAP);
+				tex.setBoundaryModeT(Texture.WRAP);
+	
+				// better to let machine decide
+				tex.setMinFilter(Texture.NICEST);
+				tex.setMagFilter(Texture.NICEST);
+	
+				//defaults to Texture.ANISOTROPIC_NONE
+				if (anisotropicFilterDegree > 0) {
+					tex.setAnisotropicFilterMode(Texture.ANISOTROPIC_SINGLE_VALUE);
+					tex.setAnisotropicFilterDegree(anisotropicFilterDegree);
+				}
+	
+				for (int i = 0; i < levels; i++) {
+					BufferedImage image = new CompressedBufferedImage.KTX(ktxImage, i, filename);
+					tex.setImage(i, new CompressedImageComponent2D(ImageComponent.FORMAT_RGBA, image));
+				}
 
-			//note Texture.RGBA is not used on the pipeline for compressed image, the buffered image holds that info
-			Texture2D tex = new Texture2D(mipMapMode, Texture.RGBA, ktxImage.getWidth(), ktxImage.getHeight());
+				 
+			} else {
 
-			tex.setName(filename);
+				//ONLY for far textures where they do't exist == only for TES3
+				tex = new Texture2D(mipMapMode, Texture.RGBA, ktxImage.getWidth()/2, ktxImage.getHeight()/2);
 
-			tex.setBaseLevel(0);
-			tex.setMaximumLevel(levels - 1);
+				tex.setName(filename);
 
-			tex.setBoundaryModeS(Texture.WRAP);
-			tex.setBoundaryModeT(Texture.WRAP);
+				tex.setBaseLevel(0);
+				tex.setMaximumLevel(levels > 2 ? levels - 2 : 0);
 
-			// better to let machine decide
-			tex.setMinFilter(Texture.NICEST);
-			tex.setMagFilter(Texture.NICEST);
+				tex.setBoundaryModeS(Texture.WRAP);
+				tex.setBoundaryModeT(Texture.WRAP);
 
-			//defaults to Texture.ANISOTROPIC_NONE
-			if (anisotropicFilterDegree > 0) {
-				tex.setAnisotropicFilterMode(Texture.ANISOTROPIC_SINGLE_VALUE);
-				tex.setAnisotropicFilterDegree(anisotropicFilterDegree);
-			}
+				// better to let machine decide
+				tex.setMinFilter(Texture.NICEST);
+				tex.setMagFilter(Texture.NICEST);
 
-			for (int i = 0; i < levels; i++) {
-				BufferedImage image = new CompressedBufferedImage.KTX(ktxImage, i, filename);
-				tex.setImage(i, new CompressedImageComponent2D(ImageComponent.FORMAT_RGBA, image));
-			}
+				//defaults to Texture.ANISOTROPIC_NONE
+				if (anisotropicFilterDegree > 0) {
+					tex.setAnisotropicFilterMode(Texture.ANISOTROPIC_SINGLE_VALUE);
+					tex.setAnisotropicFilterDegree(anisotropicFilterDegree);
+				}
 
-			cacheTexture(filename, tex);
+				// pull one higher and generally ruin the look of everything
+				for (int i = 0; i < levels - 1; i++) {
+					BufferedImage image = new CompressedBufferedImage.KTX(ktxImage, i + 1, filename);
+					tex.setImage(i, new CompressedImageComponent2D(ImageComponent.FORMAT_RGBA, image));			
+				}
+				
+			}			
+			cacheTexture(filename, tex, dropMip0);		
 
 			return tex;
-
 		}
 		
 		public static Texture getTexture(String filename, BufferedImage image) {
