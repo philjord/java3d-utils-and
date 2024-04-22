@@ -108,7 +108,7 @@ public class DDSDecompressor {
 			return decodeDxt3Buffer();
 		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_DXT5) {
 			return decompressRGBA_S3TC_DXT5_EXT();
-		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_ATI2) {
+		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_ATI2 || ddsImage.getPixelFormat() == DDSImage.D3DFMT_BC5U) {
 			// NOT correct but it gives you the idea a bit
 			return decompressRGBA_S3TC_DXT5_EXT();
 		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_R8G8B8) {
@@ -429,7 +429,7 @@ public class DDSDecompressor {
 			return decodeDxt3BufferNio();
 		} else if (fmt == DDSImage.D3DFMT_DXT5) {
 			return decompressRGBA_S3TC_DXT5_EXTNio();
-		} else if (fmt == DDSImage.D3DFMT_ATI2) {
+		} else if (fmt == DDSImage.D3DFMT_ATI2 || ddsImage.getPixelFormat() == DDSImage.D3DFMT_BC5U) {
 			// NOT correct but it gives you the idea a bit
 			return decompressRGBA_S3TC_DXT5_EXTNio();
 		} else if (fmt == DDSImage.D3DFMT_R8G8B8) {
