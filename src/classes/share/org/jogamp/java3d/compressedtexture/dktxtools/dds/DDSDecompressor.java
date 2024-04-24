@@ -113,8 +113,8 @@ public class DDSDecompressor {
 			return decompressRGBA_S3TC_DXT5_EXT();
 		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_R8G8B8) {
 			return decodeR8G8B8();
-		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_A8R8G8B8) {
-			return decodeA8R8G8B8();
+		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_A8B8G8R8) {
+			return decodeA8B8G8R8();
 		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_X8R8G8B8) {
 			return decodeA8R8G8B8();
 		} else if (ddsImage.getPixelFormat() == DDSImage.DDS_A16B16G16R16F) {
@@ -138,7 +138,20 @@ public class DDSDecompressor {
 		delegate.setRGB(0, 0, width, height, pixels, 0, width);
 		return delegate;
 	}
-
+	private BufferedImage decodeA8B8G8R8() {
+		//NOTE disagrees with fixed getType below
+		BufferedImage delegate = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		int[] pixels = new int[width * height];
+		// reverse to flip Y
+		for (int y = height - 1; y >= 0; y--) {
+			for (int x = 0; x < width; x++) {
+				pixels [(y * width) + x] = ((buffer.get() & 0xff) << 8 | (buffer.get() & 0xff) << 16
+											| (buffer.get() & 0xff) << 24);
+			}
+		}
+		delegate.setRGB(0, 0, width, height, pixels, 0, width);
+		return delegate;
+	}
 	private BufferedImage decodeA8R8G8B8() {
 		BufferedImage delegate = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 		int[] pixels = new int[width * height];
@@ -442,6 +455,8 @@ public class DDSDecompressor {
 			return decodeA4R4G4B4Nio();
 		} else if (fmt == DDSImage.D3DFMT_A8R8G8B8) {
 			return decodeA8R8G8B8Nio();
+		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_A8B8G8R8) {
+			return decodeA8B8G8R8Nio();
 		} else if (fmt == DDSImage.D3DFMT_X8R8G8B8) {
 			return decodeA8R8G8B8Nio();
 		} else if (fmt == DDSImage.DDS_A16B16G16R16F) {
@@ -571,6 +586,26 @@ public class DDSDecompressor {
 		}
 		return new NioImageBuffer(width, height, ImageType.TYPE_4BYTE_RGBA, directBuffer);
 	}
+	
+	private NioImageBuffer decodeA8B8G8R8Nio() {
+
+		ByteBuffer directBuffer = ByteBuffer.allocateDirect(width * height * 4).order(ByteOrder.nativeOrder());
+		// reverse to flip Y
+		for (int y = height - 1; y >= 0; y--) {
+			for (int x = 0; x < width; x++) {
+				byte a = buffer.get();	// swapped to end			
+				byte b = buffer.get();
+				byte g = buffer.get();
+				byte r = buffer.get();				
+				directBuffer.put(r);
+				directBuffer.put(g);
+				directBuffer.put(b);				
+				directBuffer.put(a);
+			}
+		}
+		return new NioImageBuffer(width, height, ImageType.TYPE_4BYTE_RGBA, directBuffer);
+	}
+	 
 
 	private NioImageBuffer decodeA16R16G16B16Nio() {
 		//TODO: this is a dodgy layout here tested good on black prophecy images only		
