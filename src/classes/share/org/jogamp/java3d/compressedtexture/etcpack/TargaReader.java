@@ -4,7 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.awt.image.BufferedImage;
+import javaawt.image.BufferedImage;
 
 //http://paulbourke.net/dataformats/tga/
 //little endian multi-byte integers: "low-order byte,high-order byte"
