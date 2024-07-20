@@ -419,7 +419,9 @@ public class SimpleShaderAppearance extends ShaderAppearance {
 
 	public void setUpdatableCapabilities() {
 		if(!this.getCapability(ALLOW_MATERIAL_READ))
-			this.setCapability(ALLOW_MATERIAL_READ);
+			this.setCapability(ALLOW_MATERIAL_READ);			
+		if (this.getMaterial() != null && !this.getMaterial().getCapability(Material.ALLOW_COMPONENT_READ))
+			this.getMaterial().setCapability(Material.ALLOW_COMPONENT_READ);
 		if(!this.getCapability(ALLOW_TEXTURE_UNIT_STATE_READ))
 			this.setCapability(ALLOW_TEXTURE_UNIT_STATE_READ);
 		if(!this.getCapability(ALLOW_TEXTURE_READ))
@@ -451,6 +453,9 @@ public class SimpleShaderAppearance extends ShaderAppearance {
 							&& this.getCapability(ALLOW_POLYGON_ATTRIBUTES_READ)
 							&& this.getCapability(ALLOW_TEXTURE_ATTRIBUTES_READ)))//		
 					// second part of check is that each component can be live/compiled elsewhere so need checking separately
+					&& (this.getMaterial() == null // no material
+							|| (!this.getMaterial().isLive() && !this.getMaterial().isCompiled()) //  Material not yet live
+							|| this.getMaterial().getCapability(Material.ALLOW_COMPONENT_READ))// Material live but can be read
 					&& (this.getPolygonAttributes() == null // no poly attributes
 							|| (!this.getPolygonAttributes().isLive() && !this.getPolygonAttributes().isCompiled()) // poly attributes are not yet live
 							|| this.getPolygonAttributes().getCapability(PolygonAttributes.ALLOW_MODE_READ))//poly attributes are live but can be read
@@ -509,6 +514,13 @@ public class SimpleShaderAppearance extends ShaderAppearance {
 				System.out.println("this.getCapability(ALLOW_TEXTURE_READ) " + this.getCapability(ALLOW_TEXTURE_READ));
 				System.out
 						.println("this.getCapability(ALLOW_POLYGON_ATTRIBUTES_READ) " + this.getCapability(ALLOW_POLYGON_ATTRIBUTES_READ));
+				
+				if(this.getCapability(ALLOW_MATERIAL_READ)) {
+					System.out.println("this.getMaterial() == null " + (this.getMaterial() == null));
+					if (this.getMaterial() != null)
+						System.out.println("this.getMaterial().getCapability(Material.ALLOW_COMPONENT_READ) "
+								+ this.getMaterial().getCapability(Material.ALLOW_COMPONENT_READ));
+				}
 
 				if(this.getCapability(ALLOW_POLYGON_ATTRIBUTES_READ)) {
 					System.out.println("this.getPolygonAttributes() == null " + (this.getPolygonAttributes() == null));
