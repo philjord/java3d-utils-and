@@ -39,13 +39,12 @@
 	</scm>
 	
 	<properties>
-		<jogamp.version>2.5.0</jogamp.version>
+		<jogamp.version>2.6.0</jogamp.version>
 
 		<!-- NB: Avoid platform encoding warning when copying resources. -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-				
-	</properties>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>				
+	</properties>	
 	<repositories>
           <repository>
             <id>jogamp-remote</id>
