@@ -75,7 +75,7 @@
 			<groupId>org.jogamp.joal</groupId>
 			<artifactId>joal-android</artifactId>
 			<version>${jogamp.version}</version>
-			<optional>true</optional> <!-- otherwise dependent project will pull this in, but we actually merge it into the output -->			
+			<optional>true</optional> <!-- if wanted then users can import the jar them selves implementation ('org.jogamp.joal:joal-android:2.6.0') -->
 		</dependency>
 	</dependencies>
 	
