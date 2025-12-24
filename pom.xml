@@ -32,10 +32,10 @@
 	</developers>
 	
 	<scm>
-		<connection>scm:git:https://bitbucket.org/philjord/java3d-utils-and</connection>
+		<connection>scm:git:https://github.com/philjord/java3d-utils-and</connection>
 		<developerConnection></developerConnection>
 		<tag>HEAD</tag>
-		<url>https://bitbucket.org/philjord/java3d-utils-and</url>
+		<url>https://github.com/philjord/java3d-utils-and</url>
 	</scm>
 	
 	<properties>
@@ -101,30 +101,23 @@
           <target>1.8</target>
         </configuration>
       </plugin>
-      <!-- This project overrides a few of the classes in it's parent, for now swap javadoc back to parent, this is not a merge -->
+      <!-- This project overrides a few of the classes in it's parent, there is no good javadoc merger, shade doesn't do it' -->
 	  <plugin>
-	    <groupId>org.codehaus.mojo</groupId>
-	    <artifactId>build-helper-maven-plugin</artifactId>
-	    <version>3.4.0</version>
-	    <executions>
-	        <execution>
-	            <id>attach</id>
-	            <phase>package</phase>
-	            <goals>
-	                <goal>attach-artifact</goal>
-	            </goals>
-	            <configuration>
-	               <artifacts>
-	                  <artifact>
-	                      <file>../java3d-utils/target/java3d-utils-${project.version}-javadoc.jar</file>
-	                      <type>jar</type>
-	                      <classifier>javadoc</classifier>
-	                  </artifact>
-	               </artifacts>
-	            </configuration>
-	        </execution>
-	    </executions>
-	 </plugin>
+			<artifactId>maven-javadoc-plugin</artifactId>
+			<version>3.1.1</version>
+			<configuration>
+				<additionalJOption>-Xdoclint:none</additionalJOption>
+				<quiet>true</quiet>
+			</configuration>
+			<executions>
+				<execution>
+					<id>attach-javadocs</id>
+					<goals>
+						<goal>jar</goal>
+					</goals>
+				</execution>
+			</executions>				
+		</plugin>		
 	  <plugin>
 		<groupId>org.apache.maven.plugins</groupId>
 		<artifactId>maven-source-plugin</artifactId>
@@ -153,12 +146,27 @@
                 	<includes>
                			<include>${project.groupId}:java3d-utils-and:jar:</include>
           				<include>${project.groupId}:java3d-utils:jar:</include>  
-          				<include>org.jogamp.joal:joal-android:jar:</include>            	
                 	</includes>
             	</artifactSet>   
             	<createDependencyReducedPom>false</createDependencyReducedPom>                      
             </configuration>
           </execution>
+          <execution>
+	        <id>source-jar</id>
+	        <goals>
+	          <goal>shade</goal>
+	        </goals>
+	        <configuration>
+	          <createSourcesJar>true</createSourcesJar>
+	          <artifactSet>
+	            <includes>
+	              <include>${project.groupId}:java3d-utils-and:jar:</include>
+	              <include>${project.groupId}:java3d-utils:jar:</include>
+	            </includes>
+	          </artifactSet>
+	          <createDependencyReducedPom>false</createDependencyReducedPom>
+	        </configuration>
+	      </execution>
         </executions>
       </plugin>
     </plugins>
