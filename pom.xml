@@ -45,20 +45,6 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>				
 	</properties>	
-	<repositories>
-          <repository>
-            <id>jogamp-remote</id>
-            <name>jogamp test mirror</name>
-            <url>https://www.jogamp.org/deployment/maven/</url>
-            <layout>default</layout>
-          </repository>
-          <repository>
-            <id>jogamp-java3d-remote</id>
-            <name>jogamp java3d test mirror</name>
-            <url>https://www.jogamp.org/deployment/maven-java3d/</url>
-            <layout>default</layout>
-          </repository>
-    </repositories>
 	<dependencies>
 	    <dependency>
 			<groupId>${project.groupId}</groupId>
@@ -71,12 +57,11 @@
 			<version>${project.version}</version>
 			<optional>true</optional> <!-- otherwise dependent project will pull this in, but we actually merge it into the output -->			
 		</dependency>	
-		<dependency>
+		<dependency> <!-- because we exclude java3d-util as optional we need to put back in the joal as mandatory from that project -->	
 			<groupId>org.jogamp.joal</groupId>
-			<artifactId>joal-android</artifactId>
+			<artifactId>joal</artifactId>
 			<version>${jogamp.version}</version>
-			<optional>true</optional> <!-- if wanted then users can import the jar them selves implementation ('org.jogamp.joal:joal-android:2.6.0') -->
-		</dependency>
+		</dependency>		
 	</dependencies>
 	
   <build>
