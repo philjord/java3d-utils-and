@@ -117,7 +117,7 @@ public class DDSDecompressor {
 			return decodeA8B8G8R8();
 		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_X8R8G8B8) {
 			return decodeA8R8G8B8();
-		} else if (ddsImage.getPixelFormat() == DDSImage.DDS_A16B16G16R16F) {
+		} else if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_A16B16G16R16F) {
 			return decodeA16R16G16B16();
 		}
 		System.err.println("BAD DXT format!! " + ddsImage.getPixelFormat());
@@ -459,7 +459,7 @@ public class DDSDecompressor {
 			return decodeA8B8G8R8Nio();
 		} else if (fmt == DDSImage.D3DFMT_X8R8G8B8) {
 			return decodeA8R8G8B8Nio();
-		} else if (fmt == DDSImage.DDS_A16B16G16R16F) {
+		} else if (fmt == DDSImage.D3DFMT_A16B16G16R16F) {
 			return decodeA16R16G16B16Nio();
 		} else if (fmt == DDSImage.D3DFMT_R5G6B5) {
 			return decodeR5G6B5Nio();

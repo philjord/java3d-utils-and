@@ -501,10 +501,11 @@ public abstract class CompressedTextureLoader {
 		protected static Texture2D createTexture(String filename, DDSImage ddsImage, boolean dropMip0) {
 
 			// return null for unsupported types
-			if (ddsImage.getPixelFormat() == DDSImage.D3DFMT_DXT2 //
-				|| ddsImage.getPixelFormat() == DDSImage.D3DFMT_DXT4 //
-				|| ddsImage.getPixelFormat() == DDSImage.D3DFMT_UNKNOWN) {
-				System.out.println("Unsupported DDS format " + ddsImage.getPixelFormat() + " for file " + filename);
+			int pixelFormat = ddsImage.getPixelFormat();
+			if ( pixelFormat == DDSImage.D3DFMT_DXT2 //
+				|| pixelFormat == DDSImage.D3DFMT_DXT4 //
+				|| pixelFormat == DDSImage.D3DFMT_UNKNOWN) {
+				System.out.println("CompressedTextureLoader.createTexture - Unsupported DDS format " + ddsImage.getPixelFormat() + " for file " + filename);
 				return null;
 			}
 
